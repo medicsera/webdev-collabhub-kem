@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "dataset_name": "VKR_IT_SkillMatch_Benchmark_v1",
+    "weights_config": {
+      "critical_skills": 0.60,
+      "important_skills": 0.25,
+      "optional_soft": 0.15
+    }
+  },
+  "students": [
+    {
+      "student_id": "S1",
+      "raw_input": "Учусь на 4 курсе прикладной информатики. Полтора года пилю фронтенд. Основной стек — вьюшка третья (Composition API), тайпскрипт, пиния, сборка на вите, стили на SCSS. Делал с одногруппником большую платформу проката авто, там еще немного трогал ноду и экспресс, чтобы сваггер подружить с фронтом. Гит знаю отлично, в фигме макеты читаю без проблем. Хочу интересный проект на фронте или фуллстеке, работаю в срок, не пропадаю.",
+      "ground_truth": {
+        "level": "Junior+",
+        "core_skills": ["Vue 3", "TypeScript", "JavaScript", "Pinia", "SCSS", "HTML/CSS", "Vite"],
+        "secondary_skills": ["Node.js", "Express", "REST API", "Swagger", "Git", "Figma"],
+        "soft_skills": ["Командная работа", "Ответственность", "Соблюдение дедлайнов"]
+      }
+    },
+    {
+      "student_id": "S2",
+      "raw_input": "Привет! Я 3 курс, специализируюсь на питоне и бэкенде. Писал микросервисы на фастапи, до этого делал учебный магазин на джанго. Базы данных — в основном постгрес, умею писать сложные джойны, индексы, недавно крутил pgvector для поиска по эмбеддингам. Кэширование делал через редис, все заворачиваю в докер и докер-компоуз. Линукс (убунту, центос) знаю на уровне уверенного админа. Спокойный, люблю чистый код и доки.",
+      "ground_truth": {
+        "level": "Junior+",
+        "core_skills": ["Python", "FastAPI", "Django", "PostgreSQL", "SQL", "Redis", "Docker"],
+        "secondary_skills": ["pgvector", "Docker Compose", "Linux", "Microservices", "REST API", "Git"],
+        "soft_skills": ["Внимание к качеству кода", "Работа с документацией", "Уравновешенность"]
+      }
+    },
+    {
+      "student_id": "S3",
+      "raw_input": "Я на 3 курсе, больше по фронту, но учил реакт. Пишу на React + TypeScript, стейт-менеджер Redux Toolkit и Zustand, верстка на Tailwind. Делал пет-проект — трекер задач с канбан-доской и авторизацией по JWT. С бэком работал только через axios. Очень быстро разбираюсь в новых фреймворках, если надо — выучу что угодно за выходные. Люблю созваниваться и обсуждать фичи.",
+      "ground_truth": {
+        "level": "Junior",
+        "core_skills": ["React", "TypeScript", "JavaScript", "Redux Toolkit", "Zustand", "Tailwind CSS", "HTML/CSS"],
+        "secondary_skills": ["REST API", "Axios", "JWT", "Git"],
+        "soft_skills": ["Быстрая обучаемость", "Коммуникабельность", "Инициативность"]
+      }
+    },
+    {
+      "student_id": "S4",
+      "raw_input": "4 курс, увлекаюсь машинным обучением и анализом данных. Отлично знаю питон, пандас, нампай, scikit-learn. В прошлом семестре дообучал трансформеры из hugging face (RuBERT) для классификации новостей в каггле. Знаю базовый SQL, могу обернуть модельку в простой сервис на Flask или Streamlit. С математикой и статистикой всё супер, сам подрабатываю репетитором по профильной математике.",
+      "ground_truth": {
+        "level": "Junior",
+        "core_skills": ["Python", "Machine Learning", "NLP", "PyTorch", "Hugging Face", "Pandas", "Scikit-learn"],
+        "secondary_skills": ["SQL", "Flask", "Streamlit", "NumPy", "RuBERT"],
+        "soft_skills": ["Аналитическое мышление", "Навыки презентации"]
+      }
+    },
+    {
+      "student_id": "S5",
+      "raw_input": "2 курс. В вузе прошли C++ и алгоритмы, сдал на отлично. Сейчас сам учу ноду (Node.js + Express) и монгу (MongoDB), сделал телеграм-бота с базой данных и простую админку. Еще умею пользоваться гитом и базово запускал докер. Опыта в реальных командах пока нет, но я очень ответственный, английский B2, готов сидеть по вечерам и разбираться.",
+      "ground_truth": {
+        "level": "Intern",
+        "core_skills": ["Node.js", "Express", "MongoDB", "JavaScript", "C++", "Алгоритмы"],
+        "secondary_skills": ["Telegram Bot API", "Git", "Docker", "Английский B2"],
+        "soft_skills": ["Ответственность", "Высокая мотивация", "Обучаемость"]
+      }
+    },
+    {
+      "student_id": "S6",
+      "raw_input": "Привет, я первокурсник, пока мало что умею в программировании, на информатике пишем простые задачки на питоне (циклы, списки) и немного делали странички на чистом HTML и CSS в школе. Зато я староста группы, отлично организую людей, веду таблицы в гугл докс и ноушен, никогда не опаздываю, очень дружелюбный, есть гитхаб аккаунт и базовый английский.",
+      "ground_truth": {
+        "level": "Intern",
+        "core_skills": ["Python", "HTML/CSS", "Google Sheets", "Notion"],
+        "secondary_skills": ["Git", "Английский"],
+        "soft_skills": ["Лидерство", "Организаторские способности", "Пунктуальность", "Дружелюбность", "Коммуникабельность"]
+      }
+    },
+    {
+      "student_id": "S7",
+      "raw_input": "3 курс. Занимаюсь мобильной разработкой под Android на Kotlin (Jetpack Compose, Coroutines, Retrofit, Room). Делал клиентское приложение для расписания вуза. Немного щупал Flutter для кроссплатформы. Бэкенд сам не пишу, но умею работать с Firebase и готовым REST API. Умею работать по скраму в Jira, спокойно отношусь к код-ревью.",
+      "ground_truth": {
+        "level": "Junior",
+        "core_skills": ["Kotlin", "Android SDK", "Jetpack Compose", "Coroutines", "Retrofit", "Room"],
+        "secondary_skills": ["Flutter", "Firebase", "REST API", "Git", "Jira"],
+        "soft_skills": ["Работа по Scrum", "Восприятие критики"]
+      }
+    },
+    {
+      "student_id": "S8",
+      "raw_input": "4 курс, DevOps и системное программирование. Живу в терминале Linux (ALT Linux, CentOS, Debian). Настраиваю CI/CD в GitLab, пишу конфиги для Nginx, упаковываю всё в Docker, поднимал учебный кластер Kubernetes. Для автоматизации пишу скрипты на Bash и Python, также хорошо знаю C++ и сетевые протоколы (TCP/IP, HTTP, DNS). Могу поднять и мониторить любую инфраструктуру (Prometheus + Grafana).",
+      "ground_truth": {
+        "level": "Junior+",
+        "core_skills": ["Linux", "Docker", "GitLab CI/CD", "Nginx", "Bash", "TCP/IP"],
+        "secondary_skills": ["Kubernetes", "Prometheus", "Grafana", "Python", "C++"],
+        "soft_skills": ["Самостоятельность", "Системное мышление", "Надежность"]
+      }
+    }
+  ],
+  "projects": [
+    {
+      "project_id": "P1",
+      "raw_input": "Ищем фронтендера в команду для разработки личного кабинета корпоративного портала. Стек у нас современный: Vue 3 (Composition API), TypeScript, Pinia, Vite, SCSS. Нужно будет верстать по макетам из Figma и подключать готовые ручки бэкенда по Swagger. Очень важно, чтобы человек был дружелюбным, умел работать в Jira и приходил на дейлики в 11 утра.",
+      "ground_truth": {
+        "critical_skills": ["Vue 3", "TypeScript", "Pinia", "SCSS", "HTML/CSS"],
+        "important_skills": ["Vite", "REST API", "Swagger", "Figma", "Git"],
+        "optional_soft": ["Jira", "Дружелюбность", "Командная работа"]
+      }
+    },
+    {
+      "project_id": "P2",
+      "raw_input": "Нам в стартап нужен бэкенд-разработчик на Python. Делаем сервис умного поиска по юридическим документам. Нужно поднять API на FastAPI, базу данных PostgreSQL + расширение pgvector для хранения векторов, прикрутить Redis для кэша и упаковать всё в Docker. Будет плюсом, если человек умеет работать с Linux и писать чистый код.",
+      "ground_truth": {
+        "critical_skills": ["Python", "FastAPI", "PostgreSQL", "pgvector", "Docker"],
+        "important_skills": ["Redis", "REST API", "Linux", "SQL"],
+        "optional_soft": ["Чистый код", "Самостоятельность"]
+      }
+    },
+    {
+      "project_id": "P3",
+      "raw_input": "Нужно сделать веб-панель управления для внутреннего сервиса логистики. Фронт хотим на Vue 3 + TypeScript, там много таблиц, фильтров и авторизация по JWT. Макеты готовы. Главное — хорошее знание современного JS/TS и компонентного подхода, со стейт-менеджером поможем разобраться на месте.",
+      "ground_truth": {
+        "critical_skills": ["Vue 3", "TypeScript", "JavaScript", "HTML/CSS", "REST API"],
+        "important_skills": ["JWT", "Pinia", "Git"],
+        "optional_soft": ["Быстрая обучаемость", "Ответственность"]
+      }
+    },
+    {
+      "project_id": "P4",
+      "raw_input": "Отделу маркетинга нужен сервис автоматического анализа отзывов клиентов с маркетплейсов. Задача: брать выгрузку текстов, прогонять через нейросеть (например, открытый RuBERT или аналог на Python) для определения тональности и категорий проблем, сохранять статистику в БД и выводить простые графики в Streamlit. Нужен человек, который шарит в NLP и питоне.",
+      "ground_truth": {
+        "critical_skills": ["Python", "NLP", "Transformers", "RuBERT", "Pandas"],
+        "important_skills": ["Streamlit", "SQL", "Визуализация данных"],
+        "optional_soft": ["Аналитическое мышление"]
+      }
+    },
+    {
+      "project_id": "P5",
+      "raw_input": "Для студенческого спортивного клуба нужно разработать простое веб-приложение (промо-сайт с расписанием секций и формой записи). Ничего сверхъестественного: адаптивная верстка (HTML, CSS, базовый JavaScript), чтобы красиво открывалось с телефона и компьютера, и прикрутить отправку заявок на бэкенд. Сделаем быстро за месяц.",
+      "ground_truth": {
+        "critical_skills": ["HTML/CSS", "JavaScript", "Адаптивная верстка"],
+        "important_skills": ["REST API", "Git"],
+        "optional_soft": ["Исполнительность", "Соблюдение сроков"]
+      }
+    },
+    {
+      "project_id": "P6",
+      "raw_input": "Разрабатываем высоконагруженный сетевой демон под отечественную ОС (ALT Linux / Debian). Требуется уверенное знание C++, понимание сетевых протоколов TCP/IP, работа с многопоточностью и сокетами в Linux, сборка в Docker, базовый Git и технический английский для чтения документации. Очень важна пунктуальность, ответственность и умение работать в команде.",
+      "ground_truth": {
+        "critical_skills": ["C++", "Linux", "TCP/IP", "Многопоточность"],
+        "important_skills": ["Docker", "Git", "Английский"],
+        "optional_soft": ["Пунктуальность", "Ответственность", "Командная работа"]
+      }
+    },
+    {
+      "project_id": "P7",
+      "raw_input": "Нужно написать бэкенд для сервиса бронирования переговорных комнат на Node.js (Express). В качестве базы данных мы используем CouchDB (документоориентированная NoSQL база) и Redis для хранения сессий. Всё должно запускаться в Docker. Также нужно прикрутить уведомления через Telegram-бота.",
+      "ground_truth": {
+        "critical_skills": ["Node.js", "Express", "JavaScript", "CouchDB", "NoSQL"],
+        "important_skills": ["Telegram Bot API", "Docker", "Redis", "Git"],
+        "optional_soft": ["Обучаемость", "Ответственность"]
+      }
+    },
+    {
+      "project_id": "P8",
+      "raw_input": "Ищем Android-разработчика для создания мобильного приложения доставки еды из университетской столовой. Стек: Kotlin, Jetpack Compose, работа с сетью через Retrofit, пуш-уведомления через Firebase. Работаем по Scrum в Jira.",
+      "ground_truth": {
+        "critical_skills": ["Kotlin", "Android SDK", "Jetpack Compose", "Retrofit"],
+        "important_skills": ["Firebase", "REST API", "Git", "Jira"],
+        "optional_soft": ["Работа по Scrum", "Командная работа"]
+      }
+    }
+  ],
+  "matching_pairs": [
+    {"pair_id": "M01", "student_id": "S1", "project_id": "P1", "case_type": "missing_soft", "naive_keyword_score": 70, "ground_truth_score": 95, "acceptable_range": [88, 100]},
+    {"pair_id": "M02", "student_id": "S2", "project_id": "P2", "case_type": "exact_match", "naive_keyword_score": 95, "ground_truth_score": 98, "acceptable_range": [92, 100]},
+    {"pair_id": "M03", "student_id": "S3", "project_id": "P3", "case_type": "skill_transfer", "naive_keyword_score": 45, "ground_truth_score": 82, "acceptable_range": [72, 90]},
+    {"pair_id": "M04", "student_id": "S5", "project_id": "P7", "case_type": "skill_transfer", "naive_keyword_score": 55, "ground_truth_score": 85, "acceptable_range": [75, 92]},
+    {"pair_id": "M05", "student_id": "S6", "project_id": "P6", "case_type": "false_positive_water", "naive_keyword_score": 60, "ground_truth_score": 8, "acceptable_range": [0, 20]},
+    {"pair_id": "M06", "student_id": "S1", "project_id": "P5", "case_type": "overqualified", "naive_keyword_score": 30, "ground_truth_score": 96, "acceptable_range": [88, 100]},
+    {"pair_id": "M07", "student_id": "S4", "project_id": "P4", "case_type": "exact_match", "naive_keyword_score": 90, "ground_truth_score": 96, "acceptable_range": [90, 100]},
+    {"pair_id": "M08", "student_id": "S7", "project_id": "P8", "case_type": "exact_match", "naive_keyword_score": 95, "ground_truth_score": 97, "acceptable_range": [90, 100]},
+    {"pair_id": "M09", "student_id": "S8", "project_id": "P6", "case_type": "exact_match", "naive_keyword_score": 85, "ground_truth_score": 94, "acceptable_range": [86, 100]},
+    {"pair_id": "M10", "student_id": "S4", "project_id": "P2", "case_type": "skill_transfer", "naive_keyword_score": 35, "ground_truth_score": 62, "acceptable_range": [50, 74]},
+    {"pair_id": "M11", "student_id": "S2", "project_id": "P7", "case_type": "skill_transfer", "naive_keyword_score": 30, "ground_truth_score": 58, "acceptable_range": [45, 70]},
+    {"pair_id": "M12", "student_id": "S1", "project_id": "P7", "case_type": "skill_transfer", "naive_keyword_score": 40, "ground_truth_score": 68, "acceptable_range": [58, 78]},
+    {"pair_id": "M13", "student_id": "S6", "project_id": "P5", "case_type": "missing_minor", "naive_keyword_score": 50, "ground_truth_score": 65, "acceptable_range": [55, 75]},
+    {"pair_id": "M14", "student_id": "S5", "project_id": "P6", "case_type": "skill_transfer", "naive_keyword_score": 65, "ground_truth_score": 55, "acceptable_range": [42, 66]},
+    {"pair_id": "M15", "student_id": "S8", "project_id": "P2", "case_type": "skill_transfer", "naive_keyword_score": 45, "ground_truth_score": 64, "acceptable_range": [52, 74]},
+    {"pair_id": "M16", "student_id": "S7", "project_id": "P1", "case_type": "false_positive_water", "naive_keyword_score": 55, "ground_truth_score": 25, "acceptable_range": [12, 38]},
+    {"pair_id": "M17", "student_id": "S3", "project_id": "P1", "case_type": "skill_transfer", "naive_keyword_score": 40, "ground_truth_score": 78, "acceptable_range": [68, 86]},
+    {"pair_id": "M18", "student_id": "S2", "project_id": "P4", "case_type": "skill_transfer", "naive_keyword_score": 40, "ground_truth_score": 66, "acceptable_range": [55, 76]},
+    {"pair_id": "M19", "student_id": "S6", "project_id": "P2", "case_type": "false_positive_water", "naive_keyword_score": 25, "ground_truth_score": 5, "acceptable_range": [0, 15]},
+    {"pair_id": "M20", "student_id": "S1", "project_id": "P3", "case_type": "exact_match", "naive_keyword_score": 90, "ground_truth_score": 97, "acceptable_range": [90, 100]}
+  ]
+}
