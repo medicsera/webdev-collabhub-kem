@@ -1,0 +1,68 @@
+# Переменные окружения и секреты
+.env
+.env.local
+.env.*.local
+*.env
+
+# Node.js / Express & React (frontend & backend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Сборка и артефакты
+dist/
+build/
+.next/
+out/
+.turbo/
+
+# Кэш тестов и линтеров
+coverage/
+.eslintcache
+
+# Python (ai-service)
+# Виртуальные окружения
+venv/
+.venv/
+env/
+ENV/
+
+# Кэш байт-кода
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Кэш фреймворков и библиотек
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Скачанные веса моделей и кэш Hugging Face / PyTorch
+models/
+*.pt
+*.pth
+*.bin
+*.onnx
+*.safetensors
+.cache/
+
+# IntelliJ IDEA / WebStorm / VS Code
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Базы данных, логи и Docker
+log
+docker-volumes/
+pgdata/
+mongo_data/
+
+# Служебные файлы ОС
+.DS_Store
+Thumbs.db
