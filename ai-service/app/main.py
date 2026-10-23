@@ -21,7 +21,7 @@ def list_available_models():
 @app.get("/api/test-groq")
 def test_model(
         model: str = Query(
-            default="qwen/qwen3.8-27b",
+            default="openai/gpt-oss-120b",
             description="ID модели из списка /api/models",
         )
 ):

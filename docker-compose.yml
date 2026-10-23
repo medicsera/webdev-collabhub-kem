@@ -1,0 +1,47 @@
+services:
+  # База данных PostgreSQL 16 с pgvector
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: collabhub-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-collabhub_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-collabhub_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-collabhub_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - collabhub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-collabhub_user} -d ${POSTGRES_DB:-collabhub_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ИИ-микросервис на FastAPI
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: collabhub-ai-service
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DEFAULT_AI_MODEL=${DEFAULT_AI_MODEL:-openai/gpt-oss-120b}
+    env_file:
+      - ./ai-service/.env
+    networks:
+      - collabhub-network
+
+networks:
+  collabhub-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+    driver: local

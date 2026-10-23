@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/ai-service/venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.14 (webdev-collabhub-kem)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.14" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="Python 3.14 interpreter library" level="application" />
   </component>
