@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollabHub — Академический и деловой реестр проектов</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Cormorant Garamond (Editorial Serif), Plus Jakarta Sans (Clean Sans), JetBrains Mono (Ticker/Index) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        paper: {
+                            light: '#F6F3EC',     // Благородная теплая бумага
+                            card: '#FBF9F5',      // Слоновая кость для карточек
+                            muted: '#EBE5D8',     // Пастельный песочный для плашек
+                            border: '#D5CCB8',    // Тонкие классические линии
+                            dark: '#141311',      // Глубокий обсидиан / эспрессо
+                            darkCard: '#1C1A17',  // Темный картон
+                            darkBorder: '#332F29' // Тонкая бронзово-угольная линия
+                        },
+                        ink: {
+                            DEFAULT: '#181615',   // Типографская тушь
+                            muted: '#5C564F',     // Вторичный графит
+                            light: '#EAE4DC'      // Светлый пергамент для темной темы
+                        },
+                        oxblood: {
+                            DEFAULT: '#6E1E26',   // Бордовый / Оксфордский кармин
+                            hover: '#53151B',
+                            light: '#A8424D'
+                        },
+                        hunter: {
+                            DEFAULT: '#1F3A2E',   // Британский гоночный зеленый / Хвойный
+                            light: '#2D5241'
+                        },
+                        brass: {
+                            DEFAULT: '#9E7B42',   // Античная латунь / Старое золото
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        h1,
+        h2,
+        h3,
+        .editorial-serif {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+        }
+
+        /* Эффект двойной газетной линейки */
+        .double-rule-b {
+            border-bottom: 3px double #D5CCB8;
+        }
+
+        .dark .double-rule-b {
+            border-bottom: 3px double #332F29;
+        }
+
+        .double-rule-t {
+            border-top: 3px double #D5CCB8;
+        }
+
+        .dark .double-rule-t {
+            border-top: 3px double #332F29;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(3px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-paper-light text-ink dark:bg-paper-dark dark:text-ink-light min-h-screen transition-colors duration-300 flex flex-col selection:bg-oxblood selection:text-white">
+
+    <!-- ШАПКА И НАВИГАЦИЯ -->
+    <header class="sticky top-0 z-30 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-sm double-rule-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            <!-- Основная полоса заголовка -->
+            <div
+                class="py-5 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-paper-border dark:border-paper-darkBorder">
+
+                <!-- Выбор режима (Студент / Компания) -->
+                <div class="flex items-center gap-2 self-start md:self-center">
+                    <span
+                        class="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mr-1">Режим:</span>
+                    <div
+                        class="inline-flex border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-0.5">
+                        <button id="role-student-btn" onclick="setRole('student')"
+                            class="px-3 py-1 text-xs font-medium tracking-wide transition-colors bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark">
+                            Студент
+                        </button>
+                        <button id="role-hr-btn" onclick="setRole('hr')"
+                            class="px-3 py-1 text-xs font-medium tracking-wide transition-colors text-ink-muted dark:text-stone-400 hover:text-ink dark:hover:text-white">
+                            Компания (HR)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Центральный логотип -->
+                <div onclick="switchTab('catalog')" class="cursor-pointer text-center group">
+                    <div
+                        class="text-[10px] font-mono uppercase tracking-[0.3em] text-oxblood dark:text-oxblood-light mb-0.5">
+                        Academic & Industrial Registry</div>
+                    <div
+                        class="editorial-serif text-3xl sm:text-4xl font-bold tracking-tight text-ink dark:text-ink-light group-hover:opacity-80 transition">
+                        THE COLLAB<span class="italic font-normal">HUB</span>
+                    </div>
+                </div>
+
+                <!-- Правый блок: Переключение темы и Профиль -->
+                <div class="flex items-center gap-4 self-end md:self-center">
+                    <button onclick="toggleTheme()" title="Переключить тему"
+                        class="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 transition flex items-center gap-1.5 text-xs font-mono uppercase">
+                        <i data-lucide="sun" class="w-3.5 h-3.5 block dark:hidden text-brass"></i>
+                        <i data-lucide="moon" class="w-3.5 h-3.5 hidden dark:block"></i>
+                        <span id="theme-label" class="text-[10px]">Тема</span>
+                    </button>
+
+                    <div onclick="switchTab('profile')"
+                        class="flex items-center gap-3 pl-4 border-l border-paper-border dark:border-paper-darkBorder cursor-pointer group">
+                        <div id="user-avatar"
+                            class="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </div>
+                        <div class="hidden sm:block text-left">
+                            <div id="user-name"
+                                class="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors">
+                                Сергиенко А.</div>
+                            <div id="user-sub" class="text-[10px] font-mono text-ink-muted dark:text-stone-400">ФИТ-231
+                                • IV курс</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Рубрикатор (Навигация) -->
+            <nav id="main-nav"
+                class="flex items-center justify-center gap-2 sm:gap-8 py-2.5 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium">
+                <!-- Рендерится через JS -->
+            </nav>
+
+        </div>
+    </header>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ==================== РУБРИКА I: КАТАЛОГ ПРОЕКТОВ ==================== -->
+        <section id="tab-catalog" class="fade-in space-y-8">
+
+            <!-- Передовица -->
+            <div
+                class="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-10 relative">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <div
+                        class="lg:col-span-8 space-y-4 lg:border-r lg:border-paper-border dark:lg:border-paper-darkBorder lg:pr-8">
+                        <div
+                            class="flex items-center gap-3 text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
+                            <span>Каталог тем ВКР и стажировок</span>
+                            <span>—</span>
+                            <span>ИТ-компании Кузбасса</span>
+                        </div>
+                        <h1 class="text-3xl sm:text-5xl font-normal leading-[1.12] tracking-tight">
+                            Выберите реальную задачу для своего <span class="italic font-semibold">диплома или
+                                стажировки</span>.
+                        </h1>
+                        <p
+                            class="text-ink-muted dark:text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
+                            Верифицированные темы от ведущих технологических компаний региона. Интеллектуальный подбор
+                            на основе вашего стека технологий и интересов.
+                        </p>
+                    </div>
+
+                    <div class="lg:col-span-4 space-y-4 flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div
+                                class="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
+                                Совет программы</div>
+                            <p class="editorial-serif italic text-lg leading-snug text-ink dark:text-stone-200">
+                                «Платформа помогает студентам находить актуальные задачи бизнеса, а компаниям — готовых
+                                молодых специалистов».
+                            </p>
+                        </div>
+
+                        <div id="hero-hr-action"
+                            class="hidden pt-4 border-t border-paper-border dark:border-paper-darkBorder">
+                            <button onclick="openCreateModal()"
+                                class="w-full py-3 px-5 bg-oxblood hover:bg-oxblood-hover text-paper-light text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Опубликовать новый проект
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Фильтры и поиск -->
+            <div
+                class="border-y border-paper-border dark:border-paper-darkBorder py-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input id="search-input" oninput="renderProjects()" type="text"
+                        placeholder="Поиск по названию, компании или стеку (React, FastAPI, PostgreSQL)..."
+                        class="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light placeholder:text-ink-muted/70">
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="filter-type" onchange="renderProjects()"
+                        class="text-xs font-mono uppercase tracking-wider px-3 py-2.5 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder focus:outline-none">
+                        <option value="all">Все форматы</option>
+                        <option value="ВКР / Диплом">ВКР / Диплом</option>
+                        <option value="Стажировка">Стажировка</option>
+                        <option value="Курсовой проект">Курсовой проект</option>
+                    </select>
+                    <select id="filter-company" onchange="renderProjects()"
+                        class="text-xs font-mono uppercase tracking-wider px-3 py-2.5 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder focus:outline-none">
+                        <option value="all">Все компании</option>
+                        <option value="Софт Инжиниринг">Софт Инжиниринг</option>
+                        <option value="Goodline">Goodline</option>
+                        <option value="UniFun">UniFun</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Сетка проектов -->
+            <div id="projects-grid"
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-paper-border dark:bg-paper-darkBorder border border-paper-border dark:border-paper-darkBorder">
+                <!-- Рендерится через JS -->
+            </div>
+        </section>
+
+        <!-- ==================== РУБРИКА II: МОИ ПРОЕКТЫ И ЗАЯВКИ ==================== -->
+        <section id="tab-my-projects" class="hidden fade-in space-y-8">
+            <div class="double-rule-b pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                <div>
+                    <div class="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
+                        Личный кабинет студента</div>
+                    <h2 class="text-3xl sm:text-4xl font-normal mt-1">Активные исследования и поданные заявки</h2>
+                </div>
+                <div class="text-xs font-mono text-ink-muted dark:text-stone-400">Учебный год 2026/2027</div>
+            </div>
+
+            <!-- Дипломный проект -->
+            <div
+                class="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-8">
+                <div
+                    class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-paper-border dark:border-paper-darkBorder">
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="px-3 py-1 text-[11px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
+                            Статус: Утверждено к защите (ВКР)
+                        </span>
+                        <span class="text-xs font-mono text-ink-muted">Шифр: FIT-2026-CH</span>
+                    </div>
+                    <span class="text-xs font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light">Срок
+                        сдачи: 15 Ноября 2026</span>
+                </div>
+
+                <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-8 space-y-4">
+                        <h3 class="text-2xl sm:text-3xl font-semibold leading-snug">
+                            Информационная система взаимодействия студентов и профильных организаций в сфере проектной
+                            деятельности
+                        </h3>
+                        <p class="text-sm text-ink-muted dark:text-stone-300 leading-relaxed">
+                            Проектирование и программная реализация веб-платформы с интеллектуальным микросервисом
+                            рекомендаций на базе векторного поиска (<span class="font-mono text-xs">pgvector</span>) и
+                            локальных больших языковых моделей.
+                        </p>
+                        <div class="pt-3 flex flex-wrap gap-2">
+                            <span
+                                class="px-2.5 py-1 text-[11px] font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">React</span>
+                            <span
+                                class="px-2.5 py-1 text-[11px] font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">TypeScript</span>
+                            <span
+                                class="px-2.5 py-1 text-[11px] font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">FastAPI</span>
+                            <span
+                                class="px-2.5 py-1 text-[11px] font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">PostgreSQL
+                                + pgvector</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="lg:col-span-4 bg-paper-muted/60 dark:bg-paper-dark p-5 border border-paper-border dark:border-paper-darkBorder space-y-4">
+                        <div
+                            class="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 border-b border-paper-border pb-2">
+                            Состав команды и заказчик
+                        </div>
+                        <div class="space-y-2.5 text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-ink-muted">Разработчик / PM:</span>
+                                <span class="font-semibold">Сергиенко А.</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-ink-muted">Разработчик / ИИ:</span>
+                                <span class="font-semibold">Мирко А.</span>
+                            </div>
+                            <div class="flex justify-between pt-2.5 border-t border-paper-border">
+                                <span class="text-ink-muted">Отдел / Партнер:</span>
+                                <span
+                                    class="editorial-serif italic text-base font-semibold text-oxblood dark:text-oxblood-light">IT-дирекция
+                                    КемГУ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список отправленных заявок -->
+            <div class="space-y-4">
+                <h3 class="text-2xl font-normal border-b border-paper-border dark:border-paper-darkBorder pb-2">
+                    Отправленные заявки на проекты</h3>
+                <div id="student-applications-list"
+                    class="divide-y divide-paper-border dark:divide-paper-darkBorder border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard">
+                    <!-- Рендерится через JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== РУБРИКА III: ПАНЕЛЬ HR ==================== -->
+        <section id="tab-hr-dashboard" class="hidden fade-in space-y-8">
+            <div class="double-rule-b pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <div
+                        class="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light mb-1">
+                        Кабинет работодателя • Компания: Софт Инжиниринг
+                    </div>
+                    <h2 class="text-3xl sm:text-4xl font-normal">Управление проектными задачами и кандидатами</h2>
+                </div>
+                <button onclick="openCreateModal()"
+                    class="px-5 py-2.5 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood text-xs font-mono uppercase tracking-widest transition flex items-center gap-2">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Добавить проект
+                </button>
+            </div>
+
+            <!-- Сводка -->
+            <div
+                class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-paper-border dark:bg-paper-darkBorder border border-paper-border dark:border-paper-darkBorder">
+                <div class="bg-paper-card dark:bg-paper-darkCard p-6">
+                    <div class="text-[11px] font-mono uppercase tracking-widest text-ink-muted">Активных задач</div>
+                    <div class="editorial-serif text-4xl font-bold mt-2">04</div>
+                    <div class="text-xs font-mono text-hunter dark:text-emerald-400 mt-2">● Одобрено университетом</div>
+                </div>
+                <div class="bg-paper-card dark:bg-paper-darkCard p-6">
+                    <div class="text-[11px] font-mono uppercase tracking-widest text-ink-muted">Заявок от студентов
+                    </div>
+                    <div class="editorial-serif text-4xl font-bold mt-2 text-oxblood dark:text-oxblood-light">07</div>
+                    <div class="text-xs font-mono text-ink-muted mt-2">Отсортировано по семантическому матчу</div>
+                </div>
+                <div class="bg-paper-card dark:bg-paper-darkCard p-6">
+                    <div class="text-[11px] font-mono uppercase tracking-widest text-ink-muted">Департамент от компании
+                    </div>
+                    <div class="editorial-serif text-xl font-semibold mt-3">Департамент веб-разработки</div>
+                    <div class="text-xs font-mono text-ink-muted mt-2">Связь со студентами</div>
+                </div>
+            </div>
+
+            <!-- Список кандидатов -->
+            <div class="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard">
+                <div
+                    class="p-6 border-b border-paper-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-2xl font-normal">Список кандидатов и студенческих команд</h3>
+                        <p class="text-xs text-ink-muted font-mono mt-0.5">Ранжирование по семантическому матчу навыков
+                            и стека</p>
+                    </div>
+                    <span class="text-[11px] font-mono uppercase px-2.5 py-1 border border-paper-border">Осенний
+                        семестр</span>
+                </div>
+                <div class="divide-y divide-paper-border dark:divide-paper-darkBorder" id="hr-candidates-list">
+                    <!-- Рендерится через JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== РУБРИКА IV: ПРОФИЛЬ И AI ==================== -->
+        <section id="tab-profile" class="hidden fade-in space-y-8">
+            <div class="double-rule-b pb-4">
+                <div class="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">Личный
+                    профиль</div>
+                <h2 class="text-3xl sm:text-4xl font-normal mt-1">Академический профиль и подбор проектов (AI)</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                <!-- Карточка студента -->
+                <div
+                    class="lg:col-span-4 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-8 space-y-6">
+                    <div class="flex items-start gap-4 border-b border-paper-border pb-6">
+                        <div
+                            class="w-16 h-16 border-2 border-ink dark:border-ink-light bg-paper-muted flex items-center justify-center text-ink dark:text-ink-light shrink-0">
+                            <i data-lucide="user" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-semibold leading-tight">Сергиенко Александр</h3>
+                            <p class="text-xs font-mono text-ink-muted mt-1">КемГУ • ФИТ-231 • IV Курс</p>
+                            <div
+                                class="mt-2 inline-block px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
+                                Готов к практике
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 text-xs font-mono">
+                        <div class="flex justify-between py-1 border-b border-paper-border/60">
+                            <span class="text-ink-muted">СПЕЦИАЛИЗАЦИЯ:</span>
+                            <span class="font-medium">Fullstack / Team Lead</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-paper-border/60">
+                            <span class="text-ink-muted">TELEGRAM:</span>
+                            <span class="font-medium text-oxblood dark:text-oxblood-light">@SERK4S</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-paper-border/60">
+                            <span class="text-ink-muted">ГОРОД:</span>
+                            <span class="font-medium">Кемерово</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <div class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-3">Подтвержденные
+                            навыки (Стек)</div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span
+                                class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">React</span>
+                            <span
+                                class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">TypeScript</span>
+                            <span
+                                class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">Node.js</span>
+                            <span
+                                class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">FastAPI</span>
+                            <span
+                                class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">PostgreSQL</span>
+                            <span
+                                class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">Docker</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Рекомендации ИИ -->
+                <div
+                    class="lg:col-span-8 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-8 space-y-6">
+                    <div class="border-b border-paper-border pb-4 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] font-mono uppercase tracking-widest text-brass">Аналитический модуль
+                            </div>
+                            <h3 class="text-2xl font-normal mt-0.5">Рекомендации искусственного интеллекта</h3>
+                        </div>
+                        <span class="font-mono text-xs px-2.5 py-1 border border-paper-border">RuBERT + Qwen</span>
+                    </div>
+
+                    <blockquote class="p-6 bg-paper-muted/50 dark:bg-paper-dark border-l-2 border-oxblood space-y-3">
+                        <div
+                            class="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
+                            Анализ навыков и подходящих задач:
+                        </div>
+                        <p class="editorial-serif italic text-xl leading-relaxed text-ink dark:text-stone-200">
+                            «Ваш профиль показывает <strong>96% семантический матч</strong> с требованиями ведущих
+                            проектов от компаний <strong>«Софт Инжиниринг»</strong> и <strong>«Goodline»</strong>. Опыт
+                            работы с Docker, PostgreSQL и React позволяет эффективно решать задачи бэкенда и фронтенда.
+                            Рекомендуем подать заявку на системную архитектуру».
+                        </p>
+                    </blockquote>
+
+                    <div class="space-y-3 pt-2">
+                        <label class="block text-[11px] font-mono uppercase tracking-widest text-ink-muted">
+                            Обновить описание опыта (для пересчета рекомендаций):
+                        </label>
+                        <textarea id="ai-bio-input" rows="3"
+                            class="w-full p-3.5 text-sm bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none focus:border-ink leading-relaxed">Разрабатываю веб-приложения на React, TypeScript и Node.js. Есть опыт проектирования баз данных PostgreSQL, настройки Docker и управления командой.</textarea>
+                        <div class="flex justify-end">
+                            <button onclick="recalculateEmbeddings()"
+                                class="px-5 py-2.5 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood text-xs font-mono uppercase tracking-widest transition flex items-center gap-2">
+                                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Пересчитать вектор навыков
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ПОДВАЛ (ВКЛЮЧАЕТ ПЕРЕНЕСЕННУЮ ИНДЕКСНУЮ СТРОКУ) -->
+    <footer
+        class="mt-16 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard py-6 px-4 sm:px-8 text-xs text-ink-muted">
+        <div class="max-w-7xl mx-auto space-y-4">
+            <!-- Перенесенная верхняя индексная строка -->
+            <div
+                class="border-b border-paper-border dark:border-paper-darkBorder pb-4 text-[11px] font-mono tracking-wider uppercase flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-4">
+                    <span>КЕМГУ × IT-ДИРЕКЦИЯ</span>
+                    <span class="hidden sm:inline">•</span>
+                    <span class="hidden sm:inline">ПРОЕКТЫ ВКР И СТАЖИРОВКИ</span>
+                    <span class="hidden md:inline">•</span>
+                    <span class="hidden md:inline">ОКТЯБРЬ 2026</span>
+                </div>
+                <div class="flex items-center gap-5">
+                    <span>ИНДЕКС СОВПАДЕНИЯ AI: <strong class="text-hunter dark:text-emerald-400">96.4%</strong></span>
+                    <span class="hidden sm:inline">МОДЕЛЬ: <strong class="text-ink dark:text-ink-light">RuBERT + Qwen
+                            2.5</strong></span>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                <div class="editorial-serif italic text-base text-ink dark:text-stone-300">
+                    Выпускная квалификационная работа • Реестр проектной деятельности.
+                </div>
+                <div class="font-mono text-[11px] uppercase tracking-widest">
+                    КемГУ • ФИТ-231 • Сергиенко А. & Мирко А. • 2026
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ПОДАЧА ЗАЯВКИ -->
+    <div id="project-modal"
+        class="fixed inset-0 z-50 hidden bg-ink/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+            class="bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full p-6 sm:p-8 space-y-6 shadow-2xl fade-in">
+            <div class="flex items-start justify-between gap-4 border-b border-paper-border pb-4">
+                <div>
+                    <span id="modal-company"
+                        class="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">Компания</span>
+                    <h3 id="modal-title" class="text-2xl sm:text-3xl font-semibold mt-1 leading-snug">Заголовок проекта
+                    </h3>
+                </div>
+                <button onclick="closeProjectModal()" class="p-1 text-ink-muted hover:text-ink">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <p id="modal-desc" class="text-sm text-ink-muted dark:text-stone-300 leading-relaxed"></p>
+
+            <div>
+                <div class="text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-2">Технологический стек:
+                </div>
+                <div id="modal-tags" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="border-t border-paper-border pt-5 space-y-2">
+                <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted">
+                    Сопроводительное письмо или ссылка на репозиторий:
+                </label>
+                <textarea id="modal-cover-letter" rows="3"
+                    placeholder="Здравствуйте! Наша команда хотела бы взять этот проект в разработку..."
+                    class="w-full p-3 text-sm bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none focus:border-ink"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeProjectModal()"
+                    class="px-4 py-2 text-xs font-mono uppercase tracking-widest text-ink-muted hover:text-ink">Отмена</button>
+                <button onclick="submitApplication()"
+                    class="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-oxblood hover:bg-oxblood-hover text-paper-light transition">Отправить
+                    заявку</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: СОЗДАНИЕ ПРОЕКТА (HR) -->
+    <div id="create-modal"
+        class="fixed inset-0 z-50 hidden bg-ink/70 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+            class="bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl fade-in">
+            <div class="flex items-center justify-between border-b border-paper-border pb-3">
+                <div>
+                    <div class="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
+                        Кабинет компании</div>
+                    <h3 class="text-2xl font-semibold">Публикация проектной задачи</h3>
+                </div>
+                <button onclick="closeCreateModal()" class="p-1 text-ink-muted hover:text-ink">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Название
+                        темы / проекта</label>
+                    <input id="new-proj-title" type="text" placeholder="Например: Разработка модуля аналитики"
+                        class="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label
+                            class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Компания</label>
+                        <input id="new-proj-company" type="text" value="Софт Инжиниринг"
+                            class="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Формат</label>
+                        <select id="new-proj-type"
+                            class="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none">
+                            <option value="ВКР / Диплом">ВКР / Диплом</option>
+                            <option value="Стажировка">Стажировка</option>
+                            <option value="Курсовой проект">Курсовой проект</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Описание и
+                        требования</label>
+                    <textarea id="new-proj-desc" rows="3" placeholder="Опишите задачи и требования к команде..."
+                        class="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono uppercase tracking-widest text-ink-muted mb-1">Стек (через
+                        запятую)</label>
+                    <input id="new-proj-tags" type="text" placeholder="React, TypeScript, FastAPI, PostgreSQL"
+                        class="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-paper-border">
+                <button onclick="closeCreateModal()"
+                    class="px-4 py-2 text-xs font-mono uppercase tracking-widest text-ink-muted hover:text-ink">Отмена</button>
+                <button onclick="createNewProject()"
+                    class="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood transition">Опубликовать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЕ -->
+    <div id="toast"
+        class="fixed bottom-6 right-6 z-50 hidden bg-ink text-paper-light dark:bg-paper-card dark:text-ink-light px-5 py-3.5 border-2 border-brass shadow-xl text-xs font-mono uppercase tracking-wider flex items-center gap-3 fade-in">
+        <span class="w-2 h-2 bg-brass inline-block"></span>
+        <span id="toast-msg">Действие выполнено</span>
+    </div>
+
+    <!-- СКРИПТЫ ЛОГИКИ -->
+    <script>
+        let currentRole = 'student';
+        let currentTab = 'catalog';
+        let selectedProjectId = null;
+
+        let projects = [
+            {
+                id: 1,
+                index: '№ 01',
+                title: 'Интеллектуальная система классификации и маршрутизации обращений технической дирекции',
+                company: 'Софт Инжиниринг',
+                department: 'Департамент веб-разработки',
+                type: 'ВКР / Диплом',
+                match: 96,
+                teamSize: '2–3 студента',
+                desc: 'Разработка веб-интерфейса и микросервиса автоматической категоризации тикетов с применением локальных языковых моделей и векторного поиска.',
+                tags: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'Docker'],
+                applied: false
+            },
+            {
+                id: 2,
+                index: '№ 02',
+                title: 'Личный кабинет абонента и картографическая система покрытия сети с геоаналитикой',
+                company: 'Goodline',
+                department: 'Отдел цифровых продуктов связи',
+                type: 'Стажировка',
+                match: 92,
+                teamSize: '1–2 студента',
+                desc: 'Проектирование аналитической панели для мониторинга параметров связи и пространственной визуализации телекоммуникационных узлов.',
+                tags: ['React', 'TypeScript', 'Node.js', 'REST API'],
+                applied: true
+            },
+            {
+                id: 3,
+                index: '№ 03',
+                title: 'Высоконагруженный микросервис сценарной логики для телеком-платформ',
+                company: 'UniFun',
+                department: 'Backend Architecture Lab',
+                type: 'Стажировка',
+                match: 85,
+                teamSize: '2 студента',
+                desc: 'Построение отказоустойчивой архитектуры базы данных, кэширования и административного терминала управления трафиком.',
+                tags: ['Node.js', 'PostgreSQL', 'Redis', 'Docker'],
+                applied: false
+            },
+            {
+                id: 4,
+                index: '№ 04',
+                title: 'Автоматизированный комплекс формирования академических отчетов по практике',
+                company: 'Софт Инжиниринг',
+                department: 'Отдел интеграционных решений',
+                type: 'Курсовой проект',
+                match: 89,
+                teamSize: '1–2 студента',
+                desc: 'Сервис генерации отчетной документации по регламентам университета с верификацией оценок от наставников предприятия.',
+                tags: ['TypeScript', 'React', 'Node.js', 'PostgreSQL'],
+                applied: false
+            }
+        ];
+
+        let candidates = [
+            {
+                name: 'Сергиенко Александр & Мирко Антон',
+                group: 'КемГУ • ФИТ-231 (IV курс)',
+                project: 'Интеллектуальная система классификации и маршрутизации обращений',
+                match: 96,
+                stack: ['React', 'TypeScript', 'FastAPI', 'pgvector', 'Qwen 2.5'],
+                status: 'Новая заявка'
+            },
+            {
+                name: 'Кононенко Егор Сергеевич',
+                group: 'КемГУ • ФИТ-231 (IV курс)',
+                project: 'Автоматизированный комплекс отчетов по практике',
+                match: 88,
+                stack: ['JavaScript', 'Node.js', 'PostgreSQL', 'Docker'],
+                status: 'На рассмотрении'
+            }
+        ];
+
+        function init() {
+            renderNav();
+            renderProjects();
+            renderApplications();
+            renderHRCandidates();
+            lucide.createIcons();
+        }
+
+        function renderNav() {
+            const nav = document.getElementById('main-nav');
+            const tabs = currentRole === 'student'
+                ? [
+                    { id: 'catalog', label: 'Каталог проектов' },
+                    { id: 'my-projects', label: 'Мои заявки и ВКР' },
+                    { id: 'profile', label: 'Мой профиль и ИИ' }
+                ]
+                : [
+                    { id: 'hr-dashboard', label: 'Панель компании' },
+                    { id: 'catalog', label: 'Каталог проектов' }
+                ];
+
+            nav.innerHTML = tabs.map(t => `
+        <button onclick="switchTab('${t.id}')" class="px-3 py-1 transition-all whitespace-nowrap ${currentTab === t.id
+                    ? 'text-oxblood dark:text-oxblood-light font-semibold border-b-2 border-oxblood'
+                    : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                }">
+          ${t.label}
+        </button>
+      `).join('');
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            ['catalog', 'my-projects', 'hr-dashboard', 'profile'].forEach(id => {
+                document.getElementById('tab-' + id).classList.add('hidden');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            renderNav();
+        }
+
+        function setRole(role) {
+            currentRole = role;
+            const sBtn = document.getElementById('role-student-btn');
+            const hBtn = document.getElementById('role-hr-btn');
+            const heroAction = document.getElementById('hero-hr-action');
+
+            if (role === 'student') {
+                sBtn.className = 'px-3 py-1 text-xs font-medium tracking-wide transition-colors bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark';
+                hBtn.className = 'px-3 py-1 text-xs font-medium tracking-wide transition-colors text-ink-muted hover:text-ink';
+                document.getElementById('user-name').textContent = 'Сергиенко А.';
+                document.getElementById('user-sub').textContent = 'ФИТ-231 • IV курс';
+                heroAction.classList.add('hidden');
+                switchTab('catalog');
+            } else {
+                hBtn.className = 'px-3 py-1 text-xs font-medium tracking-wide transition-colors bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark';
+                sBtn.className = 'px-3 py-1 text-xs font-medium tracking-wide transition-colors text-ink-muted hover:text-ink';
+                document.getElementById('user-name').textContent = 'Валерия (HR)';
+                document.getElementById('user-sub').textContent = 'Софт Инжиниринг';
+                heroAction.classList.remove('hidden');
+                switchTab('hr-dashboard');
+            }
+            renderProjects();
+            showToast(role === 'student' ? 'Включен режим студента' : 'Включен режим представителя компании');
+        }
+
+        function renderProjects() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const typeFilter = document.getElementById('filter-type').value;
+            const compFilter = document.getElementById('filter-company').value;
+
+            const filtered = projects.filter(p => {
+                const matchSearch = p.title.toLowerCase().includes(search) ||
+                    p.company.toLowerCase().includes(search) ||
+                    p.tags.some(t => t.toLowerCase().includes(search));
+                const matchType = typeFilter === 'all' || p.type === typeFilter;
+                const matchComp = compFilter === 'all' || p.company === compFilter;
+                return matchSearch && matchType && matchComp;
+            });
+
+            const grid = document.getElementById('projects-grid');
+            grid.innerHTML = filtered.map(p => `
+        <article class="bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:bg-paper-muted/40 transition-colors">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-paper-border pb-2.5 text-[11px] font-mono">
+              <span class="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
+                ${p.index} • ${p.company}
+              </span>
+              <span class="text-hunter dark:text-emerald-400 font-medium">
+                СЕМАНТИЧЕСКИЙ МАТЧ: ${p.match}%
+              </span>
+            </div>
+
+            <div class="text-[10px] font-mono uppercase tracking-widest text-ink-muted">
+              ${p.type} — Группа: ${p.teamSize}
+            </div>
+
+            <h3 class="text-2xl font-semibold leading-snug text-ink dark:text-ink-light">
+              ${p.title}
+            </h3>
+
+            <p class="text-xs sm:text-sm text-ink-muted dark:text-stone-300 leading-relaxed line-clamp-3">
+              ${p.desc}
+            </p>
+          </div>
+
+          <div class="pt-6 mt-6 border-t border-paper-border space-y-4">
+            <div class="flex flex-wrap gap-1.5">
+              ${p.tags.map(t => `<span class="px-2 py-0.5 text-[10px] font-mono border border-paper-border bg-paper-light dark:bg-paper-dark text-ink-muted">${t}</span>`).join('')}
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="text-[11px] editorial-serif italic text-ink-muted">Заказчик: ${p.department}</span>
+              ${p.applied
+                    ? `<span class="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">Заявка отправлена</span>`
+                    : `<button onclick="openProjectModal(${p.id})" class="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light hover:bg-ink hover:text-paper-light transition">Подробнее →</button>`
+                }
+            </div>
+          </div>
+        </article>
+      `).join('');
+            lucide.createIcons();
+        }
+
+        function renderApplications() {
+            const container = document.getElementById('student-applications-list');
+            const appliedList = projects.filter(p => p.applied);
+            if (appliedList.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-sm editorial-serif italic text-ink-muted">У вас пока нет отправленных заявок. Выберите проект в каталоге.</div>`;
+                return;
+            }
+            container.innerHTML = appliedList.map(p => `
+        <div class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div class="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">${p.index} • ${p.company} • ${p.type}</div>
+            <div class="editorial-serif text-xl font-semibold mt-0.5">${p.title}</div>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <span class="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">На рассмотрении у компании</span>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        function renderHRCandidates() {
+            const container = document.getElementById('hr-candidates-list');
+            container.innerHTML = candidates.map((c, idx) => `
+        <div class="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-paper-muted/30 transition">
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="editorial-serif text-2xl font-semibold">${c.name}</span>
+              <span class="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">Совпадение: ${c.match}%</span>
+            </div>
+            <div class="text-xs font-mono text-ink-muted">
+              ${c.group} — Выбранный проект: <strong class="text-ink dark:text-stone-200 font-normal underline">${c.project}</strong>
+            </div>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              ${c.stack.map(s => `<span class="px-2 py-0.5 text-[10px] font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">${s}</span>`).join('')}
+            </div>
+          </div>
+          <div class="flex items-center gap-3 shrink-0">
+            <button onclick="approveCandidate(${idx})" class="px-4 py-2 bg-oxblood hover:bg-oxblood-hover text-paper-light text-[10px] font-mono uppercase tracking-widest transition">Пригласить в проект</button>
+            <button onclick="showToast('Сообщение отправлено студенту')" class="px-4 py-2 border border-paper-border text-[10px] font-mono uppercase tracking-widest hover:border-ink transition">Написать</button>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        function approveCandidate(idx) {
+            candidates[idx].status = 'Принят';
+            showToast(`Студент «${candidates[idx].name}» приглашен на проект`);
+        }
+
+        function openProjectModal(id) {
+            selectedProjectId = id;
+            const p = projects.find(x => x.id === id);
+            document.getElementById('modal-company').textContent = `${p.index} • ${p.company} • ${p.type}`;
+            document.getElementById('modal-title').textContent = p.title;
+            document.getElementById('modal-desc').textContent = p.desc;
+            document.getElementById('modal-tags').innerHTML = p.tags.map(t => `<span class="px-2.5 py-1 text-xs font-mono border border-paper-border bg-paper-light dark:bg-paper-dark">${t}</span>`).join('');
+            document.getElementById('project-modal').classList.remove('hidden');
+        }
+
+        function closeProjectModal() {
+            document.getElementById('project-modal').classList.add('hidden');
+        }
+
+        function submitApplication() {
+            const p = projects.find(x => x.id === selectedProjectId);
+            if (p) p.applied = true;
+            closeProjectModal();
+            renderProjects();
+            renderApplications();
+            showToast('Заявка успешно отправлена в компанию');
+        }
+
+        function openCreateModal() {
+            document.getElementById('create-modal').classList.remove('hidden');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('create-modal').classList.add('hidden');
+        }
+
+        function createNewProject() {
+            const title = document.getElementById('new-proj-title').value.trim();
+            const company = document.getElementById('new-proj-company').value.trim();
+            const type = document.getElementById('new-proj-type').value;
+            const desc = document.getElementById('new-proj-desc').value.trim();
+            const tagsRaw = document.getElementById('new-proj-tags').value;
+
+            if (!title) {
+                showToast('Укажите название проекта');
+                return;
+            }
+
+            projects.unshift({
+                id: Date.now(),
+                index: '№ 05',
+                title,
+                company: company || 'Софт Инжиниринг',
+                department: 'Департамент веб-разработки',
+                type,
+                match: 94,
+                teamSize: '2–3 студента',
+                desc: desc || 'Новое проектное задание от партнера.',
+                tags: tagsRaw ? tagsRaw.split(',').map(s => s.trim()) : ['React', 'TypeScript'],
+                applied: false
+            });
+
+            closeCreateModal();
+            renderProjects();
+            switchTab('catalog');
+            showToast('Проект добавлен в каталог');
+        }
+
+        function recalculateEmbeddings() {
+            showToast('Векторный профиль успешно пересчитан!');
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            document.getElementById('theme-label').textContent = isDark ? 'Светлая' : 'Темная';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+
+</html>
