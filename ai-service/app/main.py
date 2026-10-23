@@ -1,26 +1,40 @@
-from fastapi import FastAPI
-# Отредактируйте импорт под название вашего файла, если назвали его иначе
-from app.clients.base import test_ai_connection
+from fastapi import FastAPI, Query
+from app.clients.base import get_all_models, test_ai_connection
 
-app = FastAPI()
+app = FastAPI(title="AI Microservice - CollabHub")
 
-@app.get("/api/test-groq")
-def check_groq():
+
+@app.get("/api/models")
+def list_available_models():
+    """Эндпоинт для просмотра всех доступных моделей"""
     try:
-        response = test_ai_connection("Explain the importance of fast language models in 2 sentences.")
-        return {"status": "success", "ai_response": response}
+        models = get_all_models()
+        return {
+            "status": "success",
+            "count": len(models),
+            "models": models,
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-    # Добавьте в app/main.py
-# Импортируйте вашего клиента (убедитесь, что путь импорта верный)
-from app.clients.base import client
 
-@app.get("/api/models")
-def get_available_models():
+@app.get("/api/test-groq")
+def test_model(
+        model: str = Query(
+            default="qwen/qwen3.8-27b",
+            description="ID модели из списка /api/models",
+        )
+):
+    """Эндпоинт для проверки генерации ответа конкретной моделью"""
     try:
-        models = client.models.list()
-        # Извлекаем только названия (id) моделей для удобства
-        return {"available_models": [model.id for model in models.data]}
+        response = test_ai_connection(
+            prompt_text="Explain the importance of fast language models in 2 sentences.",
+            model_id=model,
+        )
+        return {
+            "status": "success",
+            "used_model": model,
+            "response": response,
+        }
     except Exception as e:
-        return {"error": str(e)}
+        return {"status": "error", "message": str(e)}

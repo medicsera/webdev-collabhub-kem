@@ -6,7 +6,7 @@
   <component name="ExtraIDETweaksSettingsProject">
     <option name="enableOpenEditorsShowRecentFiles" value="false" />
   </component>
-  <component name="ProjectRootManager">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_24" project-jdk-name="Python 3.14 (webdev-collabhub-kem)" project-jdk-type="Python SDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
