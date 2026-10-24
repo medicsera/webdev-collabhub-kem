@@ -30,9 +30,6 @@ services:
     restart: unless-stopped
     ports:
       - "8001:8001"
-    environment:
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - DEFAULT_AI_MODEL=${DEFAULT_AI_MODEL:-openai/gpt-oss-120b}
     env_file:
       - ./ai-service/.env
     networks:
@@ -53,6 +50,25 @@ services:
       - VITE_API_URL=http://localhost:5000/api/v1
     networks:
       - collabhub-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: collabhub-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - DATABASE_URL=postgres://collabhub_user:collabhub_secret@postgres:5432/collabhub_db
+    networks:
+      - collabhub-network
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 networks:
   collabhub-network:
