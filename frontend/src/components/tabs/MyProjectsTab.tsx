@@ -1,5 +1,7 @@
 import React from 'react';
 import type { Project } from '../../types';
+import { SkillBadge } from '../SkillBadge';
+import { SemanticMatchBadge } from '../SemanticMatchBadge';
 
 interface MyProjectsTabProps {
   projects: Project[];
@@ -28,13 +30,14 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
       {/* Дипломный проект (ВКР) */}
       <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-8 transition-colors duration-300">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-paper-border dark:border-paper-darkBorder">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <span className="px-3 py-1 text-[11px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
               Статус: Утверждено к защите (ВКР)
             </span>
             <span className="text-xs font-mono text-ink-muted dark:text-stone-400">
               Шифр: FIT-2026-CH
             </span>
+            <SemanticMatchBadge score={98} size="sm" label="Семантический матч ВКР" />
           </div>
           <span className="text-xs font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light font-medium">
             Срок сдачи: 15 Ноября 2026
@@ -51,16 +54,17 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
               Проектирование и программная реализация веб-платформы с интеллектуальным микросервисом
               рекомендаций на базе векторного поиска (
               <span className="font-mono text-xs text-ink dark:text-stone-200">pgvector</span>) и
-              локальных больших языковых моделей.
+              локальных больших языковых моделей (Qwen 2.5 + RuBERT).
             </p>
             <div className="pt-3 flex flex-wrap gap-2">
-              {['React', 'TypeScript', 'FastAPI', 'PostgreSQL + pgvector'].map((tech) => (
-                <span
-                  key={tech}
-                  className="px-3.5 py-1.5 text-xs sm:text-sm font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs"
-                >
-                  {tech}
-                </span>
+              {[
+                { name: 'React', level: 'ADVANCED' as const },
+                { name: 'TypeScript', level: 'ADVANCED' as const },
+                { name: 'FastAPI', level: 'INTERMEDIATE' as const },
+                { name: 'PostgreSQL + pgvector', level: 'ADVANCED' as const },
+                { name: 'Docker', level: 'INTERMEDIATE' as const },
+              ].map((skill) => (
+                <SkillBadge key={skill.name} skill={skill} size="sm" />
               ))}
             </div>
           </div>
@@ -92,7 +96,7 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
       {/* Список отправленных заявок */}
       <div className="space-y-4">
         <h3 className="text-2xl font-normal border-b border-paper-border dark:border-paper-darkBorder pb-2 text-ink dark:text-ink-light">
-          Отправленные заявки на проекты
+          Отправленные заявки на проекты ({appliedProjects.length})
         </h3>
         <div
           id="student-applications-list"
@@ -103,26 +107,46 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
               У вас пока нет отправленных заявок. Выберите интересующий проект в каталоге.
             </div>
           ) : (
-            appliedProjects.map((p) => (
-              <div
-                key={p.id}
-                className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/60 transition-colors"
-              >
-                <div>
-                  <div className="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
-                    {p.index} • {p.company} • {p.type}
+            appliedProjects.map((p) => {
+              const skillsToDisplay =
+                p.requiredSkills && p.requiredSkills.length > 0
+                  ? p.requiredSkills
+                  : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
+
+              return (
+                <div
+                  key={p.id}
+                  className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/60 transition-colors"
+                >
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
+                        {p.index} • {p.company} • {p.type}
+                      </span>
+                      <SemanticMatchBadge score={p.match} size="sm" />
+                    </div>
+                    <div className="editorial-serif text-xl font-semibold text-ink dark:text-ink-light">
+                      {p.title}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {skillsToDisplay.map((skill) => (
+                        <SkillBadge
+                          key={typeof skill === 'string' ? skill : skill.name}
+                          skill={skill}
+                          size="sm"
+                        />
+                      ))}
+                    </div>
                   </div>
-                  <div className="editorial-serif text-xl font-semibold mt-0.5 text-ink dark:text-ink-light">
-                    {p.title}
+
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">
+                      На рассмотрении у компании
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">
-                    На рассмотрении у компании
-                  </span>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>

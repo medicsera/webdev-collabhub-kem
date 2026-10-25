@@ -27,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const hrTabs: { id: TabId; label: string }[] = [
     { id: 'hr-dashboard', label: 'Панель компании' },
+    { id: 'company-profile', label: 'Профиль компании' },
     { id: 'catalog', label: 'Каталог проектов' },
   ];
 
@@ -132,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <div
-              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'hr-dashboard')}
+              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
               className="flex items-center gap-3 pl-4 border-l border-paper-border dark:border-paper-darkBorder cursor-pointer group select-none"
               title="Перейти в профиль"
             >

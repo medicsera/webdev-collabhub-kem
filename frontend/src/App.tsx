@@ -4,16 +4,21 @@ import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
 import { ApplyModal } from './components/modals/ApplyModal';
 import { CreateProjectModal } from './components/modals/CreateProjectModal';
+import { EditProjectModal } from './components/modals/EditProjectModal';
+import { EditStudentProfileModal } from './components/modals/EditStudentProfileModal';
+import { EditCompanyModal } from './components/modals/EditCompanyModal';
 import { CatalogTab } from './components/tabs/CatalogTab';
 import { MyProjectsTab } from './components/tabs/MyProjectsTab';
 import { HRDashboardTab } from './components/tabs/HRDashboardTab';
 import { ProfileTab } from './components/tabs/ProfileTab';
+import { CompanyProfileTab } from './components/tabs/CompanyProfileTab';
 
-import type { Role, TabId, Project, Candidate, StudentProfile } from './types';
+import type { Role, TabId, Project, Candidate, StudentProfile, CompanyProfile } from './types';
 import {
   INITIAL_PROJECTS,
   INITIAL_CANDIDATES,
   INITIAL_STUDENT_PROFILE,
+  INITIAL_COMPANY_PROFILE,
 } from './data/mockData';
 
 export const App: React.FC = () => {
@@ -31,15 +36,27 @@ export const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [candidates, setCandidates] = useState<Candidate[]>(INITIAL_CANDIDATES);
   const [studentProfile, setStudentProfile] = useState<StudentProfile>(INITIAL_STUDENT_PROFILE);
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(INITIAL_COMPANY_PROFILE);
 
   const [selectedProjectForModal, setSelectedProjectForModal] = useState<Project | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
+  const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [themeTransition, setThemeTransition] = useState<'dawn' | 'sunset' | null>(null);
 
   // Блокировка фоновой прокрутки страницы при открытых модальных окнах
-  const isAnyModalOpen = Boolean(selectedProjectForModal || isCreateModalOpen);
+  const isAnyModalOpen = Boolean(
+    selectedProjectForModal ||
+      isCreateModalOpen ||
+      projectToEdit ||
+      isEditStudentModalOpen ||
+      isEditCompanyModalOpen
+  );
+
   useEffect(() => {
     if (isAnyModalOpen) {
       const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -89,7 +106,6 @@ export const App: React.FC = () => {
       setIsDark(nextIsDark);
     };
 
-    // Нативный View Transition для максимально плавного шелковистого перехода цветов
     if (typeof document !== 'undefined' && 'startViewTransition' in document) {
       document.startViewTransition(updateDOM);
     } else {
@@ -108,7 +124,7 @@ export const App: React.FC = () => {
       showToast('Включен режим студента');
     } else {
       setCurrentTab('hr-dashboard');
-      showToast('Включен режим представителя компании');
+      showToast(`Включен режим компании (${companyProfile.name})`);
     }
   };
 
@@ -163,8 +179,28 @@ export const App: React.FC = () => {
     };
 
     setProjects((prev) => [newProject, ...prev]);
-    setCurrentTab('catalog');
-    showToast('Проект добавлен в каталог');
+    showToast('Проект добавлен в каталог и реестр компании');
+  };
+
+  const handleUpdateProject = (updated: Project) => {
+    setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+    setProjectToEdit(null);
+    showToast(`Проект «${updated.title}» успешно обновлен`);
+  };
+
+  const handleDeleteProject = (projectId: number) => {
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    showToast('Проект удален из базы данных');
+  };
+
+  const handleUpdateStudentProfile = (updated: StudentProfile) => {
+    setStudentProfile(updated);
+    showToast('Профиль студента и подтвержденные навыки сохранены');
+  };
+
+  const handleUpdateCompanyProfile = (updated: CompanyProfile) => {
+    setCompanyProfile(updated);
+    showToast('Информация о компании успешно обновлена');
   };
 
   const handleApproveCandidate = (candidateId: string) => {
@@ -223,11 +259,24 @@ export const App: React.FC = () => {
         {currentTab === 'hr-dashboard' && (
           <HRDashboardTab
             candidates={candidates}
-            activeProjectsCount={projects.length}
-            totalApplicationsCount={candidates.length + projects.filter((p) => p.applied).length}
+            projects={projects}
+            companyName={companyProfile.name}
             onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onEditProject={(p) => setProjectToEdit(p)}
+            onDeleteProject={handleDeleteProject}
             onApproveCandidate={handleApproveCandidate}
             onContactCandidate={handleContactCandidate}
+            onNavigateToCompanyProfile={() => setCurrentTab('company-profile')}
+          />
+        )}
+
+        {currentTab === 'company-profile' && (
+          <CompanyProfileTab
+            company={companyProfile}
+            projects={projects}
+            onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
+            onOpenCreateProjectModal={() => setIsCreateModalOpen(true)}
+            onEditProject={(p) => setProjectToEdit(p)}
           />
         )}
 
@@ -239,6 +288,7 @@ export const App: React.FC = () => {
             }
             onRecalculate={handleRecalculateBio}
             isRecalculating={isRecalculating}
+            onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
           />
         )}
       </main>
@@ -258,6 +308,33 @@ export const App: React.FC = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateProject}
+        initialCompany={companyProfile.name}
+        initialDepartment={companyProfile.department}
+      />
+
+      {/* Модальное окно: Редактирование проекта (HR) */}
+      <EditProjectModal
+        project={projectToEdit}
+        isOpen={Boolean(projectToEdit)}
+        onClose={() => setProjectToEdit(null)}
+        onUpdate={handleUpdateProject}
+        onDelete={handleDeleteProject}
+      />
+
+      {/* Модальное окно: Редактирование профиля студента и навыков */}
+      <EditStudentProfileModal
+        isOpen={isEditStudentModalOpen}
+        onClose={() => setIsEditStudentModalOpen(false)}
+        profile={studentProfile}
+        onSave={handleUpdateStudentProfile}
+      />
+
+      {/* Модальное окно: Редактирование информации о компании */}
+      <EditCompanyModal
+        isOpen={isEditCompanyModalOpen}
+        onClose={() => setIsEditCompanyModalOpen(false)}
+        company={companyProfile}
+        onSave={handleUpdateCompanyProfile}
       />
 
       {/* Всплывающее уведомление */}

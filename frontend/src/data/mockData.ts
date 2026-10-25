@@ -1,4 +1,4 @@
-import type { Project, Candidate, StudentProfile } from '../types';
+import type { Project, Candidate, StudentProfile, CompanyProfile } from '../types';
 
 export const INITIAL_PROJECTS: Project[] = [
   {
@@ -12,6 +12,13 @@ export const INITIAL_PROJECTS: Project[] = [
     teamSize: '2–3 студента',
     desc: 'Разработка веб-интерфейса и микросервиса автоматической категоризации тикетов с применением локальных языковых моделей и векторного поиска.',
     tags: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'Docker'],
+    requiredSkills: [
+      { name: 'React', level: 'ADVANCED' },
+      { name: 'TypeScript', level: 'INTERMEDIATE' },
+      { name: 'FastAPI', level: 'INTERMEDIATE' },
+      { name: 'PostgreSQL', level: 'BASIC' },
+      { name: 'Docker', level: 'BASIC' },
+    ],
     applied: false,
   },
   {
@@ -25,6 +32,12 @@ export const INITIAL_PROJECTS: Project[] = [
     teamSize: '1–2 студента',
     desc: 'Проектирование аналитической панели для мониторинга параметров связи и пространственной визуализации телекоммуникационных узлов.',
     tags: ['React', 'TypeScript', 'Node.js', 'REST API'],
+    requiredSkills: [
+      { name: 'React', level: 'INTERMEDIATE' },
+      { name: 'TypeScript', level: 'INTERMEDIATE' },
+      { name: 'Node.js', level: 'BASIC' },
+      { name: 'REST API', level: 'INTERMEDIATE' },
+    ],
     applied: true,
   },
   {
@@ -38,6 +51,12 @@ export const INITIAL_PROJECTS: Project[] = [
     teamSize: '2 студента',
     desc: 'Построение отказоустойчивой архитектуры базы данных, кэширования и административного терминала управления трафиком.',
     tags: ['Node.js', 'PostgreSQL', 'Redis', 'Docker'],
+    requiredSkills: [
+      { name: 'Node.js', level: 'ADVANCED' },
+      { name: 'PostgreSQL', level: 'ADVANCED' },
+      { name: 'Redis', level: 'INTERMEDIATE' },
+      { name: 'Docker', level: 'INTERMEDIATE' },
+    ],
     applied: false,
   },
   {
@@ -51,6 +70,12 @@ export const INITIAL_PROJECTS: Project[] = [
     teamSize: '1–2 студента',
     desc: 'Сервис генерации отчетной документации по регламентам университета с верификацией оценок от наставников предприятия.',
     tags: ['TypeScript', 'React', 'Node.js', 'PostgreSQL'],
+    requiredSkills: [
+      { name: 'TypeScript', level: 'INTERMEDIATE' },
+      { name: 'React', level: 'INTERMEDIATE' },
+      { name: 'Node.js', level: 'BASIC' },
+      { name: 'PostgreSQL', level: 'BASIC' },
+    ],
     applied: false,
   },
 ];
@@ -62,7 +87,13 @@ export const INITIAL_CANDIDATES: Candidate[] = [
     group: 'КемГУ • ФИТ-231 (IV курс)',
     project: 'Интеллектуальная система классификации и маршрутизации обращений',
     match: 96,
-    stack: ['React', 'TypeScript', 'FastAPI', 'pgvector', 'Qwen 2.5'],
+    stack: [
+      { name: 'React', level: 'ADVANCED' },
+      { name: 'TypeScript', level: 'ADVANCED' },
+      { name: 'FastAPI', level: 'INTERMEDIATE' },
+      { name: 'pgvector', level: 'INTERMEDIATE' },
+      { name: 'Qwen 2.5', level: 'ADVANCED' },
+    ],
     status: 'Новая заявка',
   },
   {
@@ -71,7 +102,12 @@ export const INITIAL_CANDIDATES: Candidate[] = [
     group: 'КемГУ • ФИТ-231 (IV курс)',
     project: 'Автоматизированный комплекс отчетов по практике',
     match: 88,
-    stack: ['JavaScript', 'Node.js', 'PostgreSQL', 'Docker'],
+    stack: [
+      { name: 'JavaScript', level: 'ADVANCED' },
+      { name: 'Node.js', level: 'INTERMEDIATE' },
+      { name: 'PostgreSQL', level: 'BASIC' },
+      { name: 'Docker', level: 'BASIC' },
+    ],
     status: 'На рассмотрении',
   },
 ];
@@ -85,8 +121,40 @@ export const INITIAL_STUDENT_PROFILE: StudentProfile = {
   telegram: '@SERK4S',
   city: 'Кемерово',
   status: 'Готов к практике',
-  skills: ['React', 'TypeScript', 'Node.js', 'FastAPI', 'PostgreSQL', 'Docker'],
+  skills: [
+    { name: 'React', level: 'ADVANCED' },
+    { name: 'TypeScript', level: 'ADVANCED' },
+    { name: 'Node.js', level: 'INTERMEDIATE' },
+    { name: 'FastAPI', level: 'INTERMEDIATE' },
+    { name: 'PostgreSQL', level: 'ADVANCED' },
+    { name: 'Docker', level: 'INTERMEDIATE' },
+  ],
   bio: 'Разрабатываю веб-приложения на React, TypeScript и Node.js. Есть опыт проектирования баз данных PostgreSQL, настройки Docker и управления командой.',
   aiMatch: 96,
-  aiFeedback: 'Ваш профиль показывает 96% семантический матч с требованиями ведущих проектов от компаний «Софт Инжиниринг» и «Goodline». Опыт работы с Docker, PostgreSQL и React позволяет эффективно решать задачи бэкенда и фронтенда. Рекомендуем подать заявку на системную архитектуру.',
+  aiFeedback:
+    'Ваш профиль показывает 96% семантический матч с требованиями ведущих проектов от компаний «Софт Инжиниринг» и «Goodline». Опыт работы с Docker, PostgreSQL и React позволяет эффективно закрывать ключевые задачи бэкенда и фронтенда. Рекомендуем подать заявку на системную архитектуру.',
 };
+
+export const INITIAL_COMPANY_PROFILE: CompanyProfile = {
+  id: 1,
+  name: 'Софт Инжиниринг',
+  department: 'Департамент веб-разработки и системной интеграции',
+  industry: 'Заказная веб-разработка, AI-ассистенты, Финтех',
+  city: 'г. Кемерово',
+  address: 'ул. Весенняя, д. 24, технопарк Кузбасса',
+  website: 'https://soft-engineering.ru',
+  contactPerson: 'Валерия Краснова',
+  contactRole: 'Lead Tech Recruiter / Руководитель производственной практики',
+  contactTelegram: '@valeria_hr_kem',
+  contactEmail: 'practice@soft-engineering.ru',
+  description:
+    'Ведущая технологическая компания региона с 12-летним опытом разработки корпоративных информационных систем. Мы активно привлекаем студентов профильных направлений КемГУ для участия в реальных коммерческих проектах и создания выпускных квалификационных работ.',
+  benefits: [
+    'Официальное оформление производственной практики и тем ВКР',
+    'Персональный Senior-наставник для каждой студенческой команды',
+    'Возможность оффера на позицию Junior+ по результатам защиты',
+    'Стек: React 19, TypeScript, Node.js, FastAPI, PostgreSQL, pgvector',
+    'Гибкий график и возможность удалённой или гибридной работы',
+  ],
+};
+

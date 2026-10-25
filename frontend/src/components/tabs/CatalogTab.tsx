@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Plus } from 'lucide-react';
 import type { Project, Role, ProjectFormat } from '../../types';
+import { SkillBadge } from '../SkillBadge';
+import { SemanticMatchBadge } from '../SemanticMatchBadge';
 
 interface CatalogTabProps {
   projects: Project[];
@@ -33,7 +35,9 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
         p.title.toLowerCase().includes(q) ||
         p.company.toLowerCase().includes(q) ||
         p.desc.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q));
+        p.tags.some((t) => t.toLowerCase().includes(q)) ||
+        (p.requiredSkills &&
+          p.requiredSkills.some((s) => s.name.toLowerCase().includes(q)));
 
       const matchFormat = selectedFormat === 'all' || p.type === selectedFormat;
       const matchCompany = selectedCompany === 'all' || p.company === selectedCompany;
@@ -59,7 +63,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
             </h1>
             <p className="text-ink-muted dark:text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
               Верифицированные темы от ведущих технологических компаний региона. Интеллектуальный
-              подбор на основе вашего стека технологий и интересов.
+              семантический подбор на основе вашего стека технологий и уровня владения.
             </p>
           </div>
 
@@ -70,7 +74,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
               </div>
               <p className="editorial-serif italic text-lg leading-snug text-ink dark:text-stone-200">
                 «Платформа помогает студентам находить актуальные задачи бизнеса, а компаниям —
-                готовых молодых специалистов».
+                готовых молодых специалистов с требуемым уровнем навыков».
               </p>
             </div>
 
@@ -82,7 +86,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                 <button
                   type="button"
                   onClick={onOpenCreateModal}
-                  className="w-full py-3 px-5 bg-oxblood hover:bg-oxblood-hover text-paper-light text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2"
+                  className="w-full py-3 px-5 bg-oxblood hover:bg-oxblood-hover text-paper-light text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                 >
                   <Plus className="w-4 h-4" /> Опубликовать новый проект
                 </button>
@@ -148,70 +152,81 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
           id="projects-grid"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-paper-border dark:bg-paper-darkBorder border border-paper-border dark:border-paper-darkBorder"
         >
-          {filteredProjects.map((p) => (
-            <article
-              key={p.id}
-              className="bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:bg-paper-muted/40 dark:hover:bg-paper-dark/80 transition-colors"
-            >
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder pb-2.5 text-[11px] font-mono">
-                  <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
-                    {p.index} • {p.company}
-                  </span>
-                  <span className="text-hunter dark:text-emerald-400 font-medium">
-                    СЕМАНТИЧЕСКИЙ МАТЧ: {p.match}%
-                  </span>
-                </div>
+          {filteredProjects.map((p) => {
+            const skillsToDisplay =
+              p.requiredSkills && p.requiredSkills.length > 0
+                ? p.requiredSkills
+                : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
 
-                <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
-                  {p.type} — Группа: {p.teamSize}
-                </div>
-
-                <h3 className="text-2xl font-semibold leading-snug text-ink dark:text-ink-light">
-                  {p.title}
-                </h3>
-
-                <p className="text-xs sm:text-sm text-ink-muted dark:text-stone-300 leading-relaxed line-clamp-3">
-                  {p.desc}
-                </p>
-              </div>
-
-              <div className="pt-6 mt-6 border-t border-paper-border dark:border-paper-darkBorder space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {p.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="px-3 py-1 text-xs font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs hover:border-oxblood/50 dark:hover:border-oxblood-light/50 transition-colors"
-                    >
-                      {t}
+            return (
+              <article
+                key={p.id}
+                className="bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:bg-paper-muted/40 dark:hover:bg-paper-dark/80 transition-colors"
+              >
+                <div className="space-y-4">
+                  {/* Заголовок карточки с выделенным семантическим матчем (Requirement 3) */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-border dark:border-paper-darkBorder pb-2.5 text-[11px] font-mono">
+                    <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
+                      {p.index} • {p.company}
                     </span>
-                  ))}
-                </div>
-
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
-                  <div className="text-sm sm:text-base editorial-serif text-ink-muted dark:text-stone-300 leading-snug">
-                    Заказчик:{' '}
-                    <strong className="font-bold text-ink dark:text-ink-light not-italic">
-                      {p.department}
-                    </strong>
+                    <SemanticMatchBadge score={p.match} size="sm" />
                   </div>
-                  {p.applied ? (
-                    <span className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
-                      Заявка отправлена
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => onSelectProject(p)}
-                      className="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light hover:bg-ink hover:text-paper-light dark:hover:bg-ink-light dark:hover:text-paper-dark transition"
-                    >
-                      Подробнее →
-                    </button>
-                  )}
+
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
+                    {p.type} — Группа: {p.teamSize}
+                  </div>
+
+                  <h3 className="text-2xl font-semibold leading-snug text-ink dark:text-ink-light">
+                    {p.title}
+                  </h3>
+
+                  <p className="text-xs sm:text-sm text-ink-muted dark:text-stone-300 leading-relaxed line-clamp-3">
+                    {p.desc}
+                  </p>
                 </div>
-              </div>
-            </article>
-          ))}
+
+                <div className="pt-6 mt-6 border-t border-paper-border dark:border-paper-darkBorder space-y-4">
+                  {/* Требуемые навыки и уровни владения (Requirement 2) */}
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-2">
+                      Требуемый стек и уровень:
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {skillsToDisplay.map((skill) => (
+                        <SkillBadge
+                          key={typeof skill === 'string' ? skill : skill.name}
+                          skill={skill}
+                          size="sm"
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-paper-border/60 dark:border-paper-darkBorder/60">
+                    <div className="text-sm sm:text-base editorial-serif text-ink-muted dark:text-stone-300 leading-snug">
+                      Заказчик:{' '}
+                      <strong className="font-bold text-ink dark:text-ink-light not-italic">
+                        {p.department}
+                      </strong>
+                    </div>
+                    {p.applied ? (
+                      <span className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
+                        Заявка отправлена
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onSelectProject(p)}
+                        className="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light hover:bg-ink hover:text-paper-light dark:hover:bg-ink-light dark:hover:text-paper-dark transition cursor-pointer"
+                      >
+                        Подробнее →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>
