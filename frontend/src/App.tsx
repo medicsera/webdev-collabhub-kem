@@ -38,6 +38,25 @@ export const App: React.FC = () => {
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [themeTransition, setThemeTransition] = useState<'dawn' | 'sunset' | null>(null);
 
+  // Блокировка фоновой прокрутки страницы при открытых модальных окнах
+  const isAnyModalOpen = Boolean(selectedProjectForModal || isCreateModalOpen);
+  useEffect(() => {
+    if (isAnyModalOpen) {
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      if (scrollBarWidth > 0) {
+        document.body.style.paddingRight = `${scrollBarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [isAnyModalOpen]);
+
   // Sync theme with html root class and localStorage
   useEffect(() => {
     const root = document.documentElement;
@@ -65,11 +84,21 @@ export const App: React.FC = () => {
   const toggleTheme = () => {
     const nextIsDark = !isDark;
     setThemeTransition(nextIsDark ? 'sunset' : 'dawn');
-    setIsDark(nextIsDark);
+
+    const updateDOM = () => {
+      setIsDark(nextIsDark);
+    };
+
+    // Нативный View Transition для максимально плавного шелковистого перехода цветов
+    if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+      document.startViewTransition(updateDOM);
+    } else {
+      updateDOM();
+    }
 
     setTimeout(() => {
       setThemeTransition(null);
-    }, 950);
+    }, 800);
   };
 
   const handleSetRole = (role: Role) => {
@@ -238,7 +267,7 @@ export const App: React.FC = () => {
       {themeTransition && (
         <div
           className={`fixed inset-0 pointer-events-none z-50 ${
-            themeTransition === 'dawn' ? 'animate-dawn' : 'animate-sunset'
+            themeTransition === 'dawn' ? 'dawn-overlay' : 'sunset-overlay'
           }`}
           aria-hidden="true"
         />

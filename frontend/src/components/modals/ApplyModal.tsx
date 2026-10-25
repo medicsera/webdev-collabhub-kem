@@ -64,11 +64,11 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({ project, onClose, onSubm
           <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-2">
             Технологический стек:
           </div>
-          <div id="modal-tags" className="flex flex-wrap gap-1.5">
+          <div id="modal-tags" className="flex flex-wrap gap-2">
             {project.tags.map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 py-1 text-xs font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light"
+                className="px-3.5 py-1.5 text-xs sm:text-sm font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs"
               >
                 {tag}
               </span>

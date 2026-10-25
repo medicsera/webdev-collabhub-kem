@@ -177,21 +177,24 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
               </div>
 
               <div className="pt-6 mt-6 border-t border-paper-border dark:border-paper-darkBorder space-y-4">
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                   {p.tags.map((t) => (
                     <span
                       key={t}
-                      className="px-2 py-0.5 text-[10px] font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink-muted dark:text-stone-300"
+                      className="px-3 py-1 text-xs font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs hover:border-oxblood/50 dark:hover:border-oxblood-light/50 transition-colors"
                     >
                       {t}
                     </span>
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-[11px] editorial-serif italic text-ink-muted dark:text-stone-400">
-                    Заказчик: {p.department}
-                  </span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2">
+                  <div className="text-sm sm:text-base editorial-serif text-ink-muted dark:text-stone-300 leading-snug">
+                    Заказчик:{' '}
+                    <strong className="font-bold text-ink dark:text-ink-light not-italic">
+                      {p.department}
+                    </strong>
+                  </div>
                   {p.applied ? (
                     <span className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
                       Заявка отправлена

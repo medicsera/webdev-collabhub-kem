@@ -77,11 +77,11 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-3">
               Подтвержденные навыки (Стек)
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {profile.skills.map((s) => (
                 <span
                   key={s}
-                  className="px-2.5 py-1 text-xs font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light"
+                  className="px-3.5 py-1.5 text-xs sm:text-sm font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs hover:border-oxblood/50 dark:hover:border-oxblood-light/50 transition-colors"
                 >
                   {s}
                 </span>

@@ -125,11 +125,11 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                       {c.project}
                     </strong>
                   </div>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {c.stack.map((s) => (
                       <span
                         key={s}
-                        className="px-2 py-0.5 text-[10px] font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light"
+                        className="px-3 py-1 text-xs font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs"
                       >
                         {s}
                       </span>

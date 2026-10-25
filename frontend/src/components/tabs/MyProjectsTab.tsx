@@ -54,18 +54,14 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
               локальных больших языковых моделей.
             </p>
             <div className="pt-3 flex flex-wrap gap-2">
-              <span className="px-2.5 py-1 text-[11px] font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light">
-                React
-              </span>
-              <span className="px-2.5 py-1 text-[11px] font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light">
-                TypeScript
-              </span>
-              <span className="px-2.5 py-1 text-[11px] font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light">
-                FastAPI
-              </span>
-              <span className="px-2.5 py-1 text-[11px] font-mono border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light">
-                PostgreSQL + pgvector
-              </span>
+              {['React', 'TypeScript', 'FastAPI', 'PostgreSQL + pgvector'].map((tech) => (
+                <span
+                  key={tech}
+                  className="px-3.5 py-1.5 text-xs sm:text-sm font-mono font-medium border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs"
+                >
+                  {tech}
+                </span>
+              ))}
             </div>
           </div>
 
