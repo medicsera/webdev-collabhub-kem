@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, RotateCw, Sparkles, CheckCircle2, Edit } from 'lucide-react';
+import { User, RotateCw, Sparkles, CheckCircle2, Edit, LogOut } from 'lucide-react';
 import type { StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
@@ -10,6 +10,7 @@ interface ProfileTabProps {
   onRecalculate: () => void;
   isRecalculating: boolean;
   onOpenEditProfileModal: () => void;
+  onLogout?: () => void;
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
@@ -18,6 +19,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onRecalculate,
   isRecalculating,
   onOpenEditProfileModal,
+  onLogout,
 }) => {
   const [bioInput, setBioInput] = useState(profile.bio);
 
@@ -174,6 +176,24 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Нижняя панель: кнопка выхода из профиля */}
+      <div className="pt-6 border-t border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-xs font-mono text-ink-muted dark:text-stone-400">
+          Текущая сессия: <span className="text-ink dark:text-stone-200 font-semibold">{profile.name}</span> ({profile.group})
+        </div>
+        {onLogout && (
+          <button
+            id="profile-logout-btn"
+            type="button"
+            onClick={onLogout}
+            className="w-full sm:w-auto px-5 py-2.5 border border-oxblood/40 hover:border-oxblood bg-paper-card dark:bg-paper-darkCard text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Выйти из профиля студента</span>
+          </button>
+        )}
       </div>
     </section>
   );

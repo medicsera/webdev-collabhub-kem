@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Award,
   Plus,
+  LogOut,
 } from 'lucide-react';
 import type { CompanyProfile, Project } from '../../types';
 import { SkillBadge } from '../SkillBadge';
@@ -19,6 +20,7 @@ interface CompanyProfileTabProps {
   onOpenEditModal: () => void;
   onOpenCreateProjectModal: () => void;
   onEditProject: (project: Project) => void;
+  onLogout?: () => void;
 }
 
 export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
@@ -27,6 +29,7 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
   onOpenEditModal,
   onOpenCreateProjectModal,
   onEditProject,
+  onLogout,
 }) => {
   const companyProjects = projects.filter(
     (p) => p.company.toLowerCase() === company.name.toLowerCase()
@@ -237,6 +240,24 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Нижняя панель: кнопка выхода из профиля компании */}
+      <div className="pt-6 border-t border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="text-xs font-mono text-ink-muted dark:text-stone-400">
+          Аккаунт компании: <span className="text-ink dark:text-stone-200 font-semibold">{company.name}</span> ({company.department})
+        </div>
+        {onLogout && (
+          <button
+            id="company-logout-btn"
+            type="button"
+            onClick={onLogout}
+            className="w-full sm:w-auto px-5 py-2.5 border border-oxblood/40 hover:border-oxblood bg-paper-card dark:bg-paper-darkCard text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Выйти из профиля компании</span>
+          </button>
+        )}
       </div>
     </section>
   );

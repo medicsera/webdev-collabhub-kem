@@ -12,6 +12,7 @@ import { MyProjectsTab } from './components/tabs/MyProjectsTab';
 import { HRDashboardTab } from './components/tabs/HRDashboardTab';
 import { ProfileTab } from './components/tabs/ProfileTab';
 import { CompanyProfileTab } from './components/tabs/CompanyProfileTab';
+import { AuthScreen } from './components/AuthScreen';
 
 import type { Role, TabId, Project, Candidate, StudentProfile, CompanyProfile } from './types';
 import {
@@ -22,8 +23,26 @@ import {
 } from './data/mockData';
 
 export const App: React.FC = () => {
-  const [currentRole, setCurrentRole] = useState<Role>('student');
-  const [currentTab, setCurrentTab] = useState<TabId>('catalog');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('isLoggedIn') === 'true';
+    }
+    return false;
+  });
+  const [currentRole, setCurrentRole] = useState<Role>(() => {
+    if (typeof window !== 'undefined') {
+      const savedRole = localStorage.getItem('currentRole') as Role;
+      if (savedRole === 'student' || savedRole === 'hr') return savedRole;
+    }
+    return 'student';
+  });
+  const [currentTab, setCurrentTab] = useState<TabId>(() => {
+    if (typeof window !== 'undefined') {
+      const savedRole = localStorage.getItem('currentRole');
+      return savedRole === 'hr' ? 'hr-dashboard' : 'catalog';
+    }
+    return 'catalog';
+  });
   const [isDark, setIsDark] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
@@ -117,8 +136,30 @@ export const App: React.FC = () => {
     }, 800);
   };
 
+  const handleLogin = (role: Role, _phone?: string) => {
+    setCurrentRole(role);
+    setIsLoggedIn(true);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('currentRole', role);
+
+    if (role === 'student') {
+      setCurrentTab('catalog');
+      showToast('Добро пожаловать! Вы вошли как Студент');
+    } else {
+      setCurrentTab('hr-dashboard');
+      showToast(`Добро пожаловать! Вы вошли как Компания (${companyProfile.name})`);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    localStorage.removeItem('isLoggedIn');
+    showToast('Вы вышли из учетной записи');
+  };
+
   const handleSetRole = (role: Role) => {
     setCurrentRole(role);
+    localStorage.setItem('currentRole', role);
     if (role === 'student') {
       setCurrentTab('catalog');
       showToast('Включен режим студента');
@@ -231,6 +272,19 @@ export const App: React.FC = () => {
     }, 1100);
   };
 
+  if (!isLoggedIn) {
+    return (
+      <>
+        <AuthScreen
+          onLogin={handleLogin}
+          isDark={isDark}
+          toggleTheme={toggleTheme}
+        />
+        <Toast message={toastMessage} />
+      </>
+    );
+  }
+
   return (
     <div className="bg-paper-light text-ink dark:bg-paper-dark dark:text-ink-light min-h-screen transition-colors duration-300 flex flex-col selection:bg-oxblood selection:text-white">
       {/* Шапка и навигация */}
@@ -241,6 +295,7 @@ export const App: React.FC = () => {
         switchTab={handleSwitchTab}
         isDark={isDark}
         toggleTheme={toggleTheme}
+        onLogout={handleLogout}
       />
 
       {/* Основной контент */}
@@ -277,6 +332,7 @@ export const App: React.FC = () => {
             onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
             onOpenCreateProjectModal={() => setIsCreateModalOpen(true)}
             onEditProject={(p) => setProjectToEdit(p)}
+            onLogout={handleLogout}
           />
         )}
 
@@ -289,6 +345,7 @@ export const App: React.FC = () => {
             onRecalculate={handleRecalculateBio}
             isRecalculating={isRecalculating}
             onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
+            onLogout={handleLogout}
           />
         )}
       </main>

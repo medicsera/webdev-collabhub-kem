@@ -1,23 +1,24 @@
 import React from 'react';
-import { Sun, Moon, User } from 'lucide-react';
+import { Sun, Moon, User, LogOut } from 'lucide-react';
 import type { Role, TabId } from '../types';
 
 interface HeaderProps {
   currentRole: Role;
-  setRole: (role: Role) => void;
+  setRole?: (role: Role) => void;
   currentTab: TabId;
   switchTab: (tab: TabId) => void;
   isDark: boolean;
   toggleTheme: () => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentRole,
-  setRole,
   currentTab,
   switchTab,
   isDark,
   toggleTheme,
+  onLogout,
 }) => {
   const studentTabs: { id: TabId; label: string }[] = [
     { id: 'catalog', label: 'Каталог проектов' },
@@ -38,37 +39,11 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Основная полоса заголовка */}
         <div className="py-5 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-paper-border dark:border-paper-darkBorder">
-          {/* Выбор режима (Студент / Компания) */}
-          <div className="flex items-center gap-2 self-start md:self-center">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mr-1">
-              Режим:
+          {/* Левый блок: академический бейдж */}
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-oxblood dark:text-oxblood-light bg-paper-card dark:bg-paper-darkCard">
+              {currentRole === 'student' ? 'Студенческий доступ' : 'Индустриальный партнер'}
             </span>
-            <div className="inline-flex border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-0.5">
-              <button
-                id="role-student-btn"
-                type="button"
-                onClick={() => setRole('student')}
-                className={`px-3 py-1 text-xs font-medium tracking-wide transition-colors ${
-                  currentRole === 'student'
-                    ? 'bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark'
-                    : 'text-ink-muted dark:text-stone-400 hover:text-ink dark:hover:text-white'
-                }`}
-              >
-                Студент
-              </button>
-              <button
-                id="role-hr-btn"
-                type="button"
-                onClick={() => setRole('hr')}
-                className={`px-3 py-1 text-xs font-medium tracking-wide transition-colors ${
-                  currentRole === 'hr'
-                    ? 'bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark'
-                    : 'text-ink-muted dark:text-stone-400 hover:text-ink dark:hover:text-white'
-                }`}
-              >
-                Компания (HR)
-              </button>
-            </div>
           </div>
 
           {/* Центральный логотип */}
@@ -84,14 +59,14 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Правый блок: Переключение темы и Профиль */}
-          <div className="flex items-center gap-4 self-end md:self-center">
+          {/* Правый блок: Переключение темы и Профиль с выезжающей кнопкой выхода */}
+          <div className="flex items-center gap-3 sm:gap-4 self-end md:self-center">
             <button
               id="theme-toggle-btn"
               type="button"
               onClick={toggleTheme}
               title={isDark ? 'Переключить тему (Рассвет)' : 'Переключить тему (Закат)'}
-              className="w-[98px] h-[34px] shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 text-xs font-mono uppercase select-none relative overflow-hidden group shadow-xs"
+              className="w-[98px] h-[34px] shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 text-xs font-mono uppercase select-none relative overflow-hidden group shadow-xs cursor-pointer"
             >
               {/* Солнце и Луна с плавным восходом / закатом */}
               <div className="relative w-3.5 h-3.5 overflow-hidden shrink-0 flex items-center justify-center">
@@ -111,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </div>
 
-              {/* Текстовая метка фиксированной ширины (предотвращает любой сдвиг хедера) */}
+              {/* Текстовая метка */}
               <div className="w-[50px] h-3.5 relative overflow-hidden shrink-0 flex items-center">
                 <span
                   id="theme-label-light"
@@ -132,31 +107,52 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </button>
 
-            <div
-              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
-              className="flex items-center gap-3 pl-4 border-l border-paper-border dark:border-paper-darkBorder cursor-pointer group select-none"
-              title="Перейти в профиль"
-            >
-              <div
-                id="user-avatar"
-                className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors"
-              >
-                <User className="w-5 h-5" />
+            {/* Контейнер профиля с выезжающей кнопкой выхода при наведении */}
+            <div className="relative group/profile flex items-center pl-3 sm:pl-4 border-l border-paper-border dark:border-paper-darkBorder">
+              {/* Выезжающая кнопка выхода (выезжает слева/рядом при hover) */}
+              <div className="overflow-hidden transition-all duration-300 ease-out max-w-0 opacity-0 group-hover/profile:max-w-[110px] group-hover/profile:opacity-100 mr-0 group-hover/profile:mr-2">
+                <button
+                  id="header-logout-btn"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onLogout) onLogout();
+                  }}
+                  title="Выйти из аккаунта"
+                  className="px-2.5 py-1.5 bg-oxblood hover:bg-oxblood-hover text-white text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer shadow-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Выйти</span>
+                </button>
               </div>
-              <div className="hidden sm:block text-left">
+
+              {/* Плашка профиля */}
+              <div
+                onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
+                className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none"
+                title="Перейти в профиль"
+              >
                 <div
-                  id="user-name"
-                  className="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors"
+                  id="user-avatar"
+                  className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors group-hover:border-oxblood dark:group-hover:border-oxblood-light"
                 >
-                  {currentRole === 'student' ? 'Сергиенко А.' : 'Валерия (HR)'}
+                  <User className="w-5 h-5" />
                 </div>
-                <div
-                  id="user-sub"
-                  className="text-[10px] font-mono text-ink-muted dark:text-stone-400"
-                >
-                  {currentRole === 'student'
-                    ? 'ФИТ-231 • IV курс'
-                    : 'Софт Инжиниринг'}
+                <div className="hidden sm:block text-left">
+                  <div
+                    id="user-name"
+                    className="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors"
+                  >
+                    {currentRole === 'student' ? 'Сергиенко А.' : 'Валерия (HR)'}
+                  </div>
+                  <div
+                    id="user-sub"
+                    className="text-[10px] font-mono text-ink-muted dark:text-stone-400"
+                  >
+                    {currentRole === 'student'
+                      ? 'ФИТ-231 • IV курс'
+                      : 'Софт Инжиниринг'}
+                  </div>
                 </div>
               </div>
             </div>
