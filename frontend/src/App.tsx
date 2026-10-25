@@ -36,6 +36,7 @@ export const App: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [themeTransition, setThemeTransition] = useState<'dawn' | 'sunset' | null>(null);
 
   // Sync theme with html root class and localStorage
   useEffect(() => {
@@ -62,7 +63,13 @@ export const App: React.FC = () => {
   }, [toastMessage]);
 
   const toggleTheme = () => {
-    setIsDark((prev) => !prev);
+    const nextIsDark = !isDark;
+    setThemeTransition(nextIsDark ? 'sunset' : 'dawn');
+    setIsDark(nextIsDark);
+
+    setTimeout(() => {
+      setThemeTransition(null);
+    }, 950);
   };
 
   const handleSetRole = (role: Role) => {
@@ -226,6 +233,16 @@ export const App: React.FC = () => {
 
       {/* Всплывающее уведомление */}
       <Toast message={toastMessage} />
+
+      {/* Атмосферный эффект рассвета и заката при переключении темы */}
+      {themeTransition && (
+        <div
+          className={`fixed inset-0 pointer-events-none z-50 ${
+            themeTransition === 'dawn' ? 'animate-dawn' : 'animate-sunset'
+          }`}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };

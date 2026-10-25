@@ -86,19 +86,49 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Правый блок: Переключение темы и Профиль */}
           <div className="flex items-center gap-4 self-end md:self-center">
             <button
+              id="theme-toggle-btn"
               type="button"
               onClick={toggleTheme}
-              title="Переключить тему оформления"
-              className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 transition flex items-center gap-1.5 text-xs font-mono uppercase"
+              title={isDark ? 'Переключить тему (Рассвет)' : 'Переключить тему (Закат)'}
+              className="w-[98px] h-[34px] shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 text-xs font-mono uppercase select-none relative overflow-hidden group shadow-xs"
             >
-              {isDark ? (
-                <Moon className="w-3.5 h-3.5 text-brass" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-brass" />
-              )}
-              <span id="theme-label" className="text-[10px]">
-                {isDark ? 'Темная' : 'Светлая'}
-              </span>
+              {/* Солнце и Луна с плавным восходом / закатом */}
+              <div className="relative w-3.5 h-3.5 overflow-hidden shrink-0 flex items-center justify-center">
+                <Sun
+                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                    isDark
+                      ? 'translate-y-4 opacity-0 rotate-90 scale-50'
+                      : 'translate-y-0 opacity-100 rotate-0 scale-100'
+                  }`}
+                />
+                <Moon
+                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                    isDark
+                      ? 'translate-y-0 opacity-100 rotate-0 scale-100'
+                      : '-translate-y-4 opacity-0 -rotate-90 scale-50'
+                  }`}
+                />
+              </div>
+
+              {/* Текстовая метка фиксированной ширины (предотвращает любой сдвиг хедера) */}
+              <div className="w-[50px] h-3.5 relative overflow-hidden shrink-0 flex items-center">
+                <span
+                  id="theme-label-light"
+                  className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
+                    isDark ? 'translate-y-3.5 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+                  }`}
+                >
+                  Светлая
+                </span>
+                <span
+                  id="theme-label-dark"
+                  className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
+                    isDark ? 'translate-y-0 opacity-100' : '-translate-y-3.5 opacity-0 pointer-events-none'
+                  }`}
+                >
+                  Темная
+                </span>
+              </div>
             </button>
 
             <div
