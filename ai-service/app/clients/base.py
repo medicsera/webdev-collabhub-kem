@@ -20,7 +20,7 @@ def get_all_models() -> list[dict]:
     ]
 
 
-def test_ai_connection(prompt_text: str, model_id: str = "llama3-8b-8192") -> str:
+def test_ai_connection(prompt_text: str, model_id: str = "openai/gpt-oss-120b") -> str:
     """Отправляет тестовый запрос к выбранной модели"""
     chat_completion = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt_text}],
