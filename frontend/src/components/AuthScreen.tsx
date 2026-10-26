@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   GraduationCap,
   Building2,
@@ -30,6 +30,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [step, setStep] = useState<'input' | 'sms'>('input');
   const [smsCode, setSmsCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Сброс прокрутки к верхнему положению при открытии экрана авторизации
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
 
   // Форматирование номера телефона: +7 (XXX) XXX-XX-XX
   const formatPhoneNumber = (value: string) => {

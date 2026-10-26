@@ -60,6 +60,7 @@ export interface StudentProfile {
   bio: string;
   aiMatch: number;
   aiFeedback: string;
+  avatarUrl?: string;
 }
 
 export interface CompanyProfile {
@@ -76,4 +77,5 @@ export interface CompanyProfile {
   contactEmail: string;
   description: string;
   benefits: string[];
+  avatarUrl?: string;
 }

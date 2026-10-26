@@ -134,3 +134,118 @@ section,
     transform: scale(1.01);
   }
 }
+
+/* ============================================================
+   Плавный переход между экраном авторизации и основным экраном
+   ============================================================ */
+
+/* Вход на экран: элемент появляется снизу */
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Выход с экрана: элемент уходит вверх и становится прозрачным */
+@keyframes screenExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+.screen-enter {
+  animation: screenEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.screen-exit {
+  animation: screenExit 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Анимация горизонтальной прокрутки при переключении окон/вкладок
+   (Каталог проектов / Мои заявки и ВКР / Мой профиль и ИИ)
+   (Панель компании / Профиль компании / Каталог проектов)
+   ============================================================ */
+
+.tabs-viewport {
+  position: relative;
+  width: 100%;
+  overflow-x: clip;
+}
+
+/* Переход вперед (вправо): старая вкладка уезжает влево, новая въезжает справа */
+@keyframes tabSlideOutToLeft {
+  0% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.1;
+  }
+}
+
+@keyframes tabSlideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+/* Переход назад (влево): старая вкладка уезжает вправо, новая въезжает слева */
+@keyframes tabSlideOutToRight {
+  0% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.1;
+  }
+}
+
+@keyframes tabSlideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+.tab-slide-out-left {
+  animation: tabSlideOutToLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.tab-slide-in-right {
+  animation: tabSlideInFromRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.tab-slide-out-right {
+  animation: tabSlideOutToRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.tab-slide-in-left {
+  animation: tabSlideInFromLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}

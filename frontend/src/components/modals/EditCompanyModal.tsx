@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Building2 } from 'lucide-react';
 import type { CompanyProfile } from '../../types';
+import { AvatarUploader } from '../AvatarUploader';
 
 interface EditCompanyModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
   const [contactEmail, setContactEmail] = useState(company.contactEmail);
   const [description, setDescription] = useState(company.description);
   const [benefitsInput, setBenefitsInput] = useState(company.benefits.join('\n'));
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(company.avatarUrl);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,6 +44,7 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
       setContactEmail(company.contactEmail);
       setDescription(company.description);
       setBenefitsInput(company.benefits.join('\n'));
+      setAvatarUrl(company.avatarUrl);
     }
   }, [isOpen, company]);
 
@@ -68,6 +71,7 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
       contactEmail: contactEmail.trim() || company.contactEmail,
       description: description.trim() || company.description,
       benefits: benefits.length > 0 ? benefits : company.benefits,
+      avatarUrl,
     });
 
     onClose();
@@ -75,33 +79,46 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-start sm:items-center p-3 sm:p-6 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-start overflow-y-auto p-3 sm:p-5 pt-3 sm:pt-6 pb-6"
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full p-6 sm:p-8 space-y-5 shadow-2xl fade-in my-auto max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-0 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder pb-3">
+        {/* Зафиксированная шапка модального окна */}
+        <div className="shrink-0 flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder px-5 sm:px-7 py-3.5 bg-paper-card dark:bg-paper-darkCard">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5" /> Карточка работодателя
             </div>
-            <h3 className="text-2xl font-semibold text-ink dark:text-ink-light">
+            <h3 className="text-xl sm:text-2xl font-semibold text-ink dark:text-ink-light leading-snug">
               Редактирование профиля компании
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-ink-muted hover:text-ink dark:hover:text-white transition-colors cursor-pointer"
+            className="p-1 text-ink-muted hover:text-ink dark:hover:text-white transition-colors cursor-pointer shrink-0 ml-2"
             title="Закрыть"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Прокручиваемое тело модального окна */}
+          <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-4 space-y-4 text-sm overscroll-contain">
+          {/* Загрузка логотипа компании или фото представителя */}
+          <AvatarUploader
+            currentUrl={avatarUrl}
+            label="Логотип компании или фото представителя"
+            hint="Перетащите изображение сюда или нажмите «Выбрать файл»"
+            onUpload={(url) => setAvatarUrl(url)}
+            onRemove={() => setAvatarUrl(undefined)}
+            shape="square"
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label
@@ -279,7 +296,10 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-paper-border dark:border-paper-darkBorder">
+          </div>
+
+          {/* Зафиксированный подвал с кнопками — всегда на виду! */}
+          <div className="shrink-0 flex justify-end gap-3 px-5 sm:px-7 py-3.5 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card/95 dark:bg-paper-darkCard/95 backdrop-blur-xs">
             <button
               type="button"
               onClick={onClose}

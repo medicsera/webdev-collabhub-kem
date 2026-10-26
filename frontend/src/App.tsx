@@ -66,6 +66,12 @@ export const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [themeTransition, setThemeTransition] = useState<'dawn' | 'sunset' | null>(null);
+  const [isExiting, setIsExiting] = useState(false);
+
+  // Состояния для плавной горизонтальной анимации переключения вкладок (эффект горизонтальной прокрутки)
+  const [exitingTab, setExitingTab] = useState<TabId | null>(null);
+  const [tabDirection, setTabDirection] = useState<'forward' | 'backward'>('forward');
+  const [isTabTransitioning, setIsTabTransitioning] = useState<boolean>(false);
 
   // Блокировка фоновой прокрутки страницы при открытых модальных окнах
   const isAnyModalOpen = Boolean(
@@ -136,30 +142,79 @@ export const App: React.FC = () => {
     }, 800);
   };
 
-  const handleLogin = (role: Role, _phone?: string) => {
-    setCurrentRole(role);
-    setIsLoggedIn(true);
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('currentRole', role);
+  const resetScrollToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
 
+  // Автоматический сброс уровня прокрутки к самому верху при переходе между страницами (Issue 3)
+  useEffect(() => {
+    resetScrollToTop();
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    resetScrollToTop();
+  }, [currentTab]);
+
+  const getRoleTabIndex = (role: Role, tab: TabId): number => {
     if (role === 'student') {
-      setCurrentTab('catalog');
-      showToast('Добро пожаловать! Вы вошли как Студент');
+      const studentOrder: TabId[] = ['catalog', 'my-projects', 'profile'];
+      const idx = studentOrder.indexOf(tab);
+      return idx >= 0 ? idx : 0;
     } else {
-      setCurrentTab('hr-dashboard');
-      showToast(`Добро пожаловать! Вы вошли как Компания (${companyProfile.name})`);
+      const hrOrder: TabId[] = ['hr-dashboard', 'company-profile', 'catalog'];
+      const idx = hrOrder.indexOf(tab);
+      return idx >= 0 ? idx : 0;
     }
   };
 
+  const handleLogin = (role: Role, _phone?: string) => {
+    setCurrentRole(role);
+    // Сначала проигрываем анимацию выхода с auth-экрана и сбрасываем скролл
+    setIsExiting(true);
+    resetScrollToTop();
+
+    setTimeout(() => {
+      setIsLoggedIn(true);
+      setIsExiting(false);
+      resetScrollToTop();
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('currentRole', role);
+      setExitingTab(null);
+      setIsTabTransitioning(false);
+      if (role === 'student') {
+        setCurrentTab('catalog');
+        showToast('Добро пожаловать! Вы вошли как Студент');
+      } else {
+        setCurrentTab('hr-dashboard');
+        showToast(`Добро пожаловать! Вы вошли как Компания (${companyProfile.name})`);
+      }
+    }, 320);
+  };
+
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('isLoggedIn');
-    showToast('Вы вышли из учетной записи');
+    // Сначала проигрываем анимацию выхода с основного экрана и сбрасываем скролл
+    setIsExiting(true);
+    resetScrollToTop();
+
+    setTimeout(() => {
+      setIsLoggedIn(false);
+      setIsExiting(false);
+      resetScrollToTop();
+      localStorage.removeItem('isLoggedIn');
+      setExitingTab(null);
+      setIsTabTransitioning(false);
+      showToast('Вы вышли из учетной записи');
+    }, 320);
   };
 
   const handleSetRole = (role: Role) => {
     setCurrentRole(role);
     localStorage.setItem('currentRole', role);
+    setExitingTab(null);
+    setIsTabTransitioning(false);
+    resetScrollToTop();
     if (role === 'student') {
       setCurrentTab('catalog');
       showToast('Включен режим студента');
@@ -169,9 +224,27 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleSwitchTab = (tab: TabId) => {
-    setCurrentTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleSwitchTab = (newTab: TabId) => {
+    if (newTab === currentTab) {
+      resetScrollToTop();
+      return;
+    }
+
+    const oldIndex = getRoleTabIndex(currentRole, currentTab);
+    const newIndex = getRoleTabIndex(currentRole, newTab);
+    const direction = newIndex >= oldIndex ? 'forward' : 'backward';
+
+    resetScrollToTop();
+
+    setTabDirection(direction);
+    setExitingTab(currentTab);
+    setCurrentTab(newTab);
+    setIsTabTransitioning(true);
+
+    setTimeout(() => {
+      setExitingTab(null);
+      setIsTabTransitioning(false);
+    }, 380);
   };
 
   const handleSelectProject = (project: Project) => {
@@ -272,22 +345,80 @@ export const App: React.FC = () => {
     }, 1100);
   };
 
+  const renderTabContent = (tab: TabId) => {
+    switch (tab) {
+      case 'catalog':
+        return (
+          <CatalogTab
+            projects={projects}
+            currentRole={currentRole}
+            onSelectProject={handleSelectProject}
+            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+          />
+        );
+      case 'my-projects':
+        return <MyProjectsTab projects={projects} />;
+      case 'hr-dashboard':
+        return (
+          <HRDashboardTab
+            candidates={candidates}
+            projects={projects}
+            companyName={companyProfile.name}
+            onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onEditProject={(p) => setProjectToEdit(p)}
+            onDeleteProject={handleDeleteProject}
+            onApproveCandidate={handleApproveCandidate}
+            onContactCandidate={handleContactCandidate}
+            onNavigateToCompanyProfile={() => handleSwitchTab('company-profile')}
+          />
+        );
+      case 'company-profile':
+        return (
+          <CompanyProfileTab
+            company={companyProfile}
+            projects={projects}
+            onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
+            onOpenCreateProjectModal={() => setIsCreateModalOpen(true)}
+            onEditProject={(p) => setProjectToEdit(p)}
+            onLogout={handleLogout}
+          />
+        );
+      case 'profile':
+        return (
+          <ProfileTab
+            profile={studentProfile}
+            onUpdateBio={(bio) =>
+              setStudentProfile((prev) => ({ ...prev, bio }))
+            }
+            onRecalculate={handleRecalculateBio}
+            isRecalculating={isRecalculating}
+            onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
+            onLogout={handleLogout}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   if (!isLoggedIn) {
     return (
       <>
-        <AuthScreen
-          onLogin={handleLogin}
-          isDark={isDark}
-          toggleTheme={toggleTheme}
-          themeTransition={themeTransition}
-        />
+        <div className={isExiting ? 'screen-exit' : 'screen-enter'}>
+          <AuthScreen
+            onLogin={handleLogin}
+            isDark={isDark}
+            toggleTheme={toggleTheme}
+            themeTransition={themeTransition}
+          />
+        </div>
         <Toast message={toastMessage} />
       </>
     );
   }
 
   return (
-    <div className="bg-paper-light text-ink dark:bg-paper-dark dark:text-ink-light min-h-screen transition-colors duration-300 flex flex-col selection:bg-oxblood selection:text-white">
+    <div className={`bg-paper-light text-ink dark:bg-paper-dark dark:text-ink-light min-h-screen transition-colors duration-300 flex flex-col selection:bg-oxblood selection:text-white ${isExiting ? 'screen-exit' : 'screen-enter'}`}>
       {/* Шапка и навигация */}
       <Header
         currentRole={currentRole}
@@ -299,56 +430,33 @@ export const App: React.FC = () => {
         onLogout={handleLogout}
       />
 
-      {/* Основной контент */}
+      {/* Основной контент с горизонтальной анимацией переключения окон */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentTab === 'catalog' && (
-          <CatalogTab
-            projects={projects}
-            currentRole={currentRole}
-            onSelectProject={handleSelectProject}
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
-          />
-        )}
+        <div className="tabs-viewport">
+          {exitingTab && (
+            <div
+              key={`exit-${exitingTab}`}
+              className={`absolute inset-x-0 top-0 pointer-events-none ${
+                tabDirection === 'forward' ? 'tab-slide-out-left' : 'tab-slide-out-right'
+              }`}
+            >
+              {renderTabContent(exitingTab)}
+            </div>
+          )}
 
-        {currentTab === 'my-projects' && <MyProjectsTab projects={projects} />}
-
-        {currentTab === 'hr-dashboard' && (
-          <HRDashboardTab
-            candidates={candidates}
-            projects={projects}
-            companyName={companyProfile.name}
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
-            onEditProject={(p) => setProjectToEdit(p)}
-            onDeleteProject={handleDeleteProject}
-            onApproveCandidate={handleApproveCandidate}
-            onContactCandidate={handleContactCandidate}
-            onNavigateToCompanyProfile={() => setCurrentTab('company-profile')}
-          />
-        )}
-
-        {currentTab === 'company-profile' && (
-          <CompanyProfileTab
-            company={companyProfile}
-            projects={projects}
-            onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
-            onOpenCreateProjectModal={() => setIsCreateModalOpen(true)}
-            onEditProject={(p) => setProjectToEdit(p)}
-            onLogout={handleLogout}
-          />
-        )}
-
-        {currentTab === 'profile' && (
-          <ProfileTab
-            profile={studentProfile}
-            onUpdateBio={(bio) =>
-              setStudentProfile((prev) => ({ ...prev, bio }))
-            }
-            onRecalculate={handleRecalculateBio}
-            isRecalculating={isRecalculating}
-            onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
-            onLogout={handleLogout}
-          />
-        )}
+          <div
+            key={`enter-${currentTab}`}
+            className={`w-full ${
+              isTabTransitioning
+                ? tabDirection === 'forward'
+                  ? 'tab-slide-in-right'
+                  : 'tab-slide-in-left'
+                : ''
+            }`}
+          >
+            {renderTabContent(currentTab)}
+          </div>
+        </div>
       </main>
 
       {/* Подвал с академической сводкой */}
