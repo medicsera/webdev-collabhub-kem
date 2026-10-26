@@ -16,12 +16,14 @@ interface AuthScreenProps {
   onLogin: (role: Role, phone?: string) => void;
   isDark: boolean;
   toggleTheme: () => void;
+  themeTransition?: 'dawn' | 'sunset' | null;
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({
   onLogin,
   isDark,
   toggleTheme,
+  themeTransition,
 }) => {
   const [selectedRole, setSelectedRole] = useState<Role>('student');
   const [phone, setPhone] = useState('');
@@ -82,36 +84,74 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
   return (
     <div className="min-h-screen bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light flex flex-col justify-between selection:bg-oxblood selection:text-white transition-colors duration-300">
-      {/* Шапка приветствия */}
-      <header className="border-b border-paper-border dark:border-paper-darkBorder py-4 px-4 sm:px-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="text-[10px] font-mono uppercase tracking-[0.25em] text-oxblood dark:text-oxblood-light hidden sm:block">
-              CollabHub • Kem
+      {/* Шапка — идентична основному Header (без профиля) */}
+      <header className="sticky top-0 z-30 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-sm double-rule-b transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-5 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-paper-border dark:border-paper-darkBorder">
+            {/* Левый блок-заглушка для симметрии с основным хедером */}
+            <div className="hidden md:flex items-center gap-2">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-oxblood dark:text-oxblood-light bg-paper-card dark:bg-paper-darkCard">
+                Вход в платформу
+              </span>
             </div>
-            <div className="editorial-serif text-2xl font-bold tracking-tight">
-              THE COLLAB<span className="italic font-normal">HUB</span>
+
+            {/* Центральный логотип (точная копия из Header) */}
+            <div className="text-center select-none">
+              <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-oxblood dark:text-oxblood-light mb-0.5 transition-colors">
+                Academic &amp; Industrial Registry
+              </div>
+              <div className="editorial-serif text-3xl sm:text-4xl font-bold tracking-tight text-ink dark:text-ink-light">
+                THE COLLAB<span className="italic font-normal">HUB</span>
+              </div>
+            </div>
+
+            {/* Правый блок: только кнопка темы (точная копия из Header) */}
+            <div className="flex items-center self-end md:self-center">
+              <button
+                id="auth-theme-toggle"
+                type="button"
+                onClick={toggleTheme}
+                title={isDark ? 'Переключить тему (Рассвет)' : 'Переключить тему (Закат)'}
+                className="w-[98px] h-[34px] shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 text-xs font-mono uppercase select-none relative overflow-hidden group shadow-xs cursor-pointer"
+              >
+                {/* Солнце и Луна с плавным восходом / закатом */}
+                <div className="relative w-3.5 h-3.5 overflow-hidden shrink-0 flex items-center justify-center">
+                  <Sun
+                    className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                      isDark
+                        ? 'translate-y-4 opacity-0 rotate-90 scale-50'
+                        : 'translate-y-0 opacity-100 rotate-0 scale-100'
+                    }`}
+                  />
+                  <Moon
+                    className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                      isDark
+                        ? 'translate-y-0 opacity-100 rotate-0 scale-100'
+                        : '-translate-y-4 opacity-0 -rotate-90 scale-50'
+                    }`}
+                  />
+                </div>
+
+                {/* Текстовая метка фиксированной ширины */}
+                <div className="w-[50px] h-3.5 relative overflow-hidden shrink-0 flex items-center">
+                  <span
+                    className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
+                      isDark ? 'translate-y-3.5 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+                    }`}
+                  >
+                    Светлая
+                  </span>
+                  <span
+                    className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
+                      isDark ? 'translate-y-0 opacity-100' : '-translate-y-3.5 opacity-0 pointer-events-none'
+                    }`}
+                  >
+                    Темная
+                  </span>
+                </div>
+              </button>
             </div>
           </div>
-
-          <button
-            id="auth-theme-toggle"
-            type="button"
-            onClick={toggleTheme}
-            className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-xs font-mono uppercase flex items-center gap-2 hover:border-ink dark:hover:border-stone-400 transition"
-          >
-            {isDark ? (
-              <>
-                <Moon className="w-3.5 h-3.5 text-brass" />
-                <span className="hidden sm:inline">Темная</span>
-              </>
-            ) : (
-              <>
-                <Sun className="w-3.5 h-3.5 text-brass" />
-                <span className="hidden sm:inline">Светлая</span>
-              </>
-            )}
-          </button>
         </div>
       </header>
 
@@ -337,6 +377,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       <footer className="border-t border-paper-border dark:border-paper-darkBorder py-4 px-4 text-center text-xs font-mono text-ink-muted dark:text-stone-400">
         CollabHub Kemerovo • Платформа совместной проектной деятельности вузов и индустрии
       </footer>
+
+      {/* Атмосферный эффект рассвета и заката при переключении темы */}
+      {themeTransition && (
+        <div
+          className={`fixed inset-0 pointer-events-none z-50 ${
+            themeTransition === 'dawn' ? 'dawn-overlay' : 'sunset-overlay'
+          }`}
+          aria-hidden="true"
+        />
+      )}
     </div>
   );
 };

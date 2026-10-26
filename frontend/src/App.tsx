@@ -279,6 +279,7 @@ export const App: React.FC = () => {
           onLogin={handleLogin}
           isDark={isDark}
           toggleTheme={toggleTheme}
+          themeTransition={themeTransition}
         />
         <Toast message={toastMessage} />
       </>
