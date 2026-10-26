@@ -17,7 +17,7 @@ if not GROQ_API_KEY:
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CollabHub AI Service"
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_AI_MODEL", "openai/gpt-oss-120b")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_AI_MODEL", "qwen/qwen3.8-27b")
 
     class Config:
         env_file = ".env"
