@@ -1,0 +1,272 @@
+{
+  "summary": {
+    "model": "sentence-transformers/all-MiniLM-L12-v2",
+    "total_pairs": 20,
+    "accuracy": "55.0%",
+    "mean_absolute_error": 11.16,
+    "avg_inference_time_ms": 347.98,
+    "calibration_method": "Sigmoid (S-Curve) + Взвешивание уровней (CRITICAL/IMPORTANT/OPTIONAL)"
+  },
+  "results": [
+    {
+      "pair_id": "M01",
+      "case_type": "missing_soft",
+      "calculated_score": 98.3,
+      "ground_truth_score": 95,
+      "acceptable_range": [
+        88,
+        100
+      ],
+      "status": "OK",
+      "error": 3.3,
+      "inference_time_ms": 518.32
+    },
+    {
+      "pair_id": "M02",
+      "case_type": "exact_match",
+      "calculated_score": 98.9,
+      "ground_truth_score": 98,
+      "acceptable_range": [
+        92,
+        100
+      ],
+      "status": "OK",
+      "error": 0.9,
+      "inference_time_ms": 353.59
+    },
+    {
+      "pair_id": "M03",
+      "case_type": "skill_transfer",
+      "calculated_score": 83.8,
+      "ground_truth_score": 82,
+      "acceptable_range": [
+        72,
+        90
+      ],
+      "status": "OK",
+      "error": 1.8,
+      "inference_time_ms": 356.17
+    },
+    {
+      "pair_id": "M04",
+      "case_type": "skill_transfer",
+      "calculated_score": 80.7,
+      "ground_truth_score": 85,
+      "acceptable_range": [
+        75,
+        92
+      ],
+      "status": "OK",
+      "error": 4.3,
+      "inference_time_ms": 275.37
+    },
+    {
+      "pair_id": "M05",
+      "case_type": "false_positive_water",
+      "calculated_score": 51.9,
+      "ground_truth_score": 8,
+      "acceptable_range": [
+        0,
+        20
+      ],
+      "status": "FAIL",
+      "error": 43.9,
+      "inference_time_ms": 305.05
+    },
+    {
+      "pair_id": "M06",
+      "case_type": "overqualified",
+      "calculated_score": 94.7,
+      "ground_truth_score": 96,
+      "acceptable_range": [
+        88,
+        100
+      ],
+      "status": "OK",
+      "error": 1.3,
+      "inference_time_ms": 300.96
+    },
+    {
+      "pair_id": "M07",
+      "case_type": "exact_match",
+      "calculated_score": 85.2,
+      "ground_truth_score": 96,
+      "acceptable_range": [
+        90,
+        100
+      ],
+      "status": "FAIL",
+      "error": 10.8,
+      "inference_time_ms": 377.27
+    },
+    {
+      "pair_id": "M08",
+      "case_type": "exact_match",
+      "calculated_score": 99.0,
+      "ground_truth_score": 97,
+      "acceptable_range": [
+        90,
+        100
+      ],
+      "status": "OK",
+      "error": 2.0,
+      "inference_time_ms": 335.42
+    },
+    {
+      "pair_id": "M09",
+      "case_type": "exact_match",
+      "calculated_score": 87.4,
+      "ground_truth_score": 94,
+      "acceptable_range": [
+        86,
+        100
+      ],
+      "status": "OK",
+      "error": 6.6,
+      "inference_time_ms": 390.79
+    },
+    {
+      "pair_id": "M10",
+      "case_type": "skill_transfer",
+      "calculated_score": 44.1,
+      "ground_truth_score": 62,
+      "acceptable_range": [
+        50,
+        74
+      ],
+      "status": "FAIL",
+      "error": 17.9,
+      "inference_time_ms": 418.37
+    },
+    {
+      "pair_id": "M11",
+      "case_type": "skill_transfer",
+      "calculated_score": 54.6,
+      "ground_truth_score": 58,
+      "acceptable_range": [
+        45,
+        70
+      ],
+      "status": "OK",
+      "error": 3.4,
+      "inference_time_ms": 346.47
+    },
+    {
+      "pair_id": "M12",
+      "case_type": "skill_transfer",
+      "calculated_score": 65.2,
+      "ground_truth_score": 68,
+      "acceptable_range": [
+        58,
+        78
+      ],
+      "status": "OK",
+      "error": 2.8,
+      "inference_time_ms": 348.85
+    },
+    {
+      "pair_id": "M13",
+      "case_type": "missing_minor",
+      "calculated_score": 72.8,
+      "ground_truth_score": 65,
+      "acceptable_range": [
+        55,
+        75
+      ],
+      "status": "OK",
+      "error": 7.8,
+      "inference_time_ms": 279.66
+    },
+    {
+      "pair_id": "M14",
+      "case_type": "skill_transfer",
+      "calculated_score": 72.3,
+      "ground_truth_score": 55,
+      "acceptable_range": [
+        42,
+        66
+      ],
+      "status": "FAIL",
+      "error": 17.3,
+      "inference_time_ms": 267.69
+    },
+    {
+      "pair_id": "M15",
+      "case_type": "skill_transfer",
+      "calculated_score": 51.2,
+      "ground_truth_score": 64,
+      "acceptable_range": [
+        52,
+        74
+      ],
+      "status": "FAIL",
+      "error": 12.8,
+      "inference_time_ms": 304.32
+    },
+    {
+      "pair_id": "M16",
+      "case_type": "false_positive_water",
+      "calculated_score": 39.0,
+      "ground_truth_score": 25,
+      "acceptable_range": [
+        12,
+        38
+      ],
+      "status": "FAIL",
+      "error": 14.0,
+      "inference_time_ms": 281.52
+    },
+    {
+      "pair_id": "M17",
+      "case_type": "skill_transfer",
+      "calculated_score": 57.4,
+      "ground_truth_score": 78,
+      "acceptable_range": [
+        68,
+        86
+      ],
+      "status": "FAIL",
+      "error": 20.6,
+      "inference_time_ms": 299.46
+    },
+    {
+      "pair_id": "M18",
+      "case_type": "skill_transfer",
+      "calculated_score": 46.3,
+      "ground_truth_score": 66,
+      "acceptable_range": [
+        55,
+        76
+      ],
+      "status": "FAIL",
+      "error": 19.7,
+      "inference_time_ms": 340.21
+    },
+    {
+      "pair_id": "M19",
+      "case_type": "false_positive_water",
+      "calculated_score": 34.2,
+      "ground_truth_score": 5,
+      "acceptable_range": [
+        0,
+        15
+      ],
+      "status": "FAIL",
+      "error": 29.2,
+      "inference_time_ms": 431.63
+    },
+    {
+      "pair_id": "M20",
+      "case_type": "exact_match",
+      "calculated_score": 94.1,
+      "ground_truth_score": 97,
+      "acceptable_range": [
+        90,
+        100
+      ],
+      "status": "OK",
+      "error": 2.9,
+      "inference_time_ms": 428.49
+    }
+  ]
+}

@@ -17,7 +17,8 @@ if not GROQ_API_KEY:
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CollabHub AI Service"
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_AI_MODEL", "qwen/qwen3.8-27b")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_AI_MODEL", "qwen/qwen3.8-")
+    EMBEDDING_MODEL_NAME: str = "sentence-transformers/all-MiniLM-L12-v2"
 
     class Config:
         env_file = ".env"
