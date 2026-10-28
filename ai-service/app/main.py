@@ -100,7 +100,7 @@ def test_model(
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-    @app.get("/health", status_code=status.HTTP_200_OK, tags=["System"])
+@app.get("/health", status_code=status.HTTP_200_OK, tags=["System"])
 async def health_check():
     """Проверка доступности сервиса для Docker healthcheck."""
     return {

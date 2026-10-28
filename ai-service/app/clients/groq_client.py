@@ -15,7 +15,7 @@ class GroqClient(BaseLLMClient):
             model: Optional[str] = None,
     ):
         self.api_key = api_key or settings.GROQ_API_KEY
-        self.model = model or getattr(settings, "GROQ_MODEL", "llama-3.3-70b-versatile")
+        self.model = model or getattr(settings, "GROQ_MODEL", "qwen/qwen3.8-27b")
         self.client = AsyncGroq(api_key=self.api_key)
 
     async def generate_response(
@@ -60,25 +60,25 @@ class GroqClient(BaseLLMClient):
         )
 
         user_prompt = f"""
-Проанализируй соответствие кандидата проекту:
-
-Проект: {project_title}
-Описание проекта: {project_description}
-Требуемые компетенции проекта: {json.dumps(project_requirements, ensure_ascii=False)}
-
-Навыки студента: {json.dumps(student_skills, ensure_ascii=False)}
-
-Верни JSON со следующей структурой:
-{{
-  "summary": "Краткое заключение (2-3 предложения) о готовности студента к проекту",
-  "matching_skills": ["навыки студента, которые идеально подходят под проект"],
-  "missing_skills": ["требования проекта, которых нет у студента"],
-  "recommendations": [
-    "конкретный шаг для закрытия пробела 1",
-    "конкретный шаг для закрытия пробела 2"
-  ]
-}}
-"""
+        Проанализируй соответствие кандидата проекту:
+        
+        Проект: {project_title}
+        Описание проекта: {project_description}
+        Требуемые компетенции проекта: {json.dumps(project_requirements, ensure_ascii=False)}
+        
+        Навыки студента: {json.dumps(student_skills, ensure_ascii=False)}
+        
+        Верни JSON со следующей структурой:
+        {{
+          "summary": "Краткое заключение (2-3 предложения) о готовности студента к проекту",
+          "matching_skills": ["навыки студента, которые идеально подходят под проект"],
+          "missing_skills": ["требования проекта, которых нет у студента"],
+          "recommendations": [
+            "конкретный шаг для закрытия пробела 1",
+            "конкретный шаг для закрытия пробела 2"
+          ]
+        }}
+        """
 
         try:
             raw_response = await self.generate_response(

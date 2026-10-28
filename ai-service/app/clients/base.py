@@ -1,9 +1,22 @@
+from abc import ABC, abstractmethod
+from typing import Optional
 from groq import Groq
 from app.core.config import GROQ_API_KEY
 
+class BaseLLMClient(ABC):
+    """Базовый класс для LLM клиентов."""
+
+    @abstractmethod
+    async def generate_response(
+            self,
+            prompt: str,
+            system_prompt: Optional[str] = None,
+            temperature: float = 0.2,
+    ) -> str:
+        pass
+
 # Инициализируем клиент с проверенным ключом
 client = Groq(api_key=GROQ_API_KEY)
-
 
 def get_all_models() -> list[dict]:
     """Запрашивает полный список моделей, доступных текущему API-ключу"""
@@ -18,7 +31,6 @@ def get_all_models() -> list[dict]:
         }
         for model in models_data.data
     ]
-
 
 def test_ai_connection(prompt_text: str, model_id: str = "qwen/qwen3.8-27b") -> str:
     """Отправляет тестовый запрос к выбранной модели"""
