@@ -64,6 +64,7 @@ services:
       - /app/node_modules
     environment:
       - DATABASE_URL=postgres://collabhub_user:collabhub_secret@postgres:5432/collabhub_db
+      - AI_SERVICE_URL=http://ai-service:8001
     networks:
       - collabhub-network
     depends_on:
