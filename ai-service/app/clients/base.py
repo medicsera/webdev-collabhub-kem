@@ -1,41 +1,38 @@
 from abc import ABC, abstractmethod
 from typing import Optional
-from groq import Groq
-from app.core.config import GROQ_API_KEY
+from gigachat import GigaChat
+from gigachat.models import Chat, Messages, MessagesRole
+from app.core.config import settings
 
 class BaseLLMClient(ABC):
-    """Базовый класс для LLM клиентов."""
-
     @abstractmethod
     async def generate_response(
-            self,
-            prompt: str,
-            system_prompt: Optional[str] = None,
-            temperature: float = 0.2,
+            self, prompt: str, system_prompt: Optional[str] = None, temperature: float = 0.2
     ) -> str:
         pass
 
-# Инициализируем клиент с проверенным ключом
-client = Groq(api_key=GROQ_API_KEY)
+client = GigaChat(
+    credentials=settings.GIGACHAT_CREDENTIALS,
+    scope=settings.GIGACHAT_SCOPE,
+    verify_ssl_certs=False
+)
 
 def get_all_models() -> list[dict]:
-    """Запрашивает полный список моделей, доступных текущему API-ключу"""
-    models_data = client.models.list()
-    # Возвращаем форматированный список со сведениями о каждой модели
+    models_data = client.get_models()
+    # Извлекаем идентификатор через id или id_, так как атрибута name в SDK нет
     return [
         {
-            "id": model.id,
-            "owned_by": model.owned_by,
-            "active": model.active,
-            "context_window": getattr(model, "context_window", None),
+            "id": getattr(m, "id", getattr(m, "id_", "Unknown")),
+            "owned_by": "Sber"
         }
-        for model in models_data.data
+        for m in models_data.data
     ]
 
-def test_ai_connection(prompt_text: str, model_id: str = "qwen/qwen3.8-27b") -> str:
-    """Отправляет тестовый запрос к выбранной модели"""
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt_text}],
-        model=model_id,
+def test_ai_connection(prompt_text: str, model_id: str = "GigaChat-2") -> str:
+    # Оборачиваем запрос в объект Chat
+    payload = Chat(
+        messages=[Messages(role=MessagesRole.USER, content=prompt_text)],
+        model=model_id
     )
-    return chat_completion.choices[0].message.content
+    response = client.chat(payload)
+    return response.choices[0].message.content

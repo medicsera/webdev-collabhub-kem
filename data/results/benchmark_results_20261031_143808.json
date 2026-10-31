@@ -1,0 +1,1111 @@
+{
+  "generated_at": "2026-10-31T14:38:08.097253",
+  "summary": [
+    {
+      "name": "Qwen 3.8 (27B, Groq)",
+      "model_id": "qwen/qwen3.8-27b",
+      "type": "Генеративная LLM (Groq LPU)",
+      "license": "Open Weights",
+      "json_validity": 100.0,
+      "mae": 10.15,
+      "accuracy_hits": 70.0,
+      "spearman": 0.8908363092929529,
+      "avg_latency": 0.5915809800033458,
+      "vram": "0 ГБ",
+      "final_score": 80.60427082525335
+    },
+    {
+      "name": "GPT-OSS (20B, Groq)",
+      "model_id": "openai/gpt-oss-20b",
+      "type": "Генеративная LLM (Groq LPU)",
+      "license": "Apache 2.0",
+      "json_validity": 80.0,
+      "mae": 21.5,
+      "accuracy_hits": 70.0,
+      "spearman": 0.7317082492715452,
+      "avg_latency": 1.8328721549827605,
+      "vram": "0 ГБ",
+      "final_score": 67.35978872450409
+    },
+    {
+      "name": "GPT-OSS (120B MoE, Groq)",
+      "model_id": "openai/gpt-oss-120b",
+      "type": "Генеративная LLM (Groq LPU)",
+      "license": "Apache 2.0",
+      "json_validity": 95.0,
+      "mae": 14.9,
+      "accuracy_hits": 60.0,
+      "spearman": 0.8690978096072162,
+      "avg_latency": 1.4408105649985372,
+      "vram": "0 ГБ",
+      "final_score": 73.46842333625257
+    }
+  ],
+  "models_details": [
+    {
+      "name": "Qwen 3.8 (27B, Groq)",
+      "model_id": "qwen/qwen3.8-27b",
+      "type": "Генеративная LLM (Groq LPU)",
+      "license": "Open Weights",
+      "json_validity": 100.0,
+      "mae": 10.15,
+      "accuracy_hits": 70.0,
+      "spearman": 0.8908363092929529,
+      "avg_latency": 0.5915809800033458,
+      "vram": "0 ГБ",
+      "final_score": 80.60427082525335,
+      "detailed_log": [
+        {
+          "pair_id": "M01",
+          "student_id": "S1",
+          "project_id": "P1",
+          "case_type": "missing_soft",
+          "ground_truth_score": 95,
+          "acceptable_range": [
+            88,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат идеально закрывает все критические технические требования (Vue 3, TS, Pinia, Vite, SCSS) и имеет релевантный опыт работы с Figma и Swagger, что обеспечивает максимальную совместимость с проектом.",
+          "expected_feedback": "Отличное владение ключевым стеком (Vue 3, Pinia, TypeScript, SCSS). Незначительный пробел по опыту работы в Jira.",
+          "latency_sec": 1.807,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M02",
+          "student_id": "S2",
+          "project_id": "P2",
+          "case_type": "exact_match",
+          "ground_truth_score": 98,
+          "acceptable_range": [
+            92,
+            100
+          ],
+          "predicted_score": 98.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат идеально закрывает все критические требования проекта (FastAPI, PostgreSQL с pgvector, Redis, Docker) на продвинутом уровне, подтверждая опыт практической работы с векторным поиском и микросервисами.",
+          "expected_feedback": "Полное попадание в требования проекта: уверенный опыт с FastAPI, PostgreSQL, pgvector и Docker.",
+          "latency_sec": 0.413,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M03",
+          "student_id": "S3",
+          "project_id": "P3",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 82,
+          "acceptable_range": [
+            72,
+            90
+          ],
+          "predicted_score": 75.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат обладает сильным стеком (React/TS/Redux), который легко переносится на Vue 3, и закрывает критические требования по TypeScript, JWT и компонентному подходу. Дефицит опыта именно в Vue компенсируется заявленной высокой скоростью адаптации и наличием готовых макетов.",
+          "expected_feedback": "Хорошая база в React и TypeScript. Требуется адаптация под Vue 3, но сильные фундаментальные навыки позволяют быстро переключиться.",
+          "latency_sec": 0.436,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M04",
+          "student_id": "S5",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 85,
+          "acceptable_range": [
+            75,
+            92
+          ],
+          "predicted_score": 75.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат обладает релевантным стеком (Node.js, Express, Docker, Telegram-бот), что обеспечивает быструю адаптацию к проекту, однако дефицит опыта работы с CouchDB и Redis требует времени на освоение специфичных аспектов хранения данных и сессий.",
+          "expected_feedback": "Базовый стек совпадает (Node.js, Express, NoSQL), есть опыт создания ботов. Потребуется освоить CouchDB вместо MongoDB.",
+          "latency_sec": 0.449,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M05",
+          "student_id": "S6",
+          "project_id": "P6",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 8,
+          "acceptable_range": [
+            0,
+            20
+          ],
+          "predicted_score": 5.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат не обладает ни одним из критических технических навыков (C++, сети, Linux), требуемых проектом, его текущий уровень (Python/HTML) не позволяет закрыть даже базовые требования, несмотря на сильные soft skills.",
+          "expected_feedback": "Критическое несовпадение стека: базовых школьных навыков и лидерских качеств недостаточно для системной разработки сетевого демона на C++.",
+          "latency_sec": 0.406,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M06",
+          "student_id": "S1",
+          "project_id": "P5",
+          "case_type": "overqualified",
+          "ground_truth_score": 96,
+          "acceptable_range": [
+            88,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат является Overqualified: его продвинутый стек (Vue 3, TypeScript, Vite) полностью покрывает базовые требования проекта (HTML/CSS/JS), а опыт работы с Node.js обеспечивает быструю интеграцию с бэкендом.",
+          "expected_feedback": "Кандидат значительно превосходит минимальные требования к верстке, полностью закрывая задачи адаптивного веб-интерфейса.",
+          "latency_sec": 0.433,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M07",
+          "student_id": "S4",
+          "project_id": "P4",
+          "case_type": "exact_match",
+          "ground_truth_score": 96,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат идеально закрывает критические требования проекта: опыт работы с RuBERT, владение Python, Pandas и Streamlit, а также базовые знания SQL для хранения статистики.",
+          "expected_feedback": "Идеальное попадание: подтверждённый практический опыт работы с RuBERT, Hugging Face, NLP и анализом данных на Python.",
+          "latency_sec": 0.377,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M08",
+          "student_id": "S7",
+          "project_id": "P8",
+          "case_type": "exact_match",
+          "ground_truth_score": 97,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат идеально закрывает все критические требования проекта (Kotlin, Jetpack Compose, Retrofit, Firebase) и имеет релевантный опыт разработки клиентских приложений, а также опыт работы в Scrum.",
+          "expected_feedback": "Точное соответствие стеку: практический опыт с Kotlin, Jetpack Compose, Retrofit и процессами Scrum.",
+          "latency_sec": 0.531,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M09",
+          "student_id": "S8",
+          "project_id": "P6",
+          "case_type": "exact_match",
+          "ground_truth_score": 94,
+          "acceptable_range": [
+            86,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат идеально закрывает критические требования: уверенное владение C++, глубокое понимание сетевых протоколов и опыт работы с Linux-инфраструктурой (Docker, CI/CD). Дополнительным преимуществом является опыт работы с отечественными ОС (ALT Linux), что напрямую соответствует стеку проекта.",
+          "expected_feedback": "Отличный уровень владения Linux, сетевыми протоколами TCP/IP и C++, высокая системная подготовка для сетевого демона.",
+          "latency_sec": 1.92,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M10",
+          "student_id": "S4",
+          "project_id": "P2",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 62,
+          "acceptable_range": [
+            50,
+            74
+          ],
+          "predicted_score": 45.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат обладает сильной базой в Python и ML, что частично перекрывает требования к языку, однако полностью отсутствует опыт работы с критически важными для проекта инструментами: FastAPI, PostgreSQL, Redis и Docker. Профиль скорее Data Scientist, чем Backend Developer, что делает его релевантным лишь на уровне базовых навыков Python.",
+          "expected_feedback": "Сильный Python и понимание векторов для pgvector, однако отсутствует опыт промышленной бэкенд-разработки на FastAPI и Docker.",
+          "latency_sec": 0.457,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M11",
+          "student_id": "S2",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 58,
+          "acceptable_range": [
+            45,
+            70
+          ],
+          "predicted_score": 45.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат обладает сильными навыками в бэкенд-разработке, Docker и Redis, однако критический стек проекта (Node.js/Express и CouchDB) отсутствует в его профиле, что требует значительного времени на адаптацию.",
+          "expected_feedback": "Крепкая база в серверной архитектуре, базах данных и Docker, но потребуется время на переход с Python на стек Node.js/Express.",
+          "latency_sec": 0.42,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M12",
+          "student_id": "S1",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 68,
+          "acceptable_range": [
+            58,
+            78
+          ],
+          "predicted_score": 25.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат является фронтенд-разработчиком (Vue/TS), тогда как проект требует бэкенд-разработки на Node.js с использованием специфичных технологий (CouchDB, Redis, Docker), которые отсутствуют в его профиле.",
+          "expected_feedback": "Есть базовое понимание Node.js и Express, однако кандидат ориентирован преимущественно на клиентский фронтенд.",
+          "latency_sec": 0.412,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M13",
+          "student_id": "S6",
+          "project_id": "P5",
+          "case_type": "missing_minor",
+          "ground_truth_score": 65,
+          "acceptable_range": [
+            55,
+            75
+          ],
+          "predicted_score": 25.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат обладает лишь базовыми знаниями HTML/CSS и Python, что недостаточно для самостоятельной реализации адаптивной вёрстки с JavaScript и интеграции с бэкендом, требуемыми проектом.",
+          "expected_feedback": "Начальный уровень верстки позволит справиться с несложным сайтом при наличии наставничества.",
+          "latency_sec": 0.432,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M14",
+          "student_id": "S5",
+          "project_id": "P6",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 55,
+          "acceptable_range": [
+            42,
+            66
+          ],
+          "predicted_score": 65.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат закрывает критическое требование по C++ и алгоритмам, а также обладает базовыми навыками Docker и Git, однако дефицит опыта в сетевых протоколах, многопоточности и работе с сокетами в Linux снижает оценку до уровня частичного соответствия.",
+          "expected_feedback": "Знание академического C++ и алгоритмов есть, но не хватает опыта сетевого и многопоточного программирования в Linux.",
+          "latency_sec": 0.427,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M15",
+          "student_id": "S8",
+          "project_id": "P2",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 64,
+          "acceptable_range": [
+            52,
+            74
+          ],
+          "predicted_score": 75.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат закрывает критические инфраструктурные требования (Docker, Linux, Python), однако профиль смещен в сторону DevOps, что создает риск дефицита опыта в разработке бизнес-логики на FastAPI и работе с векторными БД.",
+          "expected_feedback": "Отличная база Linux, Docker и Python-скриптов, но нет опыта разработки веб-API на FastAPI и работы со сложными SQL-индексами.",
+          "latency_sec": 0.405,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M16",
+          "student_id": "S7",
+          "project_id": "P1",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 25,
+          "acceptable_range": [
+            12,
+            38
+          ],
+          "predicted_score": 45.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат обладает сильными навыками мобильной разработки (Kotlin/Android), что не соответствует требуемому веб-стеку (Vue 3/TypeScript), однако наличие опыта работы с REST API и Jira обеспечивает частичное соответствие и потенциал быстрой адаптации к фронтенд-задачам.",
+          "expected_feedback": "Опыт сосредоточен исключительно в мобильной разработке (Kotlin/Android), стек веб-фронтенда (Vue 3, TypeScript) не освоен.",
+          "latency_sec": 0.462,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M17",
+          "student_id": "S3",
+          "project_id": "P1",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 78,
+          "acceptable_range": [
+            68,
+            86
+          ],
+          "predicted_score": 75.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат обладает сильным смежным стеком (React/TS/Redux), что обеспечивает высокий потенциал быстрой адаптации к Vue 3 и Pinia, однако требует времени на освоение специфичных библиотек проекта (SCSS, Vite) и подтверждения навыков работы с Jira.",
+          "expected_feedback": "Уверенная база TypeScript и компонентной верстки в React позволит относительно быстро освоить Vue 3 и Pinia.",
+          "latency_sec": 0.636,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M18",
+          "student_id": "S2",
+          "project_id": "P4",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 66,
+          "acceptable_range": [
+            55,
+            76
+          ],
+          "predicted_score": 85.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат обладает сильным бэкенд-стекком (Python, FastAPI, PostgreSQL, Docker), который идеально закрывает инфраструктурную часть проекта, включая работу с pgvector для эмбеддингов. Основной дефицит — отсутствие прямого опыта в NLP-моделях (RuBERT) и Streamlit, однако наличие опыта работы с векторными поисками и уверенное владение Python позволяют ожидать быструю адаптацию к ML-компонентам.",
+          "expected_feedback": "Отличный Python и SQL, опыт работы с pgvector, но нет профильных знаний ML/NLP и опыта дообучения трансформеров.",
+          "latency_sec": 0.547,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M19",
+          "student_id": "S6",
+          "project_id": "P2",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 5,
+          "acceptable_range": [
+            0,
+            15
+          ],
+          "predicted_score": 5.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат является первокурсником с базовыми знаниями Python (циклы, списки), что критически недостаточно для работы с FastAPI, PostgreSQL и Docker, требуемыми проектом. Навыки организации и коммуникации не компенсируют полное отсутствие технического стека бэкенд-разработчика.",
+          "expected_feedback": "Недостаточный уровень технических навыков для бэкенда стартапа; совпадение по слову Python не закрывает требования к архитектуре.",
+          "latency_sec": 0.438,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M20",
+          "student_id": "S1",
+          "project_id": "P3",
+          "case_type": "exact_match",
+          "ground_truth_score": 97,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат идеально соответствует критическим требованиям проекта: обладает опытом работы с Vue 3, TypeScript и современным JS, а также навыками работы с макетами и Git. Дефицит в стейт-менеджменте не является препятствием, так как проект предусматривает обучение на месте.",
+          "expected_feedback": "Полное соответствие ключевым требованиям: Vue 3, TypeScript, верстка, работа с API и макетами.",
+          "latency_sec": 0.423,
+          "valid_json": true
+        }
+      ]
+    },
+    {
+      "name": "GPT-OSS (20B, Groq)",
+      "model_id": "openai/gpt-oss-20b",
+      "type": "Генеративная LLM (Groq LPU)",
+      "license": "Apache 2.0",
+      "json_validity": 80.0,
+      "mae": 21.5,
+      "accuracy_hits": 70.0,
+      "spearman": 0.7317082492715452,
+      "avg_latency": 1.8328721549827605,
+      "vram": "0 ГБ",
+      "final_score": 67.35978872450409,
+      "detailed_log": [
+        {
+          "pair_id": "M01",
+          "student_id": "S1",
+          "project_id": "P1",
+          "case_type": "missing_soft",
+          "ground_truth_score": 95,
+          "acceptable_range": [
+            88,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Strong match on Vue 3, TypeScript, Pinia, Vite, SCSS, and Figma; meets all critical requirements.",
+          "expected_feedback": "Отличное владение ключевым стеком (Vue 3, Pinia, TypeScript, SCSS). Незначительный пробел по опыту работы в Jira.",
+          "latency_sec": 0.835,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M02",
+          "student_id": "S2",
+          "project_id": "P2",
+          "case_type": "exact_match",
+          "ground_truth_score": 98,
+          "acceptable_range": [
+            92,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает все критические требования проекта на уровне продвинутого владения.",
+          "expected_feedback": "Полное попадание в требования проекта: уверенный опыт с FastAPI, PostgreSQL, pgvector и Docker.",
+          "latency_sec": 0.635,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M03",
+          "student_id": "S3",
+          "project_id": "P3",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 82,
+          "acceptable_range": [
+            72,
+            90
+          ],
+          "predicted_score": 75.0,
+          "is_hit": true,
+          "ai_feedback": "Strong TypeScript and component-based experience with quick learning; lacks Vue but can adapt quickly.",
+          "expected_feedback": "Хорошая база в React и TypeScript. Требуется адаптация под Vue 3, но сильные фундаментальные навыки позволяют быстро переключиться.",
+          "latency_sec": 0.89,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M04",
+          "student_id": "S5",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 85,
+          "acceptable_range": [
+            75,
+            92
+          ],
+          "predicted_score": 0.0,
+          "is_hit": false,
+          "ai_feedback": "Ошибка: Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}",
+          "expected_feedback": "Базовый стек совпадает (Node.js, Express, NoSQL), есть опыт создания ботов. Потребуется освоить CouchDB вместо MongoDB.",
+          "latency_sec": 1.035,
+          "valid_json": false
+        },
+        {
+          "pair_id": "M05",
+          "student_id": "S6",
+          "project_id": "P6",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 8,
+          "acceptable_range": [
+            0,
+            20
+          ],
+          "predicted_score": 15.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат не обладает необходимыми навыками C++ и сетевого программирования, но имеет хорошие организационные качества.",
+          "expected_feedback": "Критическое несовпадение стека: базовых школьных навыков и лидерских качеств недостаточно для системной разработки сетевого демона на C++.",
+          "latency_sec": 0.686,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M06",
+          "student_id": "S1",
+          "project_id": "P5",
+          "case_type": "overqualified",
+          "ground_truth_score": 96,
+          "acceptable_range": [
+            88,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат владеет всеми критическими навыками (HTML/CSS/JS, адаптивная верстка, backend‑интеграция) на уровне Intermediate/Advanced, что делает его идеальным для проекта.",
+          "expected_feedback": "Кандидат значительно превосходит минимальные требования к верстке, полностью закрывая задачи адаптивного веб-интерфейса.",
+          "latency_sec": 1.141,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M07",
+          "student_id": "S4",
+          "project_id": "P4",
+          "case_type": "exact_match",
+          "ground_truth_score": 96,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат обладает продвинутыми навыками Python и NLP, умеет работать с трансформерами и Streamlit, что полностью покрывает критические требования проекта.",
+          "expected_feedback": "Идеальное попадание: подтверждённый практический опыт работы с RuBERT, Hugging Face, NLP и анализом данных на Python.",
+          "latency_sec": 0.907,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M08",
+          "student_id": "S7",
+          "project_id": "P8",
+          "case_type": "exact_match",
+          "ground_truth_score": 97,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает критические требования проекта на уровне Intermediate, включая Kotlin, Jetpack Compose, Retrofit, Firebase и Scrum в Jira.",
+          "expected_feedback": "Точное соответствие стеку: практический опыт с Kotlin, Jetpack Compose, Retrofit и процессами Scrum.",
+          "latency_sec": 0.576,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M09",
+          "student_id": "S8",
+          "project_id": "P6",
+          "case_type": "exact_match",
+          "ground_truth_score": 94,
+          "acceptable_range": [
+            86,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Candidate fully meets all critical requirements with strong C++ and networking experience, plus Docker and Git proficiency, making him an excellent fit.",
+          "expected_feedback": "Отличный уровень владения Linux, сетевыми протоколами TCP/IP и C++, высокая системная подготовка для сетевого демона.",
+          "latency_sec": 0.891,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M10",
+          "student_id": "S4",
+          "project_id": "P2",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 62,
+          "acceptable_range": [
+            50,
+            74
+          ],
+          "predicted_score": 20.0,
+          "is_hit": false,
+          "ai_feedback": "Candidate lacks critical backend stack skills such as FastAPI, PostgreSQL with pgvector, Redis, and Docker, making them unsuitable for the role.",
+          "expected_feedback": "Сильный Python и понимание векторов для pgvector, однако отсутствует опыт промышленной бэкенд-разработки на FastAPI и Docker.",
+          "latency_sec": 1.008,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M11",
+          "student_id": "S2",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 58,
+          "acceptable_range": [
+            45,
+            70
+          ],
+          "predicted_score": 55.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат обладает опытом работы с Docker, Redis и чистым кодом, но не владеет критически необходимыми технологиями Node.js, Express и CouchDB, поэтому оценка 55.",
+          "expected_feedback": "Крепкая база в серверной архитектуре, базах данных и Docker, но потребуется время на переход с Python на стек Node.js/Express.",
+          "latency_sec": 1.016,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M12",
+          "student_id": "S1",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 68,
+          "acceptable_range": [
+            58,
+            78
+          ],
+          "predicted_score": 20.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат имеет базовый опыт Node.js, но не владеет критическими технологиями проекта, такими как CouchDB, Redis, Docker и Telegram-боты, поэтому не подходит.",
+          "expected_feedback": "Есть базовое понимание Node.js и Express, однако кандидат ориентирован преимущественно на клиентский фронтенд.",
+          "latency_sec": 0.672,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M13",
+          "student_id": "S6",
+          "project_id": "P5",
+          "case_type": "missing_minor",
+          "ground_truth_score": 65,
+          "acceptable_range": [
+            55,
+            75
+          ],
+          "predicted_score": 55.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат владеет HTML/CSS, но не имеет опыта JavaScript и интеграции с бэкендом, что критично для проекта.",
+          "expected_feedback": "Начальный уровень верстки позволит справиться с несложным сайтом при наличии наставничества.",
+          "latency_sec": 0.477,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M14",
+          "student_id": "S5",
+          "project_id": "P6",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 55,
+          "acceptable_range": [
+            42,
+            66
+          ],
+          "predicted_score": 0.0,
+          "is_hit": false,
+          "ai_feedback": "Ошибка: Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}",
+          "expected_feedback": "Знание академического C++ и алгоритмов есть, но не хватает опыта сетевого и многопоточного программирования в Linux.",
+          "latency_sec": 0.921,
+          "valid_json": false
+        },
+        {
+          "pair_id": "M15",
+          "student_id": "S8",
+          "project_id": "P2",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 64,
+          "acceptable_range": [
+            52,
+            74
+          ],
+          "predicted_score": 0.0,
+          "is_hit": false,
+          "ai_feedback": "Ошибка: Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}",
+          "expected_feedback": "Отличная база Linux, Docker и Python-скриптов, но нет опыта разработки веб-API на FastAPI и работы со сложными SQL-индексами.",
+          "latency_sec": 0.818,
+          "valid_json": false
+        },
+        {
+          "pair_id": "M16",
+          "student_id": "S7",
+          "project_id": "P1",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 25,
+          "acceptable_range": [
+            12,
+            38
+          ],
+          "predicted_score": 20.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат не владеет критическими технологиями проекта (Vue, TypeScript, SCSS), поэтому не подходит.",
+          "expected_feedback": "Опыт сосредоточен исключительно в мобильной разработке (Kotlin/Android), стек веб-фронтенда (Vue 3, TypeScript) не освоен.",
+          "latency_sec": 5.45,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M17",
+          "student_id": "S3",
+          "project_id": "P1",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 78,
+          "acceptable_range": [
+            68,
+            86
+          ],
+          "predicted_score": 0.0,
+          "is_hit": false,
+          "ai_feedback": "Ошибка: Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}",
+          "expected_feedback": "Уверенная база TypeScript и компонентной верстки в React позволит относительно быстро освоить Vue 3 и Pinia.",
+          "latency_sec": 3.146,
+          "valid_json": false
+        },
+        {
+          "pair_id": "M18",
+          "student_id": "S2",
+          "project_id": "P4",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 66,
+          "acceptable_range": [
+            55,
+            76
+          ],
+          "predicted_score": 55.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат силен в Python, бэкенде и работе с базами, но не демонстрирует явного опыта в NLP и Streamlit, необходимых для проекта.",
+          "expected_feedback": "Отличный Python и SQL, опыт работы с pgvector, но нет профильных знаний ML/NLP и опыта дообучения трансформеров.",
+          "latency_sec": 5.933,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M19",
+          "student_id": "S6",
+          "project_id": "P2",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 5,
+          "acceptable_range": [
+            0,
+            15
+          ],
+          "predicted_score": 10.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат имеет лишь базовые знания Python и отсутствуют ключевые навыки FastAPI, PostgreSQL, Redis, Docker и Linux, поэтому не подходит к проекту.",
+          "expected_feedback": "Недостаточный уровень технических навыков для бэкенда стартапа; совпадение по слову Python не закрывает требования к архитектуре.",
+          "latency_sec": 4.863,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M20",
+          "student_id": "S1",
+          "project_id": "P3",
+          "case_type": "exact_match",
+          "ground_truth_score": 97,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает критические требования проекта: Vue 3 с Composition API, TypeScript и Pinia, а также опыт работы с современным JS/TS и компонентным подходом.",
+          "expected_feedback": "Полное соответствие ключевым требованиям: Vue 3, TypeScript, верстка, работа с API и макетами.",
+          "latency_sec": 4.756,
+          "valid_json": true
+        }
+      ]
+    },
+    {
+      "name": "GPT-OSS (120B MoE, Groq)",
+      "model_id": "openai/gpt-oss-120b",
+      "type": "Генеративная LLM (Groq LPU)",
+      "license": "Apache 2.0",
+      "json_validity": 95.0,
+      "mae": 14.9,
+      "accuracy_hits": 60.0,
+      "spearman": 0.8690978096072162,
+      "avg_latency": 1.4408105649985372,
+      "vram": "0 ГБ",
+      "final_score": 73.46842333625257,
+      "detailed_log": [
+        {
+          "pair_id": "M01",
+          "student_id": "S1",
+          "project_id": "P1",
+          "case_type": "missing_soft",
+          "ground_truth_score": 95,
+          "acceptable_range": [
+            88,
+            100
+          ],
+          "predicted_score": 94.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает критические технологии проекта (Vue 3, TS, Pinia, Vite, SCSS, Figma, Swagger) и имеет практический опыт, что делает его почти идеальным, лишь небольшие пробелы в упоминании Jira.",
+          "expected_feedback": "Отличное владение ключевым стеком (Vue 3, Pinia, TypeScript, SCSS). Незначительный пробел по опыту работы в Jira.",
+          "latency_sec": 1.058,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M02",
+          "student_id": "S2",
+          "project_id": "P2",
+          "case_type": "exact_match",
+          "ground_truth_score": 98,
+          "acceptable_range": [
+            92,
+            100
+          ],
+          "predicted_score": 96.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает все критические требования: опыт FastAPI, PostgreSQL + pgvector, Redis, Docker и уверенное владение Linux, пишет чистый код.",
+          "expected_feedback": "Полное попадание в требования проекта: уверенный опыт с FastAPI, PostgreSQL, pgvector и Docker.",
+          "latency_sec": 0.868,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M03",
+          "student_id": "S3",
+          "project_id": "P3",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 82,
+          "acceptable_range": [
+            72,
+            90
+          ],
+          "predicted_score": 78.0,
+          "is_hit": true,
+          "ai_feedback": "Отличные навыки modern JS/TS, стейт‑менеджмента и JWT, но отсутствует опыт Vue 3, что требует быстрой адаптации к новому фреймворку.",
+          "expected_feedback": "Хорошая база в React и TypeScript. Требуется адаптация под Vue 3, но сильные фундаментальные навыки позволяют быстро переключиться.",
+          "latency_sec": 1.317,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M04",
+          "student_id": "S5",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 85,
+          "acceptable_range": [
+            75,
+            92
+          ],
+          "predicted_score": 58.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат имеет практический опыт с Node.js/Express и Telegram‑ботом, но уровень Docker базовый, а CouchDB и Redis не знакомы (только аналогия с MongoDB), поэтому покрытие критических требований частичное.",
+          "expected_feedback": "Базовый стек совпадает (Node.js, Express, NoSQL), есть опыт создания ботов. Потребуется освоить CouchDB вместо MongoDB.",
+          "latency_sec": 1.211,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M05",
+          "student_id": "S6",
+          "project_id": "P6",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 8,
+          "acceptable_range": [
+            0,
+            20
+          ],
+          "predicted_score": 15.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат не обладает критическими навыками C++, сетевого программирования и многопоточности, поэтому подходит лишь как потенциальный новичок, но не готов к проекту.",
+          "expected_feedback": "Критическое несовпадение стека: базовых школьных навыков и лидерских качеств недостаточно для системной разработки сетевого демона на C++.",
+          "latency_sec": 0.633,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M06",
+          "student_id": "S1",
+          "project_id": "P5",
+          "case_type": "overqualified",
+          "ground_truth_score": 96,
+          "acceptable_range": [
+            88,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат покрывает все критические требования (HTML/CSS, JS, интеграция с бэкендом) и даже имеет более продвинутый стек, поэтому легко справится с простым промо‑сайтом.",
+          "expected_feedback": "Кандидат значительно превосходит минимальные требования к верстке, полностью закрывая задачи адаптивного веб-интерфейса.",
+          "latency_sec": 1.124,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M07",
+          "student_id": "S4",
+          "project_id": "P4",
+          "case_type": "exact_match",
+          "ground_truth_score": 96,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает критические требования: продвинутый Python, опыт с RuBERT, умеет разворачивать сервис в Streamlit и имеет базовый SQL для хранения данных, что делает его отличным fit.",
+          "expected_feedback": "Идеальное попадание: подтверждённый практический опыт работы с RuBERT, Hugging Face, NLP и анализом данных на Python.",
+          "latency_sec": 0.777,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M08",
+          "student_id": "S7",
+          "project_id": "P8",
+          "case_type": "exact_match",
+          "ground_truth_score": 97,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает критические требования проекта (Kotlin, Jetpack Compose, Retrofit, Firebase, Scrum/Jira) и имеет практический опыт, поэтому получает высокий балл.",
+          "expected_feedback": "Точное соответствие стеку: практический опыт с Kotlin, Jetpack Compose, Retrofit и процессами Scrum.",
+          "latency_sec": 1.027,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M09",
+          "student_id": "S8",
+          "project_id": "P6",
+          "case_type": "exact_match",
+          "ground_truth_score": 94,
+          "acceptable_range": [
+            86,
+            100
+          ],
+          "predicted_score": 78.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат уверенно владеет C++, Linux, Docker и сетевыми протоколами, но не продемонстрировал опыт работы с многопоточностью, сокетами и техническим английским, что снижает оценку.",
+          "expected_feedback": "Отличный уровень владения Linux, сетевыми протоколами TCP/IP и C++, высокая системная подготовка для сетевого демона.",
+          "latency_sec": 1.265,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M10",
+          "student_id": "S4",
+          "project_id": "P2",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 62,
+          "acceptable_range": [
+            50,
+            74
+          ],
+          "predicted_score": 0.0,
+          "is_hit": false,
+          "ai_feedback": "Ошибка: Error code: 400 - {'error': {'message': \"Failed to validate JSON. Please adjust your prompt. See 'failed_generation' for more details.\", 'type': 'invalid_request_error', 'code': 'json_validate_failed', 'failed_generation': ''}}",
+          "expected_feedback": "Сильный Python и понимание векторов для pgvector, однако отсутствует опыт промышленной бэкенд-разработки на FastAPI и Docker.",
+          "latency_sec": 1.316,
+          "valid_json": false
+        },
+        {
+          "pair_id": "M11",
+          "student_id": "S2",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 58,
+          "acceptable_range": [
+            45,
+            70
+          ],
+          "predicted_score": 78.0,
+          "is_hit": false,
+          "ai_feedback": "Отличный опыт в бэкенде, Docker и Redis, однако нет навыков Node.js и CouchDB, что потребует адаптации к JavaScript и документной базе.",
+          "expected_feedback": "Крепкая база в серверной архитектуре, базах данных и Docker, но потребуется время на переход с Python на стек Node.js/Express.",
+          "latency_sec": 1.044,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M12",
+          "student_id": "S1",
+          "project_id": "P7",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 68,
+          "acceptable_range": [
+            58,
+            78
+          ],
+          "predicted_score": 25.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат имеет лишь базовое знакомство с Node/Express и не владеет CouchDB, Redis, Docker и Telegram‑ботом, поэтому не подходит к бэкенд‑проекту.",
+          "expected_feedback": "Есть базовое понимание Node.js и Express, однако кандидат ориентирован преимущественно на клиентский фронтенд.",
+          "latency_sec": 1.261,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M13",
+          "student_id": "S6",
+          "project_id": "P5",
+          "case_type": "missing_minor",
+          "ground_truth_score": 65,
+          "acceptable_range": [
+            55,
+            75
+          ],
+          "predicted_score": 28.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат имеет лишь базовые знания HTML/CSS и не владеет JavaScript и бэкендом, что критично для проекта, хотя сильные организационные навыки могут быть полезны.",
+          "expected_feedback": "Начальный уровень верстки позволит справиться с несложным сайтом при наличии наставничества.",
+          "latency_sec": 0.985,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M14",
+          "student_id": "S5",
+          "project_id": "P6",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 55,
+          "acceptable_range": [
+            42,
+            66
+          ],
+          "predicted_score": 25.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат знает C++ на базовом уровне и умеет пользоваться Git и Docker, но у него нет опыта с TCP/IP, многопоточностью и Linux‑socket, что критично для проекта.",
+          "expected_feedback": "Знание академического C++ и алгоритмов есть, но не хватает опыта сетевого и многопоточного программирования в Linux.",
+          "latency_sec": 1.305,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M15",
+          "student_id": "S8",
+          "project_id": "P2",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 64,
+          "acceptable_range": [
+            52,
+            74
+          ],
+          "predicted_score": 62.0,
+          "is_hit": true,
+          "ai_feedback": "Сильные стороны — глубокие навыки Linux, Docker и автоматизации на Python; недостаток — отсутствие опыта с FastAPI, PostgreSQL/Redis, что критично для бэкенда проекта.",
+          "expected_feedback": "Отличная база Linux, Docker и Python-скриптов, но нет опыта разработки веб-API на FastAPI и работы со сложными SQL-индексами.",
+          "latency_sec": 1.07,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M16",
+          "student_id": "S7",
+          "project_id": "P1",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 25,
+          "acceptable_range": [
+            12,
+            38
+          ],
+          "predicted_score": 48.0,
+          "is_hit": false,
+          "ai_feedback": "Кандидат имеет сильный опыт мобильной разработки и работы с API, но не владеет Vue/TypeScript и веб‑фронтендом, поэтому соответствует лишь частично.",
+          "expected_feedback": "Опыт сосредоточен исключительно в мобильной разработке (Kotlin/Android), стек веб-фронтенда (Vue 3, TypeScript) не освоен.",
+          "latency_sec": 1.229,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M17",
+          "student_id": "S3",
+          "project_id": "P1",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 78,
+          "acceptable_range": [
+            68,
+            86
+          ],
+          "predicted_score": 78.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат уверенно владеет TypeScript и современными подходами к управлению состоянием, быстро осваивает новые фреймворки, но у него нет практического опыта с Vue, Pinia, Vite и SCSS, что снижает полное соответствие критическим требованиям.",
+          "expected_feedback": "Уверенная база TypeScript и компонентной верстки в React позволит относительно быстро освоить Vue 3 и Pinia.",
+          "latency_sec": 4.105,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M18",
+          "student_id": "S2",
+          "project_id": "P4",
+          "case_type": "skill_transfer",
+          "ground_truth_score": 66,
+          "acceptable_range": [
+            55,
+            76
+          ],
+          "predicted_score": 58.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат отлично владеет Python и бекенд‑технологиями, но у него нет подтверждённого опыта в NLP и работе со Streamlit, что критично для проекта.",
+          "expected_feedback": "Отличный Python и SQL, опыт работы с pgvector, но нет профильных знаний ML/NLP и опыта дообучения трансформеров.",
+          "latency_sec": 3.399,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M19",
+          "student_id": "S6",
+          "project_id": "P2",
+          "case_type": "false_positive_water",
+          "ground_truth_score": 5,
+          "acceptable_range": [
+            0,
+            15
+          ],
+          "predicted_score": 15.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат имеет лишь базовые знания Python и не знаком с FastAPI, PostgreSQL, Docker и другими критическими технологиями проекта, что делает его неподходящим для роли.",
+          "expected_feedback": "Недостаточный уровень технических навыков для бэкенда стартапа; совпадение по слову Python не закрывает требования к архитектуре.",
+          "latency_sec": 0.773,
+          "valid_json": true
+        },
+        {
+          "pair_id": "M20",
+          "student_id": "S1",
+          "project_id": "P3",
+          "case_type": "exact_match",
+          "ground_truth_score": 97,
+          "acceptable_range": [
+            90,
+            100
+          ],
+          "predicted_score": 95.0,
+          "is_hit": true,
+          "ai_feedback": "Кандидат полностью покрывает критические требования (Vue 3, TypeScript, компонентный подход, Pinia) и имеет практический опыт, лишь небольшие пробелы в JWT‑авторизации.",
+          "expected_feedback": "Полное соответствие ключевым требованиям: Vue 3, TypeScript, верстка, работа с API и макетами.",
+          "latency_sec": 3.051,
+          "valid_json": true
+        }
+      ]
+    }
+  ]
+}
