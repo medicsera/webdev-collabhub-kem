@@ -9,6 +9,7 @@ interface CatalogTabProps {
   currentRole: Role;
   onSelectProject: (project: Project) => void;
   onOpenCreateModal: () => void;
+  onViewCompany?: (companyId: number, companyName: string) => void;
 }
 
 export const CatalogTab: React.FC<CatalogTabProps> = ({
@@ -16,6 +17,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
   currentRole,
   onSelectProject,
   onOpenCreateModal,
+  onViewCompany,
 }) => {
   const [search, setSearch] = useState('');
   const [selectedFormat, setSelectedFormat] = useState<ProjectFormat>('all');
@@ -166,9 +168,32 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                 <div className="space-y-4">
                   {/* Заголовок карточки с выделенным семантическим матчем (Requirement 3) */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-border dark:border-paper-darkBorder pb-2.5 text-[11px] font-mono">
-                    <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
-                      {p.index} • {p.company}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
+                        {p.index}
+                      </span>
+                      <span className="text-paper-border dark:text-paper-darkBorder">•</span>
+                      {onViewCompany && p.companyId ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewCompany(p.companyId!, p.company);
+                          }}
+                          className="flex items-center gap-1.5 font-medium text-oxblood dark:text-oxblood-light hover:underline cursor-pointer group"
+                          title={`Посмотреть профиль компании «${p.company}»`}
+                        >
+                          <span className="w-4 h-4 border border-oxblood/40 dark:border-oxblood-light/40 group-hover:border-oxblood dark:group-hover:border-oxblood-light flex items-center justify-center text-[9px] font-bold bg-paper-muted dark:bg-paper-dark">
+                            {p.company.slice(0, 1)}
+                          </span>
+                          <span className="uppercase tracking-widest">{p.company}</span>
+                        </button>
+                      ) : (
+                        <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
+                          {p.company}
+                        </span>
+                      )}
+                    </div>
                     <SemanticMatchBadge score={p.match} size="sm" />
                   </div>
 

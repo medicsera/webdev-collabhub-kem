@@ -5,7 +5,9 @@ export type TabId =
   | 'my-projects'
   | 'hr-dashboard'
   | 'profile'
-  | 'company-profile';
+  | 'company-profile'
+  | 'public-company'
+  | 'public-student';
 
 export type ProjectFormat = 'all' | 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект';
 
@@ -27,6 +29,7 @@ export interface Project {
   index: string;
   title: string;
   company: string;
+  companyId?: number;
   department: string;
   type: 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект';
   match: number;
@@ -39,12 +42,14 @@ export interface Project {
 
 export interface Candidate {
   id: string;
+  studentId?: number;
   name: string;
   group: string;
   project: string;
   match: number;
   stack: (string | SkillItem)[];
   status: 'Новая заявка' | 'На рассмотрении' | 'Принят' | 'Приглашен';
+  avatarUrl?: string;
 }
 
 export interface StudentProfile {

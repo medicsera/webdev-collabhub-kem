@@ -14,6 +14,7 @@ interface HRDashboardTabProps {
   onApproveCandidate: (candidateId: string) => void;
   onContactCandidate: (candidateName: string) => void;
   onNavigateToCompanyProfile: () => void;
+  onViewStudent?: (studentId: number) => void;
 }
 
 export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
@@ -26,6 +27,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   onApproveCandidate,
   onContactCandidate,
   onNavigateToCompanyProfile,
+  onViewStudent,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'projects' | 'candidates'>('projects');
 
@@ -265,33 +267,67 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                   key={c.id}
                   className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/60 transition"
                 >
-                  <div className="space-y-2.5">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
-                        {c.name}
-                      </span>
-                      {/* Выделенный семантический матч (Requirement 3) */}
-                      <SemanticMatchBadge score={c.match} size="sm" />
-                      {isAccepted && (
-                        <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">
-                          {c.status}
+                  <div className="flex items-start gap-4">
+                    {/* Кликабельный аватар кандидата */}
+                    {onViewStudent && c.studentId ? (
+                      <button
+                        type="button"
+                        onClick={() => onViewStudent(c.studentId!)}
+                        className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer shadow-xs group"
+                        title={`Открыть резюме: ${c.name}`}
+                      >
+                        {c.avatarUrl ? (
+                          <img src={c.avatarUrl} alt={c.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="group-hover:text-oxblood dark:group-hover:text-oxblood-light">
+                            {c.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                          </span>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base">
+                        {c.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+                      </div>
+                    )}
+
+                    <div className="space-y-2.5">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
+                          {onViewStudent && c.studentId ? (
+                            <button
+                              type="button"
+                              onClick={() => onViewStudent(c.studentId!)}
+                              className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
+                            >
+                              {c.name}
+                            </button>
+                          ) : (
+                            c.name
+                          )}
                         </span>
-                      )}
-                    </div>
-                    <div className="text-xs font-mono text-ink-muted dark:text-stone-400">
-                      {c.group} — Выбранный проект:{' '}
-                      <strong className="text-ink dark:text-stone-200 font-normal underline">
-                        {c.project}
-                      </strong>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {c.stack.map((s) => (
-                        <SkillBadge
-                          key={typeof s === 'string' ? s : s.name}
-                          skill={s as string | SkillItem}
-                          size="sm"
-                        />
-                      ))}
+                        {/* Выделенный семантический матч (Requirement 3) */}
+                        <SemanticMatchBadge score={c.match} size="sm" />
+                        {isAccepted && (
+                          <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">
+                            {c.status}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs font-mono text-ink-muted dark:text-stone-400">
+                        {c.group} — Выбранный проект:{' '}
+                        <strong className="text-ink dark:text-stone-200 font-normal underline">
+                          {c.project}
+                        </strong>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {c.stack.map((s) => (
+                          <SkillBadge
+                            key={typeof s === 'string' ? s : s.name}
+                            skill={s as string | SkillItem}
+                            size="sm"
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
 

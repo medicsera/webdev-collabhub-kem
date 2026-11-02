@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { Project, SkillItem } from '../../types';
 import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
@@ -31,6 +32,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   ]);
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,13 +54,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-start overflow-y-auto p-3 sm:p-5 pt-3 sm:pt-6 pb-6"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-0 overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Зафиксированная шапка модального окна */}
@@ -216,6 +218,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

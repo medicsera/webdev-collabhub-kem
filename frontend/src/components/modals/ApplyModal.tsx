@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { Project } from '../../types';
 import { SkillBadge } from '../SkillBadge';
@@ -8,12 +9,14 @@ interface ApplyModalProps {
   project: Project | null;
   onClose: () => void;
   onSubmit: (projectId: number, coverLetter: string) => void;
+  onViewCompany?: (companyId: number, companyName: string) => void;
 }
 
-export const ApplyModal: React.FC<ApplyModalProps> = ({ project, onClose, onSubmit }) => {
+export const ApplyModal: React.FC<ApplyModalProps> = ({ project, onClose, onSubmit, onViewCompany }) => {
   const [coverLetter, setCoverLetter] = useState('');
 
   if (!project) return null;
+  if (typeof document === 'undefined') return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,13 +29,13 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({ project, onClose, onSubm
       ? project.requiredSkills
       : project.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-start overflow-y-auto p-3 sm:p-5 pt-3 sm:pt-6 pb-6"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-0 overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header — зафиксирован */}
@@ -41,9 +44,28 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({ project, onClose, onSubm
             <div className="flex flex-wrap items-center gap-2">
               <span
                 id="modal-company"
-                className="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium"
+                className="text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium flex items-center gap-1.5 flex-wrap"
               >
-                {project.index} • {project.company} • {project.type}
+                <span>{project.index} •</span>
+                {onViewCompany && project.companyId ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onViewCompany(project.companyId!, project.company);
+                    }}
+                    className="flex items-center gap-1.5 hover:underline cursor-pointer group"
+                    title={`Посмотреть профиль компании «${project.company}»`}
+                  >
+                    <span className="w-4 h-4 border border-oxblood/40 dark:border-oxblood-light/40 group-hover:border-oxblood flex items-center justify-center text-[9px] font-bold bg-paper-muted dark:bg-paper-dark">
+                      {project.company.slice(0, 1)}
+                    </span>
+                    <span>{project.company}</span>
+                  </button>
+                ) : (
+                  <span>{project.company}</span>
+                )}
+                <span>• {project.type}</span>
               </span>
               <SemanticMatchBadge score={project.match} size="sm" />
             </div>
@@ -126,7 +148,8 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({ project, onClose, onSubm
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

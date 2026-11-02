@@ -5,9 +5,10 @@ import { SemanticMatchBadge } from '../SemanticMatchBadge';
 
 interface MyProjectsTabProps {
   projects: Project[];
+  onViewCompany?: (companyId: number, companyName: string) => void;
 }
 
-export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
+export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects, onViewCompany }) => {
   const appliedProjects = projects.filter((p) => p.applied);
 
   return (
@@ -120,9 +121,28 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({ projects }) => {
                 >
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
-                        {p.index} • {p.company} • {p.type}
-                      </span>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
+                        <span>{p.index} •</span>
+                        {onViewCompany && p.companyId ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onViewCompany(p.companyId!, p.company);
+                            }}
+                            className="flex items-center gap-1 hover:underline cursor-pointer group"
+                            title={`Посмотреть профиль компании «${p.company}»`}
+                          >
+                            <span className="w-3.5 h-3.5 border border-oxblood/40 dark:border-oxblood-light/40 group-hover:border-oxblood flex items-center justify-center text-[8px] font-bold bg-paper-muted dark:bg-paper-dark">
+                              {p.company.slice(0, 1)}
+                            </span>
+                            <span>{p.company}</span>
+                          </button>
+                        ) : (
+                          <span>{p.company}</span>
+                        )}
+                        <span>• {p.type}</span>
+                      </div>
                       <SemanticMatchBadge score={p.match} size="sm" />
                     </div>
                     <div className="editorial-serif text-xl font-semibold text-ink dark:text-ink-light">

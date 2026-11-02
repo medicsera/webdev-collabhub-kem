@@ -1,11 +1,126 @@
 import type { Project, Candidate, StudentProfile, CompanyProfile } from '../types';
 
+// Мок-данные компаний для публичного просмотра
+export const MOCK_COMPANIES: CompanyProfile[] = [
+  {
+    id: 1,
+    name: 'Софт Инжиниринг',
+    department: 'Департамент веб-разработки и системной интеграции',
+    industry: 'Заказная веб-разработка, AI-ассистенты, Финтех',
+    city: 'г. Кемерово',
+    address: 'ул. Весенняя, д. 24, технопарк Кузбасса',
+    website: 'https://soft-engineering.ru',
+    contactPerson: 'Валерия Краснова',
+    contactRole: 'Lead Tech Recruiter / Руководитель производственной практики',
+    contactTelegram: '@valeria_hr_kem',
+    contactEmail: 'practice@soft-engineering.ru',
+    description:
+      'Ведущая технологическая компания региона с 12-летним опытом разработки корпоративных информационных систем. Мы активно привлекаем студентов профильных направлений КемГУ для участия в реальных коммерческих проектах и создания выпускных квалификационных работ.',
+    benefits: [
+      'Официальное оформление производственной практики и тем ВКР',
+      'Персональный Senior-наставник для каждой студенческой команды',
+      'Возможность оффера на позицию Junior+ по результатам защиты',
+      'Стек: React 19, TypeScript, Node.js, FastAPI, PostgreSQL, pgvector',
+      'Гибкий график и возможность удалённой или гибридной работы',
+    ],
+  },
+  {
+    id: 2,
+    name: 'Goodline',
+    department: 'Отдел цифровых продуктов связи',
+    industry: 'Телекоммуникации, Интернет-провайдинг, IoT',
+    city: 'г. Кемерово',
+    address: 'пр. Кузнецкий, д. 33, бизнес-центр «Связь»',
+    website: 'https://goodline.info',
+    contactPerson: 'Алексей Дмитриев',
+    contactRole: 'Технический директор / Куратор стажировок',
+    contactTelegram: '@alexey_goodline',
+    contactEmail: 'internship@goodline.info',
+    description:
+      'Крупнейший интернет-провайдер Кузбасса с собственной оптоволоконной инфраструктурой. Разрабатываем цифровые продукты для абонентов, внутренние системы мониторинга и геоаналитики покрытия сети.',
+    benefits: [
+      'Работа с реальной продуктовой командой и продакшн-сервисами',
+      'Доступ к большим данным телекоммуникаций для аналитических проектов',
+      'Оплачиваемая стажировка с возможностью трудоустройства',
+      'Стек: React, TypeScript, Node.js, REST API, PostgreSQL',
+    ],
+  },
+  {
+    id: 3,
+    name: 'UniFun',
+    department: 'Backend Architecture Lab',
+    industry: 'Gamedev-инфраструктура, Телеком-платформы, Highload',
+    city: 'г. Кемерово',
+    address: 'ул. Тухачевского, д. 58а, офис 301',
+    website: 'https://unifun.com',
+    contactPerson: 'Максим Орлов',
+    contactRole: 'Lead Backend Engineer / Ментор',
+    contactTelegram: '@max_unifun',
+    contactEmail: 'careers@unifun.com',
+    description:
+      'Международная компания, специализирующаяся на разработке высоконагруженных серверных решений для телекоммуникационных платформ и игровой индустрии. Кемеровский офис — центр бэкенд-разработки.',
+    benefits: [
+      'Участие в международных highload-проектах',
+      'Менторство от Senior/Staff инженеров',
+      'Глубокое погружение в системное программирование и архитектуру',
+      'Стек: Node.js, PostgreSQL, Redis, Docker, Kubernetes',
+    ],
+  },
+];
+
+// Мок-данные студентов для публичного просмотра
+export const MOCK_STUDENTS: StudentProfile[] = [
+  {
+    name: 'Сергиенко Александр',
+    group: 'ФИТ-231',
+    year: 'IV Курс',
+    university: 'КемГУ',
+    specialization: 'Fullstack / Team Lead',
+    telegram: '@SERK4S',
+    city: 'Кемерово',
+    status: 'Готов к практике',
+    skills: [
+      { name: 'React', level: 'ADVANCED' },
+      { name: 'TypeScript', level: 'ADVANCED' },
+      { name: 'Node.js', level: 'INTERMEDIATE' },
+      { name: 'FastAPI', level: 'INTERMEDIATE' },
+      { name: 'PostgreSQL', level: 'ADVANCED' },
+      { name: 'Docker', level: 'INTERMEDIATE' },
+    ],
+    bio: 'Разрабатываю веб-приложения на React, TypeScript и Node.js. Есть опыт проектирования баз данных PostgreSQL, настройки Docker и управления командой.',
+    aiMatch: 96,
+    aiFeedback:
+      'Ваш профиль показывает 96% семантический матч с требованиями ведущих проектов от компаний «Софт Инжиниринг» и «Goodline».',
+  },
+  {
+    name: 'Кононенко Егор Сергеевич',
+    group: 'ФИТ-231',
+    year: 'IV Курс',
+    university: 'КемГУ',
+    specialization: 'Backend Developer',
+    telegram: '@egor_dev',
+    city: 'Кемерово',
+    status: 'Готов к практике',
+    skills: [
+      { name: 'JavaScript', level: 'ADVANCED' },
+      { name: 'Node.js', level: 'INTERMEDIATE' },
+      { name: 'PostgreSQL', level: 'BASIC' },
+      { name: 'Docker', level: 'BASIC' },
+    ],
+    bio: 'Занимаюсь серверной разработкой на Node.js, изучаю архитектуру распределённых систем. Интересуюсь Docker-контейнеризацией и CI/CD.',
+    aiMatch: 88,
+    aiFeedback:
+      'Профиль хорошо подходит для задач автоматизации и бэкенд-разработки.',
+  },
+];
+
 export const INITIAL_PROJECTS: Project[] = [
   {
     id: 1,
     index: '№ 01',
     title: 'Интеллектуальная система классификации и маршрутизации обращений технической дирекции',
     company: 'Софт Инжиниринг',
+    companyId: 1,
     department: 'Департамент веб-разработки',
     type: 'ВКР / Диплом',
     match: 96,
@@ -26,6 +141,7 @@ export const INITIAL_PROJECTS: Project[] = [
     index: '№ 02',
     title: 'Личный кабинет абонента и картографическая система покрытия сети с геоаналитикой',
     company: 'Goodline',
+    companyId: 2,
     department: 'Отдел цифровых продуктов связи',
     type: 'Стажировка',
     match: 92,
@@ -45,6 +161,7 @@ export const INITIAL_PROJECTS: Project[] = [
     index: '№ 03',
     title: 'Высоконагруженный микросервис сценарной логики для телеком-платформ',
     company: 'UniFun',
+    companyId: 3,
     department: 'Backend Architecture Lab',
     type: 'Стажировка',
     match: 85,
@@ -64,6 +181,7 @@ export const INITIAL_PROJECTS: Project[] = [
     index: '№ 04',
     title: 'Автоматизированный комплекс формирования академических отчетов по практике',
     company: 'Софт Инжиниринг',
+    companyId: 1,
     department: 'Отдел интеграционных решений',
     type: 'Курсовой проект',
     match: 89,
@@ -83,6 +201,7 @@ export const INITIAL_PROJECTS: Project[] = [
 export const INITIAL_CANDIDATES: Candidate[] = [
   {
     id: 'c1',
+    studentId: 1,
     name: 'Сергиенко Александр & Мирко Антон',
     group: 'КемГУ • ФИТ-231 (IV курс)',
     project: 'Интеллектуальная система классификации и маршрутизации обращений',
@@ -98,6 +217,7 @@ export const INITIAL_CANDIDATES: Candidate[] = [
   },
   {
     id: 'c2',
+    studentId: 2,
     name: 'Кононенко Егор Сергеевич',
     group: 'КемГУ • ФИТ-231 (IV курс)',
     project: 'Автоматизированный комплекс отчетов по практике',

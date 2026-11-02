@@ -12,6 +12,8 @@ import { MyProjectsTab } from './components/tabs/MyProjectsTab';
 import { HRDashboardTab } from './components/tabs/HRDashboardTab';
 import { ProfileTab } from './components/tabs/ProfileTab';
 import { CompanyProfileTab } from './components/tabs/CompanyProfileTab';
+import { PublicCompanyProfileTab } from './components/tabs/PublicCompanyProfileTab';
+import { PublicStudentProfileTab } from './components/tabs/PublicStudentProfileTab';
 import { AuthScreen } from './components/AuthScreen';
 
 import type { Role, TabId, Project, Candidate, StudentProfile, CompanyProfile } from './types';
@@ -21,6 +23,7 @@ import {
   INITIAL_STUDENT_PROFILE,
   INITIAL_COMPANY_PROFILE,
 } from './data/mockData';
+import { getCompanyProfileApi, getStudentProfileApi } from './api';
 
 export const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
@@ -67,6 +70,19 @@ export const App: React.FC = () => {
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [themeTransition, setThemeTransition] = useState<'dawn' | 'sunset' | null>(null);
   const [isExiting, setIsExiting] = useState(false);
+
+  // Состояния для публичных профилей (двусторонний просмотр)
+  const [_viewingCompanyId, setViewingCompanyId] = useState<number | null>(null);
+  const [_viewingStudentId, setViewingStudentId] = useState<number | null>(null);
+  const [previousTab, setPreviousTab] = useState<TabId | null>(null);
+
+  const [publicCompany, setPublicCompany] = useState<CompanyProfile | null>(null);
+  const [isCompanyLoading, setIsCompanyLoading] = useState<boolean>(false);
+  const [companyError, setCompanyError] = useState<string | null>(null);
+
+  const [publicStudent, setPublicStudent] = useState<StudentProfile | null>(null);
+  const [isStudentLoading, setIsStudentLoading] = useState<boolean>(false);
+  const [studentError, setStudentError] = useState<string | null>(null);
 
   // Состояния для плавной горизонтальной анимации переключения вкладок (эффект горизонтальной прокрутки)
   const [exitingTab, setExitingTab] = useState<TabId | null>(null);
@@ -345,6 +361,100 @@ export const App: React.FC = () => {
     }, 1100);
   };
 
+  // Загрузка публичного профиля компании
+  const loadCompany = async (companyId: number) => {
+    setIsCompanyLoading(true);
+    setCompanyError(null);
+    try {
+      const data = await getCompanyProfileApi(companyId);
+      setPublicCompany(data);
+    } catch (err: any) {
+      setCompanyError(err.message || 'Компания не найдена');
+      setPublicCompany(null);
+    } finally {
+      setIsCompanyLoading(false);
+    }
+  };
+
+  // Загрузка публичного профиля студента
+  const loadStudent = async (studentId: number) => {
+    setIsStudentLoading(true);
+    setStudentError(null);
+    try {
+      const data = await getStudentProfileApi(studentId);
+      setPublicStudent(data);
+    } catch (err: any) {
+      setStudentError(err.message || 'Профиль студента не найден');
+      setPublicStudent(null);
+    } finally {
+      setIsStudentLoading(false);
+    }
+  };
+
+  // === Навигация к публичным профилям ===
+
+  const handleViewCompany = (companyId: number, _companyName?: string) => {
+    setPreviousTab(currentTab);
+    setViewingCompanyId(companyId);
+    setViewingStudentId(null);
+    window.history.pushState({ tab: 'public-company', companyId }, '', `/companies/${companyId}`);
+    handleSwitchTab('public-company');
+    loadCompany(companyId);
+  };
+
+  const handleViewStudent = (studentId: number) => {
+    setPreviousTab(currentTab);
+    setViewingStudentId(studentId);
+    setViewingCompanyId(null);
+    window.history.pushState({ tab: 'public-student', studentId }, '', `/students/${studentId}`);
+    handleSwitchTab('public-student');
+    loadStudent(studentId);
+  };
+
+  const handleBackFromPublicProfile = () => {
+    const backTab = previousTab || (currentRole === 'student' ? 'catalog' : 'hr-dashboard');
+    setViewingCompanyId(null);
+    setViewingStudentId(null);
+    setPreviousTab(null);
+    window.history.pushState({}, '', '/');
+    handleSwitchTab(backTab);
+  };
+
+  // Маршрутизация по прямым ссылкам (/companies/:id, /students/:id, /resumes/:id)
+  useEffect(() => {
+    const parseUrlRoute = () => {
+      const path = window.location.pathname;
+      const companyMatch = path.match(/^\/companies\/(\d+)/);
+      if (companyMatch) {
+        const id = parseInt(companyMatch[1], 10);
+        setViewingCompanyId(id);
+        setViewingStudentId(null);
+        setCurrentTab('public-company');
+        loadCompany(id);
+        return;
+      }
+
+      const studentMatch = path.match(/^\/(?:students|resumes)\/(\d+)/);
+      if (studentMatch) {
+        const id = parseInt(studentMatch[1], 10);
+        setViewingStudentId(id);
+        setViewingCompanyId(null);
+        setCurrentTab('public-student');
+        loadStudent(id);
+        return;
+      }
+    };
+
+    parseUrlRoute();
+
+    const handlePopState = () => {
+      parseUrlRoute();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const renderTabContent = (tab: TabId) => {
     switch (tab) {
       case 'catalog':
@@ -354,10 +464,16 @@ export const App: React.FC = () => {
             currentRole={currentRole}
             onSelectProject={handleSelectProject}
             onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onViewCompany={handleViewCompany}
           />
         );
       case 'my-projects':
-        return <MyProjectsTab projects={projects} />;
+        return (
+          <MyProjectsTab
+            projects={projects}
+            onViewCompany={handleViewCompany}
+          />
+        );
       case 'hr-dashboard':
         return (
           <HRDashboardTab
@@ -370,6 +486,7 @@ export const App: React.FC = () => {
             onApproveCandidate={handleApproveCandidate}
             onContactCandidate={handleContactCandidate}
             onNavigateToCompanyProfile={() => handleSwitchTab('company-profile')}
+            onViewStudent={handleViewStudent}
           />
         );
       case 'company-profile':
@@ -394,6 +511,26 @@ export const App: React.FC = () => {
             isRecalculating={isRecalculating}
             onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
             onLogout={handleLogout}
+          />
+        );
+      case 'public-company':
+        return (
+          <PublicCompanyProfileTab
+            company={publicCompany}
+            projects={projects}
+            isLoading={isCompanyLoading}
+            error={companyError}
+            onBack={handleBackFromPublicProfile}
+            onSelectProject={handleSelectProject}
+          />
+        );
+      case 'public-student':
+        return (
+          <PublicStudentProfileTab
+            student={publicStudent}
+            isLoading={isStudentLoading}
+            error={studentError}
+            onBack={handleBackFromPublicProfile}
           />
         );
       default:
@@ -467,6 +604,7 @@ export const App: React.FC = () => {
         project={selectedProjectForModal}
         onClose={handleCloseApplyModal}
         onSubmit={handleSubmitApplication}
+        onViewCompany={handleViewCompany}
       />
 
       {/* Модальное окно: Создание проекта (HR) */}
