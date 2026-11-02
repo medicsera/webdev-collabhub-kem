@@ -6,6 +6,7 @@ import { ApplyModal } from './components/modals/ApplyModal';
 import { CreateProjectModal } from './components/modals/CreateProjectModal';
 import { EditProjectModal } from './components/modals/EditProjectModal';
 import { EditStudentProfileModal } from './components/modals/EditStudentProfileModal';
+import { EditSkillsModal } from './components/modals/EditSkillsModal';
 import { EditCompanyModal } from './components/modals/EditCompanyModal';
 import { CatalogTab } from './components/tabs/CatalogTab';
 import { MyProjectsTab } from './components/tabs/MyProjectsTab';
@@ -16,7 +17,7 @@ import { PublicCompanyProfileTab } from './components/tabs/PublicCompanyProfileT
 import { PublicStudentProfileTab } from './components/tabs/PublicStudentProfileTab';
 import { AuthScreen } from './components/AuthScreen';
 
-import type { Role, TabId, Project, Candidate, StudentProfile, CompanyProfile } from './types';
+import type { Role, TabId, Project, Candidate, StudentProfile, CompanyProfile, SkillItem } from './types';
 import {
   INITIAL_PROJECTS,
   INITIAL_CANDIDATES,
@@ -64,6 +65,7 @@ export const App: React.FC = () => {
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditStudentModalOpen, setIsEditStudentModalOpen] = useState(false);
+  const [isEditSkillsModalOpen, setIsEditSkillsModalOpen] = useState(false);
   const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -95,6 +97,7 @@ export const App: React.FC = () => {
       isCreateModalOpen ||
       projectToEdit ||
       isEditStudentModalOpen ||
+      isEditSkillsModalOpen ||
       isEditCompanyModalOpen
   );
 
@@ -328,6 +331,11 @@ export const App: React.FC = () => {
     showToast('Профиль студента и подтвержденные навыки сохранены');
   };
 
+  const handleUpdateStudentSkills = (updatedSkills: SkillItem[]) => {
+    setStudentProfile((prev) => ({ ...prev, skills: updatedSkills }));
+    showToast('Технологический стек и навыки успешно обновлены');
+  };
+
   const handleUpdateCompanyProfile = (updated: CompanyProfile) => {
     setCompanyProfile(updated);
     showToast('Информация о компании успешно обновлена');
@@ -510,6 +518,7 @@ export const App: React.FC = () => {
             onRecalculate={handleRecalculateBio}
             isRecalculating={isRecalculating}
             onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
+            onOpenEditSkillsModal={() => setIsEditSkillsModalOpen(true)}
             onLogout={handleLogout}
           />
         );
@@ -631,6 +640,14 @@ export const App: React.FC = () => {
         onClose={() => setIsEditStudentModalOpen(false)}
         profile={studentProfile}
         onSave={handleUpdateStudentProfile}
+      />
+
+      {/* Модальное окно: Редактирование только стека навыков (+ Изменить) */}
+      <EditSkillsModal
+        isOpen={isEditSkillsModalOpen}
+        onClose={() => setIsEditSkillsModalOpen(false)}
+        skills={studentProfile.skills}
+        onSave={handleUpdateStudentSkills}
       />
 
       {/* Модальное окно: Редактирование информации о компании */}

@@ -10,6 +10,7 @@ interface ProfileTabProps {
   onRecalculate: () => void;
   isRecalculating: boolean;
   onOpenEditProfileModal: () => void;
+  onOpenEditSkillsModal: () => void;
   onLogout?: () => void;
 }
 
@@ -19,6 +20,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onRecalculate,
   isRecalculating,
   onOpenEditProfileModal,
+  onOpenEditSkillsModal,
   onLogout,
 }) => {
   const [bioInput, setBioInput] = useState(profile.bio);
@@ -96,7 +98,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </div>
               <button
                 type="button"
-                onClick={onOpenEditProfileModal}
+                onClick={onOpenEditSkillsModal}
                 className="text-[10px] font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light hover:underline cursor-pointer"
               >
                 + Изменить
