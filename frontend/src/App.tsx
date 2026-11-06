@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Toast } from './components/Toast';
-import { ApplyModal } from './components/modals/ApplyModal';
+import { ApplyModal, type ApplyModalSubmitData } from './components/modals/ApplyModal';
 import { CreateProjectModal } from './components/modals/CreateProjectModal';
 import { EditProjectModal } from './components/modals/EditProjectModal';
 import { EditStudentProfileModal } from './components/modals/EditStudentProfileModal';
 import { EditSkillsModal } from './components/modals/EditSkillsModal';
 import { EditCompanyModal } from './components/modals/EditCompanyModal';
+import { ApplicationChatModal } from './components/modals/ApplicationChatModal';
 import { CatalogTab } from './components/tabs/CatalogTab';
 import { MyProjectsTab } from './components/tabs/MyProjectsTab';
 import { HRDashboardTab } from './components/tabs/HRDashboardTab';
@@ -17,14 +18,33 @@ import { PublicCompanyProfileTab } from './components/tabs/PublicCompanyProfileT
 import { PublicStudentProfileTab } from './components/tabs/PublicStudentProfileTab';
 import { AuthScreen } from './components/AuthScreen';
 
-import type { Role, TabId, Project, Candidate, StudentProfile, CompanyProfile, SkillItem } from './types';
+import type {
+  Role,
+  TabId,
+  Project,
+  Candidate,
+  StudentProfile,
+  CompanyProfile,
+  SkillItem,
+  StudentConnection,
+  ProjectApplication,
+  Chat,
+  AppNotification,
+  ApplicationMember,
+} from './types';
 import {
   INITIAL_PROJECTS,
   INITIAL_CANDIDATES,
   INITIAL_STUDENT_PROFILE,
   INITIAL_COMPANY_PROFILE,
+  MOCK_STUDENTS,
+  INITIAL_CONNECTIONS,
+  INITIAL_APPLICATIONS,
+  INITIAL_CHATS,
+  INITIAL_NOTIFICATIONS,
 } from './data/mockData';
 import { getCompanyProfileApi, getStudentProfileApi } from './api';
+import { orderConnectionPair } from './utils/dbValidation';
 
 export const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
@@ -60,6 +80,13 @@ export const App: React.FC = () => {
   const [candidates, setCandidates] = useState<Candidate[]>(INITIAL_CANDIDATES);
   const [studentProfile, setStudentProfile] = useState<StudentProfile>(INITIAL_STUDENT_PROFILE);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(INITIAL_COMPANY_PROFILE);
+
+  // Стейты новой схемы БД (student_connections, applications, chats, messages, notifications)
+  const [connections, setConnections] = useState<StudentConnection[]>(INITIAL_CONNECTIONS);
+  const [applications, setApplications] = useState<ProjectApplication[]>(INITIAL_APPLICATIONS);
+  const [chats, setChats] = useState<Chat[]>(INITIAL_CHATS);
+  const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
   const [selectedProjectForModal, setSelectedProjectForModal] = useState<Project | null>(null);
   const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
@@ -274,27 +301,260 @@ export const App: React.FC = () => {
     setSelectedProjectForModal(null);
   };
 
-  const handleSubmitApplication = (projectId: number, _coverLetter: string) => {
-    setProjects((prev) =>
-      prev.map((p) => (p.id === projectId ? { ...p, applied: true } : p))
+  // Подтвержденные друзья текущего студента
+  const currentStudentId = Number(studentProfile.id || 1);
+  const myAcceptedFriends = useMemo(() => {
+    return connections
+      .filter(
+        (c) =>
+          c.status === 'ACCEPTED' &&
+          (Number(c.studentId) === currentStudentId || Number(c.partnerId) === currentStudentId)
+      )
+      .map((c) => {
+        const partnerId =
+          Number(c.studentId) === currentStudentId ? Number(c.partnerId) : Number(c.studentId);
+        return MOCK_STUDENTS.find((s) => Number(s.id) === partnerId);
+      })
+      .filter(Boolean) as StudentProfile[];
+  }, [connections, currentStudentId]);
+
+  // Задача 3: Обработчики связей напарников (student_connections)
+  const handleSendFriendRequest = (targetStudentId: number) => {
+    // Ограничение БД: CHECK (student_id < partner_id)!
+    const { studentId: idA, partnerId: idB } = orderConnectionPair(currentStudentId, targetStudentId);
+
+    const targetStudent = MOCK_STUDENTS.find((s) => Number(s.id) === targetStudentId);
+
+    const newConnection: StudentConnection = {
+      id: `conn-${Date.now()}`,
+      studentId: idA,
+      partnerId: idB,
+      status: 'PENDING',
+      requestedBy: currentStudentId,
+      createdAt: new Date().toISOString(),
+    };
+
+    setConnections((prev) => [...prev, newConnection]);
+    showToast(`Заявка в напарники отправлена студенту «${targetStudent?.name || targetStudentId}»`);
+  };
+
+  const handleAcceptFriendRequest = (connectionId: string) => {
+    const conn = connections.find((c) => c.id === connectionId);
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId
+          ? { ...c, status: 'ACCEPTED', respondedAt: new Date().toISOString() }
+          : c
+      )
     );
 
-    const project = projects.find((p) => p.id === projectId);
-    if (project) {
-      const newCandidate: Candidate = {
-        id: 'cand-' + Date.now(),
-        name: studentProfile.name,
-        group: `${studentProfile.university} • ${studentProfile.group} (${studentProfile.year})`,
-        project: project.title,
-        match: project.match,
-        stack: studentProfile.skills,
-        status: 'Новая заявка',
+    if (conn) {
+      const partnerId =
+        Number(conn.studentId) === currentStudentId ? Number(conn.partnerId) : Number(conn.studentId);
+      const partner = MOCK_STUDENTS.find((s) => Number(s.id) === partnerId);
+
+      // Добавляем уведомление FRIEND_ACCEPTED
+      const newNotif: AppNotification = {
+        id: `notif-${Date.now()}`,
+        userId: currentStudentId,
+        type: 'FRIEND_ACCEPTED',
+        title: 'Заявка в напарники подтверждена',
+        body: `Вы и ${partner?.name || 'студент'} теперь напарники и можете совместно подавать заявки на проекты.`,
+        createdAt: new Date().toISOString(),
+        isRead: false,
       };
-      setCandidates((prev) => [newCandidate, ...prev]);
+      setNotifications((prev) => [newNotif, ...prev]);
     }
 
+    showToast('Заявка принята! Теперь вы напарники для командных проектов');
+  };
+
+  const handleRejectFriendRequest = (connectionId: string) => {
+    setConnections((prev) =>
+      prev.map((c) =>
+        c.id === connectionId
+          ? { ...c, status: 'REJECTED', respondedAt: new Date().toISOString() }
+          : c
+      )
+    );
+    showToast('Заявка в напарники отклонена');
+  };
+
+  const handleCancelFriendRequest = (connectionId: string) => {
+    setConnections((prev) => prev.filter((c) => c.id !== connectionId));
+    showToast('Исходящий запрос в напарники отменен');
+  };
+
+  // Задача 5: Обработчики чатов (chats + messages)
+  const handleOpenChat = (chatId: string) => {
+    setActiveChatId(chatId);
+  };
+
+  const handleCloseChat = () => {
+    setActiveChatId(null);
+  };
+
+  const handleSendMessage = (chatId: string, content: string) => {
+    const isHr = currentRole === 'hr';
+    const senderName = isHr
+      ? `${companyProfile.contactPerson} (${companyProfile.name})`
+      : studentProfile.name;
+
+    const newMessage = {
+      id: `msg-${Date.now()}`,
+      chatId,
+      senderId: isHr ? 'hr-user' : currentStudentId,
+      senderName,
+      senderRole: currentRole,
+      content,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat.id === chatId
+          ? { ...chat, messages: [...chat.messages, newMessage] }
+          : chat
+      )
+    );
+  };
+
+  // Обработчики уведомлений
+  const handleMarkNotificationAsRead = (notifId: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notifId ? { ...n, isRead: true } : n))
+    );
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    showToast('Все уведомления отмечены как прочитанные');
+  };
+
+  // Задача 4: Подача заявки (командной или индивидуальной)
+  const handleSubmitApplication = (data: ApplyModalSubmitData) => {
+    const project = projects.find((p) => p.id === data.projectId);
+    if (!project) return;
+
+    // Ограничение БД: один студент не может состоять в двух заявках на один и тот же проект (UNIQUE: student_id, project_id)
+    const alreadyApplied = applications.some(
+      (app) =>
+        app.projectId === data.projectId &&
+        (Number(app.studentId) === currentStudentId ||
+          app.members?.some((m) => Number(m.studentId) === currentStudentId))
+    );
+
+    if (alreadyApplied) {
+      showToast('Ошибка: Вы уже участвуете в заявке на этот проект (ограничение БД: UNIQUE)');
+      return;
+    }
+
+    const members: ApplicationMember[] = [
+      {
+        studentId: currentStudentId,
+        studentName: studentProfile.name,
+        studentGroup: studentProfile.group,
+        role: 'LEAD',
+        joinedAt: new Date().toISOString(),
+      },
+    ];
+
+    if (data.isTeam && data.memberStudentIds.length > 0) {
+      data.memberStudentIds.forEach((mId) => {
+        const friend = MOCK_STUDENTS.find((s) => Number(s.id) === mId);
+        if (friend) {
+          members.push({
+            studentId: mId,
+            studentName: friend.name,
+            studentGroup: friend.group,
+            role: 'MEMBER',
+            joinedAt: new Date().toISOString(),
+          });
+        }
+      });
+    }
+
+    const newAppId = `app-${Date.now()}`;
+    const newChatId = `chat-${newAppId}`;
+
+    const newApplication: ProjectApplication = {
+      id: newAppId,
+      projectId: data.projectId,
+      studentId: currentStudentId,
+      isTeam: data.isTeam,
+      status: 'PENDING',
+      coverLetter: data.coverLetter,
+      members,
+      createdAt: new Date().toISOString(),
+      chatId: newChatId,
+    };
+
+    // Создаем чат по отклику (chats + messages)
+    const newChat: Chat = {
+      id: newChatId,
+      applicationId: newAppId,
+      projectId: project.id,
+      projectTitle: project.title,
+      companyName: project.company,
+      messages: [
+        {
+          id: `msg-${Date.now()}`,
+          chatId: newChatId,
+          senderId: currentStudentId,
+          senderName: `${studentProfile.name}${data.isTeam ? ' (Team Lead)' : ''}`,
+          senderRole: 'student',
+          content:
+            data.coverLetter.trim() ||
+            `Здравствуйте! ${data.isTeam ? 'Наша команда подала' : 'Я подал'} заявку на участие в проекте «${project.title}». Будем рады обсудить задачи!`,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        },
+      ],
+    };
+
+    setApplications((prev) => [newApplication, ...prev]);
+    setChats((prev) => [newChat, ...prev]);
+
+    setProjects((prev) =>
+      prev.map((p) => (p.id === data.projectId ? { ...p, applied: true } : p))
+    );
+
+    // Добавляем отклик в панель работодателя (candidates)
+    const newCandidate: Candidate = {
+      id: 'cand-' + Date.now(),
+      studentId: currentStudentId,
+      name: members.map((m) => m.studentName).join(' & '),
+      group: `${studentProfile.university} • ${studentProfile.group} (${studentProfile.year})`,
+      project: project.title,
+      match: project.match,
+      stack: studentProfile.skills,
+      status: 'Новая заявка',
+      applicationId: newAppId,
+      isTeam: data.isTeam,
+      teamMembers: members,
+      coverLetter: data.coverLetter,
+    };
+    setCandidates((prev) => [newCandidate, ...prev]);
+
+    // Уведомление об успешной отправке
+    const newNotif: AppNotification = {
+      id: `notif-${Date.now()}`,
+      userId: currentStudentId,
+      type: 'APPLICATION_STATUS_CHANGED',
+      title: 'Заявка отправлена',
+      body: `Ваша ${data.isTeam ? 'командная ' : ''}заявка на проект «${project.title}» (${project.company}) успешно зарегистрирована со статусом «Новая заявка».`,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    };
+    setNotifications((prev) => [newNotif, ...prev]);
+
     handleCloseApplyModal();
-    showToast('Заявка успешно отправлена в компанию');
+    showToast(
+      data.isTeam
+        ? `Командная заявка (${members.length} чел.) успешно отправлена!`
+        : 'Заявка успешно отправлена в компанию'
+    );
   };
 
   const handleCreateProject = (
@@ -376,8 +636,8 @@ export const App: React.FC = () => {
     try {
       const data = await getCompanyProfileApi(companyId);
       setPublicCompany(data);
-    } catch (err: any) {
-      setCompanyError(err.message || 'Компания не найдена');
+    } catch (err: unknown) {
+      setCompanyError((err as Error)?.message || 'Компания не найдена');
       setPublicCompany(null);
     } finally {
       setIsCompanyLoading(false);
@@ -391,8 +651,8 @@ export const App: React.FC = () => {
     try {
       const data = await getStudentProfileApi(studentId);
       setPublicStudent(data);
-    } catch (err: any) {
-      setStudentError(err.message || 'Профиль студента не найден');
+    } catch (err: unknown) {
+      setStudentError((err as Error)?.message || 'Профиль студента не найден');
       setPublicStudent(null);
     } finally {
       setIsStudentLoading(false);
@@ -479,6 +739,9 @@ export const App: React.FC = () => {
         return (
           <MyProjectsTab
             projects={projects}
+            applications={applications}
+            currentStudentId={currentStudentId}
+            onOpenChat={handleOpenChat}
             onViewCompany={handleViewCompany}
           />
         );
@@ -486,15 +749,14 @@ export const App: React.FC = () => {
         return (
           <HRDashboardTab
             candidates={candidates}
+            allStudents={MOCK_STUDENTS}
             projects={projects}
             companyName={companyProfile.name}
-            onOpenCreateModal={() => setIsCreateModalOpen(true)}
-            onEditProject={(p) => setProjectToEdit(p)}
-            onDeleteProject={handleDeleteProject}
             onApproveCandidate={handleApproveCandidate}
             onContactCandidate={handleContactCandidate}
             onNavigateToCompanyProfile={() => handleSwitchTab('company-profile')}
             onViewStudent={handleViewStudent}
+            onOpenChat={handleOpenChat}
           />
         );
       case 'company-profile':
@@ -512,6 +774,8 @@ export const App: React.FC = () => {
         return (
           <ProfileTab
             profile={studentProfile}
+            connections={connections}
+            allStudents={MOCK_STUDENTS}
             onUpdateBio={(bio) =>
               setStudentProfile((prev) => ({ ...prev, bio }))
             }
@@ -519,6 +783,11 @@ export const App: React.FC = () => {
             isRecalculating={isRecalculating}
             onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
             onOpenEditSkillsModal={() => setIsEditSkillsModalOpen(true)}
+            onSendFriendRequest={handleSendFriendRequest}
+            onAcceptFriendRequest={handleAcceptFriendRequest}
+            onRejectFriendRequest={handleRejectFriendRequest}
+            onCancelFriendRequest={handleCancelFriendRequest}
+            onViewStudent={handleViewStudent}
             onLogout={handleLogout}
           />
         );
@@ -547,6 +816,21 @@ export const App: React.FC = () => {
     }
   };
 
+  const activeChat = useMemo(() => {
+    if (!activeChatId) return null;
+    return chats.find((c) => c.id === activeChatId) || null;
+  }, [chats, activeChatId]);
+
+  const activeChatApplication = useMemo(() => {
+    if (!activeChat) return null;
+    return applications.find((a) => a.id === activeChat.applicationId) || null;
+  }, [applications, activeChat]);
+
+  const activeChatProject = useMemo(() => {
+    if (!activeChat) return null;
+    return projects.find((p) => p.id === activeChat.projectId) || null;
+  }, [projects, activeChat]);
+
   if (!isLoggedIn) {
     return (
       <>
@@ -573,6 +857,9 @@ export const App: React.FC = () => {
         switchTab={handleSwitchTab}
         isDark={isDark}
         toggleTheme={toggleTheme}
+        notifications={notifications}
+        onMarkNotificationAsRead={handleMarkNotificationAsRead}
+        onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
         onLogout={handleLogout}
       />
 
@@ -608,12 +895,28 @@ export const App: React.FC = () => {
       {/* Подвал с академической сводкой */}
       <Footer />
 
-      {/* Модальное окно: Подача заявки */}
+      {/* Модальное окно: Подача заявки (Задача 4: командный/индивидуальный отклик) */}
       <ApplyModal
         project={selectedProjectForModal}
+        currentStudent={studentProfile}
+        friends={myAcceptedFriends}
+        applications={applications}
         onClose={handleCloseApplyModal}
         onSubmit={handleSubmitApplication}
         onViewCompany={handleViewCompany}
+      />
+
+      {/* Модальное окно: Чат по отклику (Задача 5: chats + messages) */}
+      <ApplicationChatModal
+        isOpen={Boolean(activeChat)}
+        onClose={handleCloseChat}
+        chat={activeChat}
+        application={activeChatApplication}
+        project={activeChatProject}
+        currentRole={currentRole}
+        currentUserId={currentRole === 'student' ? currentStudentId : 'hr-user'}
+        currentUserName={currentRole === 'student' ? studentProfile.name : companyProfile.contactPerson}
+        onSendMessage={handleSendMessage}
       />
 
       {/* Модальное окно: Создание проекта (HR) */}

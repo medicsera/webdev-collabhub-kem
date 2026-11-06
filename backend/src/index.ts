@@ -183,6 +183,72 @@ const FALLBACK_STUDENTS = [
     aiFeedback:
       'Профиль хорошо подходит для задач автоматизации и бэкенд-разработки.',
   },
+  {
+    id: 3,
+    name: 'Мирко Антон Дмитриевич',
+    group: 'ФИТ-231',
+    year: 'IV Курс',
+    university: 'КемГУ',
+    specialization: 'Frontend Engineer',
+    telegram: '@anton_mirko',
+    city: 'Кемерово',
+    status: 'Ищет проект ВКР',
+    skills: [
+      { name: 'React', level: 'ADVANCED' },
+      { name: 'TypeScript', level: 'ADVANCED' },
+      { name: 'Tailwind CSS', level: 'ADVANCED' },
+      { name: 'Next.js', level: 'INTERMEDIATE' },
+      { name: 'Redux Toolkit', level: 'INTERMEDIATE' },
+    ],
+    bio: 'Специализируюсь на создании сложных пользовательских интерфейсов, дизайн-систем и анимаций. Опыт работы в кросс-функциональной студенческой команде.',
+    aiMatch: 94,
+    aiFeedback:
+      'Высокая согласованность с проектами клиентских приложений и геоинформационных интерфейсов Goodline.',
+  },
+  {
+    id: 4,
+    name: 'Воронова Дарья Андреевна',
+    group: 'ПИ-222',
+    year: 'III Курс',
+    university: 'КемГУ',
+    specialization: 'Data Analyst / ML Engineer',
+    telegram: '@daria_data',
+    city: 'Кемерово',
+    status: 'Готова к стажировке',
+    skills: [
+      { name: 'Python', level: 'ADVANCED' },
+      { name: 'PostgreSQL', level: 'INTERMEDIATE' },
+      { name: 'FastAPI', level: 'INTERMEDIATE' },
+      { name: 'Docker', level: 'BASIC' },
+      { name: 'Scikit-learn', level: 'INTERMEDIATE' },
+    ],
+    bio: 'Исследую методы обработки естественного языка и классификации текстов. Заинтересована в решении прикладных аналитических задач для телеком-сферы.',
+    aiMatch: 91,
+    aiFeedback:
+      'Отличный матч для интеллектуальной классификации обращений техдирекции в «Софт Инжиниринг».',
+  },
+  {
+    id: 5,
+    name: 'Смирнов Максим Игоревич',
+    group: 'ИБ-211',
+    year: 'IV Курс',
+    university: 'КемГУ',
+    specialization: 'DevOps / SecOps',
+    telegram: '@max_secops',
+    city: 'Кемерово',
+    status: 'Готов к практике',
+    skills: [
+      { name: 'Docker', level: 'ADVANCED' },
+      { name: 'PostgreSQL', level: 'INTERMEDIATE' },
+      { name: 'Node.js', level: 'BASIC' },
+      { name: 'Python', level: 'INTERMEDIATE' },
+      { name: 'FastAPI', level: 'BASIC' },
+    ],
+    bio: 'Занимаюсь настройкой сред развёртывания, автоматизацией CI/CD конвейеров, безопасностью сетевых сервисов и мониторингом инфраструктуры.',
+    aiMatch: 86,
+    aiFeedback:
+      'Хороший фундамент системного администрирования для highload-инфраструктуры UniFun.',
+  },
 ];
 
 // Проверка здоровья
@@ -192,7 +258,8 @@ app.get('/api/v1/health', (req: Request, res: Response) => {
 
 // 1. Публичные данные компании по ID + список активных вакансий/проектов
 app.get('/api/v1/companies/:id', async (req: Request, res: Response) => {
-  const companyId = parseInt(req.params.id, 10);
+  const rawId = typeof req.params.id === 'string' ? req.params.id : '';
+  const companyId = parseInt(rawId, 10);
   if (isNaN(companyId)) {
     return res.status(400).json({ error: 'Неверный идентификатор компании' });
   }
@@ -205,7 +272,7 @@ app.get('/api/v1/companies/:id', async (req: Request, res: Response) => {
       .where(eq(companies.id, companyId))
       .limit(1);
 
-    if (foundCompanies.length > 0) {
+    if (foundCompanies.length > 0 && foundCompanies[0]) {
       const company = foundCompanies[0];
       const companyProjects = await db
         .select()
@@ -236,9 +303,59 @@ app.get('/api/v1/companies/:id', async (req: Request, res: Response) => {
   });
 });
 
-// 2. Публичный профиль/резюме студента по ID (без конфиденциальных системных полей)
+// 2. Каталог всех студентов для работодателей
+app.get('/api/v1/students', async (_req: Request, res: Response) => {
+  try {
+    const allStudents = await db
+      .select({
+        id: students.id,
+        name: students.name,
+        group: students.group,
+        year: students.year,
+        university: students.university,
+        specialization: students.specialization,
+        telegram: students.telegram,
+        city: students.city,
+        status: students.status,
+        bio: students.bio,
+      })
+      .from(students);
+
+    if (allStudents.length > 0) {
+      // Подтягиваем навыки для каждого студента
+      const studentsWithSkills = await Promise.all(
+        allStudents.map(async (st) => {
+          const stSkills = await db
+            .select({
+              name: skills.name,
+              level: studentSkills.proficiencyLevel,
+            })
+            .from(studentSkills)
+            .innerJoin(skills, eq(studentSkills.skillId, skills.id))
+            .where(eq(studentSkills.studentId, st.id));
+
+          return {
+            ...st,
+            skills: stSkills,
+            aiMatch: 90,
+            aiFeedback: 'Высокое соответствие профиля студента проектным задачам.',
+          };
+        })
+      );
+
+      return res.json(studentsWithSkills);
+    }
+  } catch (err) {
+    console.warn('[DB notice] fallback to in-memory students catalog');
+  }
+
+  return res.json(FALLBACK_STUDENTS);
+});
+
+// 3. Публичный профиль/резюме студента по ID (без конфиденциальных системных полей)
 app.get('/api/v1/students/:id', async (req: Request, res: Response) => {
-  const studentId = parseInt(req.params.id, 10);
+  const rawId = typeof req.params.id === 'string' ? req.params.id : '';
+  const studentId = parseInt(rawId, 10);
   if (isNaN(studentId)) {
     return res.status(400).json({ error: 'Неверный идентификатор студента' });
   }
@@ -262,7 +379,7 @@ app.get('/api/v1/students/:id', async (req: Request, res: Response) => {
       .where(eq(students.id, studentId))
       .limit(1);
 
-    if (foundStudents.length > 0) {
+    if (foundStudents.length > 0 && foundStudents[0]) {
       const student = foundStudents[0];
       const studentSkillRecords = await db
         .select({

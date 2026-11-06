@@ -1,4 +1,13 @@
-import type { Project, Candidate, StudentProfile, CompanyProfile } from '../types';
+import type {
+  Project,
+  Candidate,
+  StudentProfile,
+  CompanyProfile,
+  StudentConnection,
+  ProjectApplication,
+  Chat,
+  AppNotification,
+} from '../types';
 
 // Мок-данные компаний для публичного просмотра
 export const MOCK_COMPANIES: CompanyProfile[] = [
@@ -23,6 +32,7 @@ export const MOCK_COMPANIES: CompanyProfile[] = [
       'Стек: React 19, TypeScript, Node.js, FastAPI, PostgreSQL, pgvector',
       'Гибкий график и возможность удалённой или гибридной работы',
     ],
+    verificationStatus: 'VERIFIED',
   },
   {
     id: 2,
@@ -44,6 +54,7 @@ export const MOCK_COMPANIES: CompanyProfile[] = [
       'Оплачиваемая стажировка с возможностью трудоустройства',
       'Стек: React, TypeScript, Node.js, REST API, PostgreSQL',
     ],
+    verificationStatus: 'VERIFIED',
   },
   {
     id: 3,
@@ -58,25 +69,30 @@ export const MOCK_COMPANIES: CompanyProfile[] = [
     contactTelegram: '@max_unifun',
     contactEmail: 'careers@unifun.com',
     description:
-      'Международная компания, специализирующаяся на разработке высоконагруженных серверных решений для телекоммуникационных платформ и игровой индустрии. Кемеровский офис — центр бэкенд-разработки.',
+      'Международная компания, специализирующаяся на highload-решениях для операторов мобильной связи и мобильных развлекательных сервисов. Более 100 млн абонентов по всему миру.',
     benefits: [
       'Участие в международных highload-проектах',
       'Менторство от Senior/Staff инженеров',
       'Глубокое погружение в системное программирование и архитектуру',
       'Стек: Node.js, PostgreSQL, Redis, Docker, Kubernetes',
     ],
+    verificationStatus: 'VERIFIED',
   },
 ];
 
 // Мок-данные студентов для публичного просмотра
 export const MOCK_STUDENTS: StudentProfile[] = [
   {
+    id: 1,
     name: 'Сергиенко Александр',
+    firstName: 'Александр',
+    lastName: 'Сергиенко',
     group: 'ФИТ-231',
-    year: 'IV Курс',
+    year: '4',
     university: 'КемГУ',
     specialization: 'Fullstack / Team Lead',
     telegram: '@SERK4S',
+    phone: '+7 (950) 582-14-33',
     city: 'Кемерово',
     status: 'Готов к практике',
     skills: [
@@ -87,18 +103,53 @@ export const MOCK_STUDENTS: StudentProfile[] = [
       { name: 'PostgreSQL', level: 'ADVANCED' },
       { name: 'Docker', level: 'INTERMEDIATE' },
     ],
+    portfolio: [
+      {
+        id: 'port-1',
+        title: 'CollabHub — Веб-платформа взаимодействия студентов и ИТ-бизнеса',
+        description: 'Проектирование и разработка клиентской и серверной части, интеграция ИИ-микросервиса на FastAPI и векторного поиска pgvector.',
+        role: 'Team Lead / Fullstack Engineer',
+        technologies: ['React', 'TypeScript', 'Node.js', 'FastAPI', 'PostgreSQL', 'Docker'],
+        url: 'https://github.com/kemgu/collabhub',
+        startedAt: '2026-09-01',
+      },
+      {
+        id: 'port-2',
+        title: 'Умный помощник кафедры информационных технологий',
+        description: 'Telegram-бот с поддержкой поиска расписания и академических консультаций.',
+        role: 'Backend Developer',
+        technologies: ['Python', 'PostgreSQL', 'Aiogram'],
+        url: 'https://t.me/kemgu_it_bot',
+        startedAt: '2026-02-10',
+        finishedAt: '2026-06-20',
+      },
+    ],
+    resumes: [
+      {
+        id: 'res-1',
+        fileName: 'Резюме_Сергиенко_Александр_Fullstack_2026.pdf',
+        fileUrl: '/resumes/sergienko_resume.pdf',
+        mimeType: 'application/pdf',
+        isPrimary: true,
+        createdAt: '2026-10-15T12:00:00Z',
+      },
+    ],
     bio: 'Разрабатываю веб-приложения на React, TypeScript и Node.js. Есть опыт проектирования баз данных PostgreSQL, настройки Docker и управления командой.',
     aiMatch: 96,
     aiFeedback:
       'Ваш профиль показывает 96% семантический матч с требованиями ведущих проектов от компаний «Софт Инжиниринг» и «Goodline».',
   },
   {
+    id: 2,
     name: 'Кононенко Егор Сергеевич',
+    firstName: 'Егор',
+    lastName: 'Кононенко',
     group: 'ФИТ-231',
-    year: 'IV Курс',
+    year: '4',
     university: 'КемГУ',
     specialization: 'Backend Developer',
     telegram: '@egor_dev',
+    phone: '+7 (905) 911-22-33',
     city: 'Кемерово',
     status: 'Готов к практике',
     skills: [
@@ -107,10 +158,121 @@ export const MOCK_STUDENTS: StudentProfile[] = [
       { name: 'PostgreSQL', level: 'BASIC' },
       { name: 'Docker', level: 'BASIC' },
     ],
-    bio: 'Занимаюсь серверной разработкой на Node.js, изучаю архитектуру распределённых систем. Интересуюсь Docker-контейнеризацией и CI/CD.',
+    portfolio: [
+      {
+        id: 'port-3',
+        title: 'Сервис автоматической генерации отчетов',
+        description: 'Разработка REST API на Express.js с генерацией PDF/Docx файлов.',
+        role: 'Backend Developer',
+        technologies: ['Node.js', 'Express', 'PostgreSQL'],
+      },
+    ],
+    bio: 'Занимаюсь серверной разработкой на Node.js. Интересуюсь созданием REST API и интеграцией с внешними сервисами.',
     aiMatch: 88,
     aiFeedback:
       'Профиль хорошо подходит для задач автоматизации и бэкенд-разработки.',
+  },
+  {
+    id: 3,
+    name: 'Мирко Антон Дмитриевич',
+    firstName: 'Антон',
+    lastName: 'Мирко',
+    group: 'ФИТ-231',
+    year: '4',
+    university: 'КемГУ',
+    specialization: 'Frontend Engineer',
+    telegram: '@anton_mirko',
+    phone: '+7 (913) 444-55-66',
+    city: 'Кемерово',
+    status: 'Ищет проект ВКР',
+    skills: [
+      { name: 'React', level: 'ADVANCED' },
+      { name: 'TypeScript', level: 'ADVANCED' },
+      { name: 'Tailwind CSS', level: 'ADVANCED' },
+      { name: 'Next.js', level: 'INTERMEDIATE' },
+      { name: 'Redux Toolkit', level: 'INTERMEDIATE' },
+    ],
+    portfolio: [
+      {
+        id: 'port-4',
+        title: 'Интерактивная карта технопарка',
+        description: 'SPA-интерфейс на React и Leaflet для навигации по резидентам технопарка Кузбасса.',
+        role: 'Frontend Lead',
+        technologies: ['React', 'TypeScript', 'Tailwind CSS', 'Leaflet'],
+      },
+    ],
+    bio: 'Специализируюсь на создании сложных пользовательских интерфейсов, дизайн-систем и анимаций. Опыт работы в кросс-функциональной студенческой команде.',
+    aiMatch: 94,
+    aiFeedback:
+      'Высокая согласованность с проектами клиентских приложений и геоинформационных интерфейсов Goodline.',
+  },
+  {
+    id: 4,
+    name: 'Воронова Дарья Андреевна',
+    firstName: 'Дарья',
+    lastName: 'Воронова',
+    group: 'ПИ-222',
+    year: '3',
+    university: 'КемГУ',
+    specialization: 'Data Analyst / ML Engineer',
+    telegram: '@daria_data',
+    phone: '+7 (923) 777-88-99',
+    city: 'Кемерово',
+    status: 'Готова к стажировке',
+    skills: [
+      { name: 'Python', level: 'ADVANCED' },
+      { name: 'PostgreSQL', level: 'INTERMEDIATE' },
+      { name: 'FastAPI', level: 'INTERMEDIATE' },
+      { name: 'Docker', level: 'BASIC' },
+      { name: 'Scikit-learn', level: 'INTERMEDIATE' },
+    ],
+    portfolio: [
+      {
+        id: 'port-5',
+        title: 'Классификатор обращений абонентов',
+        description: 'Исследование NLP-моделей классификации обращений по тональности и тематике.',
+        role: 'ML Researcher',
+        technologies: ['Python', 'Pandas', 'Transformers', 'FastAPI'],
+      },
+    ],
+    bio: 'Исследую методы обработки естественного языка и классификации текстов. Заинтересована в решении прикладных аналитических задач для телеком-сферы.',
+    aiMatch: 91,
+    aiFeedback:
+      'Отличный матч для интеллектуальной классификации обращений техдирекции в «Софт Инжиниринг».',
+  },
+  {
+    id: 5,
+    name: 'Смирнов Максим Игоревич',
+    firstName: 'Максим',
+    lastName: 'Смирнов',
+    group: 'ИБ-211',
+    year: '4',
+    university: 'КемГУ',
+    specialization: 'DevOps / SecOps',
+    telegram: '@max_secops',
+    phone: '+7 (960) 111-33-55',
+    city: 'Кемерово',
+    status: 'Готов к практике',
+    skills: [
+      { name: 'Docker', level: 'ADVANCED' },
+      { name: 'PostgreSQL', level: 'INTERMEDIATE' },
+      { name: 'Node.js', level: 'BASIC' },
+      { name: 'Python', level: 'INTERMEDIATE' },
+      { name: 'FastAPI', level: 'BASIC' },
+    ],
+    portfolio: [
+      {
+        id: 'port-6',
+        title: 'CI/CD пайплайн для микросервисов',
+        description: 'Автоматизация сборки и развертывания в изолированных окружениях Docker.',
+        role: 'DevOps Engineer',
+        technologies: ['Docker', 'GitLab CI', 'Bash', 'PostgreSQL'],
+      },
+    ],
+    bio: 'Занимаюсь настройкой сред развёртывания, автоматизацией CI/CD конвейеров, безопасностью сетевых сервисов и мониторингом инфраструктуры.',
+    aiMatch: 86,
+    aiFeedback:
+      'Хороший фундамент системного администрирования для highload-инфраструктуры UniFun.',
   },
 ];
 
@@ -125,7 +287,7 @@ export const INITIAL_PROJECTS: Project[] = [
     type: 'ВКР / Диплом',
     match: 96,
     teamSize: '2–3 студента',
-    desc: 'Разработка веб-интерфейса и микросервиса автоматической категоризации тикетов с применением локальных языковых моделей и векторного поиска.',
+    desc: 'Разработка веб-интерфейса и микросервиса автоматической категоризации тикетов на основе семантического анализа с использованием векторов pgvector и локальных LLM.',
     tags: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'Docker'],
     requiredSkills: [
       { name: 'React', level: 'ADVANCED' },
@@ -134,7 +296,15 @@ export const INITIAL_PROJECTS: Project[] = [
       { name: 'PostgreSQL', level: 'BASIC' },
       { name: 'Docker', level: 'BASIC' },
     ],
-    applied: false,
+    applied: true,
+    expectedResults: 'Готовый веб-интерфейс оператора техдирекции, микросервис векторизации обращений, точность классификации не менее 90%.',
+    conditions: 'Официальный договор на руководство ВКР, консультации ведущего архитектора, доступ к серверным мощностям с GPU.',
+    difficulty: 'MIDDLE',
+    employmentType: 'PROJECT',
+    projectStatus: 'ACTIVE',
+    city: 'Кемерово',
+    isRemote: true,
+    deadline: '2027-05-30T00:00:00Z',
   },
   {
     id: 2,
@@ -146,7 +316,7 @@ export const INITIAL_PROJECTS: Project[] = [
     type: 'Стажировка',
     match: 92,
     teamSize: '1–2 студента',
-    desc: 'Проектирование аналитической панели для мониторинга параметров связи и пространственной визуализации телекоммуникационных узлов.',
+    desc: 'Проектирование аналитической панели для мониторинга параметров связи, отображение статуса аварий и заявок на подключение на интерактивной карте города Кемерово.',
     tags: ['React', 'TypeScript', 'Node.js', 'REST API'],
     requiredSkills: [
       { name: 'React', level: 'INTERMEDIATE' },
@@ -155,6 +325,14 @@ export const INITIAL_PROJECTS: Project[] = [
       { name: 'REST API', level: 'INTERMEDIATE' },
     ],
     applied: true,
+    expectedResults: 'Интерактивный дашборд с картой, временем отклика базовых станций и фильтрами по районам города.',
+    conditions: 'Оплачиваемая стажировка, современный офис в центре Кемерово, компенсация питания.',
+    difficulty: 'JUNIOR',
+    employmentType: 'PART_TIME',
+    projectStatus: 'ACTIVE',
+    city: 'Кемерово',
+    isRemote: false,
+    deadline: '2027-06-15T00:00:00Z',
   },
   {
     id: 3,
@@ -166,7 +344,7 @@ export const INITIAL_PROJECTS: Project[] = [
     type: 'Стажировка',
     match: 85,
     teamSize: '2 студента',
-    desc: 'Построение отказоустойчивой архитектуры базы данных, кэширования и административного терминала управления трафиком.',
+    desc: 'Построение отказоустойчивой архитектуры базы данных и кэширования для обработки до 10 000 RPS. Проектирование схемы шардирования и очередей событий.',
     tags: ['Node.js', 'PostgreSQL', 'Redis', 'Docker'],
     requiredSkills: [
       { name: 'Node.js', level: 'ADVANCED' },
@@ -175,6 +353,14 @@ export const INITIAL_PROJECTS: Project[] = [
       { name: 'Docker', level: 'INTERMEDIATE' },
     ],
     applied: false,
+    expectedResults: 'Микросервис с нагрузочным тестированием k6, документацией архитектуры и метриками Prometheus/Grafana.',
+    conditions: 'Гибкий график, стипендия от компании, наставничество Staff Engineer.',
+    difficulty: 'SENIOR',
+    employmentType: 'PROJECT',
+    projectStatus: 'ACTIVE',
+    city: 'Кемерово',
+    isRemote: true,
+    deadline: '2027-04-01T00:00:00Z',
   },
   {
     id: 4,
@@ -186,7 +372,7 @@ export const INITIAL_PROJECTS: Project[] = [
     type: 'Курсовой проект',
     match: 89,
     teamSize: '1–2 студента',
-    desc: 'Сервис генерации отчетной документации по регламентам университета с верификацией оценок от наставников предприятия.',
+    desc: 'Сервис генерации отчетной документации по производственной практике студентов в соответствии с ГОСТ и требованиями КемГУ.',
     tags: ['TypeScript', 'React', 'Node.js', 'PostgreSQL'],
     requiredSkills: [
       { name: 'TypeScript', level: 'INTERMEDIATE' },
@@ -195,6 +381,196 @@ export const INITIAL_PROJECTS: Project[] = [
       { name: 'PostgreSQL', level: 'BASIC' },
     ],
     applied: false,
+    expectedResults: 'Веб-сервис с экспортом в DOCX/PDF и электронной подписью куратора.',
+    conditions: 'Возможность зачета курсового проекта и производственной практики.',
+    difficulty: 'JUNIOR',
+    employmentType: 'UNPAID_INTERNSHIP',
+    projectStatus: 'ACTIVE',
+    city: 'Кемерово',
+    isRemote: true,
+    deadline: '2027-03-20T00:00:00Z',
+  },
+];
+
+// 10. student_connections — Начальные связи напарников
+// Ограничение БД: student_id < partner_id!
+export const INITIAL_CONNECTIONS: StudentConnection[] = [
+  {
+    id: 'conn-1',
+    studentId: 1, // Сергиенко Александр
+    partnerId: 3, // Мирко Антон
+    status: 'ACCEPTED',
+    requestedBy: 1,
+    createdAt: '2026-10-10T10:00:00Z',
+    respondedAt: '2026-10-10T12:30:00Z',
+  },
+  {
+    id: 'conn-2',
+    studentId: 1, // Сергиенко Александр
+    partnerId: 4, // Воронова Дарья
+    status: 'ACCEPTED',
+    requestedBy: 4,
+    createdAt: '2026-10-18T14:15:00Z',
+    respondedAt: '2026-10-19T09:00:00Z',
+  },
+  {
+    id: 'conn-3',
+    studentId: 1, // Сергиенко Александр
+    partnerId: 5, // Смирнов Максим
+    status: 'PENDING',
+    requestedBy: 5, // Инициатор Максим -> для Александра это ВХОДЯЩАЯ заявка
+    createdAt: '2026-11-04T16:20:00Z',
+  },
+  {
+    id: 'conn-4',
+    studentId: 1, // Сергиенко Александр
+    partnerId: 2, // Кононенко Егор
+    status: 'PENDING',
+    requestedBy: 1, // Инициатор Александр -> для Александра это ИСХОДЯЩАЯ заявка
+    createdAt: '2026-11-05T11:00:00Z',
+  },
+];
+
+// 12. applications + 13. application_members — Отклики на проекты
+export const INITIAL_APPLICATIONS: ProjectApplication[] = [
+  {
+    id: 'app-1',
+    projectId: 1,
+    studentId: 1, // LEAD: Сергиенко Александр
+    isTeam: true,
+    status: 'REVIEWING',
+    coverLetter: 'Здравствуйте! Наша команда хотела бы взять проект «Интеллектуальная система классификации и маршрутизации обращений». Александр отвечает за системную архитектуру и backend на FastAPI, Антон разрабатывает интерактивный UI на React и Tailwind.',
+    members: [
+      {
+        studentId: 1,
+        studentName: 'Сергиенко Александр',
+        studentGroup: 'ФИТ-231',
+        role: 'LEAD',
+        joinedAt: '2026-10-22T08:00:00Z',
+      },
+      {
+        studentId: 3,
+        studentName: 'Мирко Антон',
+        studentGroup: 'ФИТ-231',
+        role: 'MEMBER',
+        joinedAt: '2026-10-22T08:00:00Z',
+      },
+    ],
+    createdAt: '2026-10-22T08:00:00Z',
+    chatId: 'chat-app-1',
+  },
+  {
+    id: 'app-2',
+    projectId: 2,
+    studentId: 1, // Индивидуальная заявка
+    isTeam: false,
+    status: 'INTERVIEW',
+    coverLetter: 'Добрый день! Меня заинтересовала стажировка в отделе цифровых продуктов связи Goodline. Имею опыт работы с геокартами и REST API.',
+    members: [
+      {
+        studentId: 1,
+        studentName: 'Сергиенко Александр',
+        studentGroup: 'ФИТ-231',
+        role: 'LEAD',
+        joinedAt: '2026-10-25T14:30:00Z',
+      },
+    ],
+    createdAt: '2026-10-25T14:30:00Z',
+    chatId: 'chat-app-2',
+  },
+];
+
+// 14. chats & 15. messages — Чаты по откликам
+export const INITIAL_CHATS: Chat[] = [
+  {
+    id: 'chat-app-1',
+    applicationId: 'app-1',
+    projectId: 1,
+    projectTitle: 'Интеллектуальная система классификации и маршрутизации обращений',
+    companyName: 'Софт Инжиниринг',
+    messages: [
+      {
+        id: 'msg-1',
+        chatId: 'chat-app-1',
+        senderId: 1,
+        senderName: 'Сергиенко Александр (Team Lead)',
+        senderRole: 'student',
+        content: 'Здравствуйте, Валерия! Мы подали командную заявку на проект классификации обращений. Антон Мирко уже подготовил прототип интерфейса в Figma, а я настроил контейнеры с FastAPI и pgvector.',
+        isRead: true,
+        createdAt: '2026-10-22T08:05:00Z',
+      },
+      {
+        id: 'msg-2',
+        chatId: 'chat-app-1',
+        senderId: 'hr-1',
+        senderName: 'Валерия Краснова (Софт Инжиниринг)',
+        senderRole: 'hr',
+        content: 'Здравствуйте, Александр и Антон! Отличная заявка. Ваш технологический стек и опыт в команде идеально закрывают требования задачи. Наш техлид хотел бы назначить вводную встречу на этой неделе.',
+        isRead: true,
+        createdAt: '2026-10-23T11:20:00Z',
+      },
+      {
+        id: 'msg-3',
+        chatId: 'chat-app-1',
+        senderId: 1,
+        senderName: 'Сергиенко Александр (Team Lead)',
+        senderRole: 'student',
+        content: 'Супер! Нам удобно в четверг или пятницу во второй половине дня.',
+        isRead: true,
+        createdAt: '2026-10-23T12:00:00Z',
+      },
+    ],
+  },
+  {
+    id: 'chat-app-2',
+    applicationId: 'app-2',
+    projectId: 2,
+    projectTitle: 'Личный кабинет абонента и картографическая система',
+    companyName: 'Goodline',
+    messages: [
+      {
+        id: 'msg-4',
+        chatId: 'chat-app-2',
+        senderId: 'hr-2',
+        senderName: 'Алексей Дмитриев (Goodline)',
+        senderRole: 'hr',
+        content: 'Александр, привет! Ознакомились с твоим резюме и проектами. Приглашаем на техническое собеседование в среду в 15:00 в офис на Кузнецком.',
+        isRead: false,
+        createdAt: '2026-11-05T15:00:00Z',
+      },
+    ],
+  },
+];
+
+// 16. notifications — Уведомления
+export const INITIAL_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'notif-1',
+    userId: 1,
+    type: 'FRIEND_REQUEST',
+    title: 'Новая заявка в напарники',
+    body: 'Смирнов Максим (ИБ-211, DevOps / SecOps) предложил стать напарниками для совместной подачи заявок на проекты.',
+    createdAt: '2026-11-04T16:20:00Z',
+    isRead: false,
+  },
+  {
+    id: 'notif-2',
+    userId: 1,
+    type: 'FRIEND_ACCEPTED',
+    title: 'Заявка в напарники принята',
+    body: 'Воронова Дарья приняла ваше предложение стать напарниками. Теперь вы можете объединяться в команду!',
+    createdAt: '2026-10-19T09:00:00Z',
+    isRead: true,
+  },
+  {
+    id: 'notif-3',
+    userId: 1,
+    type: 'INTERVIEW_INVITE',
+    title: 'Приглашение на собеседование от Goodline',
+    body: 'Ваша заявка на проект «Личный кабинет абонента» переведена в статус «Интервью». Назначена встреча.',
+    link: '/applications/app-2',
+    createdAt: '2026-11-05T15:01:00Z',
+    isRead: false,
   },
 ];
 
@@ -203,7 +579,7 @@ export const INITIAL_CANDIDATES: Candidate[] = [
     id: 'c1',
     studentId: 1,
     name: 'Сергиенко Александр & Мирко Антон',
-    group: 'КемГУ • ФИТ-231 (IV курс)',
+    group: 'КемГУ • ФИТ-231 (4 курс)',
     project: 'Интеллектуальная система классификации и маршрутизации обращений',
     match: 96,
     stack: [
@@ -214,12 +590,19 @@ export const INITIAL_CANDIDATES: Candidate[] = [
       { name: 'Qwen 2.5', level: 'ADVANCED' },
     ],
     status: 'Новая заявка',
+    applicationId: 'app-1',
+    isTeam: true,
+    teamMembers: [
+      { studentId: 1, studentName: 'Сергиенко Александр', studentGroup: 'ФИТ-231', role: 'LEAD', joinedAt: '2026-10-22' },
+      { studentId: 3, studentName: 'Мирко Антон', studentGroup: 'ФИТ-231', role: 'MEMBER', joinedAt: '2026-10-22' },
+    ],
+    coverLetter: 'Здравствуйте! Наша команда хотела бы взять проект «Интеллектуальная система классификации и маршрутизации обращений».',
   },
   {
     id: 'c2',
     studentId: 2,
     name: 'Кононенко Егор Сергеевич',
-    group: 'КемГУ • ФИТ-231 (IV курс)',
+    group: 'КемГУ • ФИТ-231 (4 курс)',
     project: 'Автоматизированный комплекс отчетов по практике',
     match: 88,
     stack: [
@@ -229,16 +612,22 @@ export const INITIAL_CANDIDATES: Candidate[] = [
       { name: 'Docker', level: 'BASIC' },
     ],
     status: 'На рассмотрении',
+    isTeam: false,
+    coverLetter: 'Здравствуйте! Хочу реализовать этот проект в качестве ВКР.',
   },
 ];
 
 export const INITIAL_STUDENT_PROFILE: StudentProfile = {
+  id: 1,
   name: 'Сергиенко Александр',
+  firstName: 'Александр',
+  lastName: 'Сергиенко',
   group: 'ФИТ-231',
-  year: 'IV Курс',
+  year: '4',
   university: 'КемГУ',
   specialization: 'Fullstack / Team Lead',
   telegram: '@SERK4S',
+  phone: '+7 (950) 582-14-33',
   city: 'Кемерово',
   status: 'Готов к практике',
   skills: [
@@ -248,6 +637,37 @@ export const INITIAL_STUDENT_PROFILE: StudentProfile = {
     { name: 'FastAPI', level: 'INTERMEDIATE' },
     { name: 'PostgreSQL', level: 'ADVANCED' },
     { name: 'Docker', level: 'INTERMEDIATE' },
+  ],
+  portfolio: [
+    {
+      id: 'port-1',
+      title: 'CollabHub — Веб-платформа взаимодействия студентов и ИТ-бизнеса',
+      description: 'Проектирование и разработка клиентской и серверной части, интеграция ИИ-микросервиса на FastAPI и векторного поиска pgvector.',
+      role: 'Team Lead / Fullstack Engineer',
+      technologies: ['React', 'TypeScript', 'Node.js', 'FastAPI', 'PostgreSQL', 'Docker'],
+      url: 'https://github.com/kemgu/collabhub',
+      startedAt: '2026-09-01',
+    },
+    {
+      id: 'port-2',
+      title: 'Умный помощник кафедры информационных технологий',
+      description: 'Telegram-бот с поддержкой поиска расписания и академических консультаций.',
+      role: 'Backend Developer',
+      technologies: ['Python', 'PostgreSQL', 'Aiogram'],
+      url: 'https://t.me/kemgu_it_bot',
+      startedAt: '2026-02-10',
+      finishedAt: '2026-06-20',
+    },
+  ],
+  resumes: [
+    {
+      id: 'res-1',
+      fileName: 'Резюме_Сергиенко_Александр_Fullstack_2026.pdf',
+      fileUrl: '/resumes/sergienko_resume.pdf',
+      mimeType: 'application/pdf',
+      isPrimary: true,
+      createdAt: '2026-10-15T12:00:00Z',
+    },
   ],
   bio: 'Разрабатываю веб-приложения на React, TypeScript и Node.js. Есть опыт проектирования баз данных PostgreSQL, настройки Docker и управления командой.',
   aiMatch: 96,
@@ -276,5 +696,5 @@ export const INITIAL_COMPANY_PROFILE: CompanyProfile = {
     'Стек: React 19, TypeScript, Node.js, FastAPI, PostgreSQL, pgvector',
     'Гибкий график и возможность удалённой или гибридной работы',
   ],
+  verificationStatus: 'VERIFIED',
 };
-

@@ -1,40 +1,109 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Building2, Users, FolderKanban } from 'lucide-react';
-import type { Candidate, Project, SkillItem } from '../../types';
+import React, { useState, useMemo } from 'react';
+import {
+  Users,
+  GraduationCap,
+  Building2,
+  Search,
+  Filter,
+  X,
+  Send,
+  MapPin,
+  ArrowRight,
+  MessageSquare,
+  Crown,
+} from 'lucide-react';
+import type { Candidate, Project, SkillItem, StudentProfile } from '../../types';
+import { MOCK_STUDENTS } from '../../data/mockData';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import { formatYearDisplay } from '../../utils/dbValidation';
 
 interface HRDashboardTabProps {
   candidates: Candidate[];
+  allStudents?: StudentProfile[];
   projects: Project[];
   companyName?: string;
-  onOpenCreateModal: () => void;
-  onEditProject: (project: Project) => void;
-  onDeleteProject: (projectId: number) => void;
+  initialSubTab?: 'recommended' | 'applications';
   onApproveCandidate: (candidateId: string) => void;
   onContactCandidate: (candidateName: string) => void;
   onNavigateToCompanyProfile: () => void;
   onViewStudent?: (studentId: number) => void;
+  onOpenChat?: (chatId: string) => void;
 }
 
 export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   candidates,
+  allStudents = MOCK_STUDENTS,
   projects,
   companyName = 'Софт Инжиниринг',
-  onOpenCreateModal,
-  onEditProject,
-  onDeleteProject,
+  initialSubTab = 'recommended',
   onApproveCandidate,
   onContactCandidate,
   onNavigateToCompanyProfile,
   onViewStudent,
+  onOpenChat,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'projects' | 'candidates'>('projects');
+  // Вкладка по умолчанию — «Рекомендованные студенты / Каталог студентов»
+  const [activeSubTab, setActiveSubTab] = useState<'recommended' | 'applications'>(initialSubTab);
 
-  // Фильтруем проекты конкретно этой компании (Requirement 4)
+  // Фильтры и поиск по каталогу студентов
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<string>('all');
+  const [selectedSkill, setSelectedSkill] = useState<string>('all');
+
+  // Проекты компании для сводки
   const myCompanyProjects = projects.filter(
     (p) => p.company.toLowerCase() === companyName.toLowerCase()
   );
+
+  // Список доступных технологий для быстрого фильтра
+  const popularSkills = ['React', 'TypeScript', 'Node.js', 'Python', 'PostgreSQL', 'Docker', 'FastAPI'];
+
+  // Фильтрация студентов
+  const filteredStudents = useMemo(() => {
+    return allStudents.filter((student) => {
+      // Поиск по тексту (ФИО, специализация, вуз, группа, город)
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = student.name.toLowerCase().includes(query);
+        const matchesSpec = student.specialization.toLowerCase().includes(query);
+        const matchesGroup = student.group.toLowerCase().includes(query);
+        const matchesCity = student.city.toLowerCase().includes(query);
+        const matchesSkill = student.skills.some((sk) =>
+          sk.name.toLowerCase().includes(query)
+        );
+
+        if (!matchesName && !matchesSpec && !matchesGroup && !matchesCity && !matchesSkill) {
+          return false;
+        }
+      }
+
+      // Фильтр по курсу
+      if (selectedCourse !== 'all') {
+        if (!student.year.toLowerCase().includes(selectedCourse.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Фильтр по навыку
+      if (selectedSkill !== 'all') {
+        const hasSkill = student.skills.some(
+          (sk) => sk.name.toLowerCase() === selectedSkill.toLowerCase()
+        );
+        if (!hasSkill) return false;
+      }
+
+      return true;
+    });
+  }, [allStudents, searchQuery, selectedCourse, selectedSkill]);
+
+  const hasActiveFilters = searchQuery !== '' || selectedCourse !== 'all' || selectedSkill !== 'all';
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedCourse('all');
+    setSelectedSkill('all');
+  };
 
   return (
     <section id="tab-hr-dashboard" className="fade-in space-y-8">
@@ -45,23 +114,17 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
             Кабинет работодателя • Компания: {companyName}
           </div>
           <h2 className="text-3xl sm:text-4xl font-normal text-ink dark:text-ink-light">
-            Управление проектами компании и кандидатами
+            Поиск студентов и управление откликами
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <button
             type="button"
             onClick={onNavigateToCompanyProfile}
-            className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
           >
-            <Building2 className="w-3.5 h-3.5" /> Профиль компании
-          </button>
-          <button
-            type="button"
-            onClick={onOpenCreateModal}
-            className="px-5 py-2 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 cursor-pointer shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" /> Добавить проект
+            <Building2 className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
+            <span>Профиль компании и задачи ({myCompanyProjects.length})</span>
           </button>
         </div>
       </div>
@@ -70,13 +133,13 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-paper-border dark:bg-paper-darkBorder border border-paper-border dark:border-paper-darkBorder">
         <div className="bg-paper-card dark:bg-paper-darkCard p-6">
           <div className="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
-            Задач нашей компании
+            Студентов в каталоге
           </div>
           <div className="editorial-serif text-4xl font-bold mt-2 text-ink dark:text-ink-light">
-            {String(myCompanyProjects.length).padStart(2, '0')}
+            {String(allStudents.length).padStart(2, '0')}
           </div>
           <div className="text-xs font-mono text-hunter dark:text-emerald-400 mt-2">
-            ● Доступны для студентов КемГУ
+            ● Доступны для стажировок и ВКР
           </div>
         </div>
 
@@ -88,140 +151,283 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
             {String(candidates.length).padStart(2, '0')}
           </div>
           <div className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-2">
-            Отсортировано по семантическому матчу
+            Ранжировано по семантическому матчу
           </div>
         </div>
 
         <div className="bg-paper-card dark:bg-paper-darkCard p-6">
           <div className="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
-            Согласование с кафедрой
+            Задачи нашей компании
           </div>
-          <div className="editorial-serif text-xl font-semibold mt-3 text-ink dark:text-ink-light">
-            ФИТ-231 (IV курс)
+          <div className="editorial-serif text-4xl font-bold mt-2 text-ink dark:text-ink-light">
+            {String(myCompanyProjects.length).padStart(2, '0')}
           </div>
           <div className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-2">
-            Утверждение тем ВКР
+            ВКР и стажировки КемГУ
           </div>
         </div>
       </div>
 
-      {/* Переключение вкладок: Проекты компании / Кандидаты */}
+      {/* Переключение вкладок: Каталог студентов / Заявки и отклики */}
       <div className="flex border-b border-paper-border dark:border-paper-darkBorder gap-2 sm:gap-6 text-xs uppercase font-mono tracking-wider">
         <button
           type="button"
-          onClick={() => setActiveSubTab('projects')}
+          onClick={() => setActiveSubTab('recommended')}
           className={`py-3 px-2 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
-            activeSubTab === 'projects'
+            activeSubTab === 'recommended'
               ? 'border-oxblood text-oxblood dark:text-oxblood-light'
               : 'border-transparent text-ink-muted hover:text-ink dark:hover:text-white'
           }`}
         >
-          <FolderKanban className="w-4 h-4" /> Проекты нашей компании ({myCompanyProjects.length})
+          <GraduationCap className="w-4 h-4" />
+          <span>Рекомендованные студенты / Каталог ({allStudents.length})</span>
         </button>
         <button
           type="button"
-          onClick={() => setActiveSubTab('candidates')}
+          onClick={() => setActiveSubTab('applications')}
           className={`py-3 px-2 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
-            activeSubTab === 'candidates'
+            activeSubTab === 'applications'
               ? 'border-oxblood text-oxblood dark:text-oxblood-light'
               : 'border-transparent text-ink-muted hover:text-ink dark:hover:text-white'
           }`}
         >
-          <Users className="w-4 h-4" /> Заявки и кандидаты ({candidates.length})
+          <Users className="w-4 h-4" />
+          <span>Заявки и отклики ({candidates.length})</span>
         </button>
       </div>
 
-      {/* Содержимое вкладки: Проекты компании (Requirement 4) */}
-      {activeSubTab === 'projects' && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-paper-muted/40 dark:bg-paper-dark/60 border border-paper-border dark:border-paper-darkBorder">
-            <div className="text-xs font-mono text-ink-muted dark:text-stone-300">
-              Показаны проекты компании <strong className="text-ink dark:text-white">{companyName}</strong>.
-              Здесь вы можете редактировать стек, изменять требуемые уровни компетенций или удалять проекты.
-            </div>
-            <button
-              type="button"
-              onClick={onOpenCreateModal}
-              className="px-4 py-2 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shrink-0"
-            >
-              <Plus className="w-3.5 h-3.5" /> Новый проект
-            </button>
-          </div>
+      {/* ========================================================
+          ВКЛАДКА 1: Каталог студентов (открыта по умолчанию)
+          ======================================================== */}
+      {activeSubTab === 'recommended' && (
+        <div className="space-y-6">
+          {/* Панель поиска и фильтрации */}
+          <div className="p-5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-4">
+            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+              {/* Поисковая строка */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted dark:text-stone-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Поиск по ФИО, стеку, специальности или группе..."
+                  className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood dark:focus:border-oxblood-light text-ink dark:text-ink-light placeholder:text-ink-muted/60"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:hover:text-white"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
 
-          {myCompanyProjects.length === 0 ? (
-            <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-3">
-              <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
-                У вашей компании пока нет опубликованных проектов
-              </p>
+              {/* Фильтр по курсу */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400">
+                  Курс:
+                </span>
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                  className="px-3 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+                >
+                  <option value="all">Все курсы</option>
+                  <option value="IV Курс">IV Курс (ВКР)</option>
+                  <option value="III Курс">III Курс (Практика)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Быстрые фильтры по ключевым технологиям */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-paper-border/60 dark:border-paper-darkBorder/60">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400 flex items-center gap-1">
+                <Filter className="w-3 h-3" /> Стек:
+              </span>
               <button
                 type="button"
-                onClick={onOpenCreateModal}
-                className="px-5 py-2.5 bg-oxblood text-white font-mono text-xs uppercase tracking-wider cursor-pointer shadow-xs"
+                onClick={() => setSelectedSkill('all')}
+                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                  selectedSkill === 'all'
+                    ? 'border-ink bg-ink text-paper-light dark:border-ink-light dark:bg-ink-light dark:text-paper-dark'
+                    : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                }`}
               >
-                + Опубликовать первую задачу
+                Все
               </button>
+              {popularSkills.map((sk) => (
+                <button
+                  key={sk}
+                  type="button"
+                  onClick={() => setSelectedSkill(selectedSkill === sk ? 'all' : sk)}
+                  className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                    selectedSkill === sk
+                      ? 'border-oxblood bg-oxblood text-white'
+                      : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                  }`}
+                >
+                  {sk}
+                </button>
+              ))}
+
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="ml-auto text-[10px] font-mono uppercase text-oxblood dark:text-oxblood-light hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <X className="w-3 h-3" /> Сбросить фильтры
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Список студентов */}
+          {filteredStudents.length === 0 ? (
+            <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-3">
+              <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
+                Студенты по заданным параметрам не найдены
+              </p>
+              <p className="text-xs font-mono text-ink-muted dark:text-stone-400">
+                Попробуйте изменить поисковый запрос или сбросить фильтры
+              </p>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink text-xs font-mono uppercase tracking-wider transition cursor-pointer"
+                >
+                  Сбросить фильтры
+                </button>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-paper-border dark:divide-paper-darkBorder border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard">
-              {myCompanyProjects.map((p) => {
-                const skillsToDisplay =
-                  p.requiredSkills && p.requiredSkills.length > 0
-                    ? p.requiredSkills
-                    : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
+              {filteredStudents.map((student, idx) => {
+                const studentId = student.id || idx + 1;
 
                 return (
-                  <div
-                    key={p.id}
-                    className="p-6 space-y-4 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/50 transition"
+                  <article
+                    key={studentId}
+                    className="p-6 sm:p-7 space-y-4 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/50 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-paper-border/60 dark:border-paper-darkBorder/60 pb-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-mono font-medium text-oxblood dark:text-oxblood-light">
-                          {p.index} • {p.type} • Группа: {p.teamSize}
-                        </span>
-                        <SemanticMatchBadge score={p.match} size="sm" />
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                      {/* Левый блок: Аватар и Инфо о студенте */}
+                      <div className="flex items-start gap-4">
+                        {/* Кликабельный аватар */}
+                        {onViewStudent ? (
+                          <button
+                            type="button"
+                            onClick={() => onViewStudent(studentId)}
+                            className="w-14 h-14 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-lg hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer shadow-xs group"
+                            title={`Открыть резюме: ${student.name}`}
+                          >
+                            {student.avatarUrl ? (
+                              <img
+                                src={student.avatarUrl}
+                                alt={student.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="group-hover:text-oxblood dark:group-hover:text-oxblood-light">
+                                {student.name
+                                  .split(' ')
+                                  .map((n) => n[0])
+                                  .slice(0, 2)
+                                  .join('')}
+                              </span>
+                            )}
+                          </button>
+                        ) : (
+                          <div className="w-14 h-14 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-lg">
+                            {student.name
+                              .split(' ')
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join('')}
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
+                              {onViewStudent ? (
+                                <button
+                                  type="button"
+                                  onClick={() => onViewStudent(studentId)}
+                                  className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
+                                >
+                                  {student.name}
+                                </button>
+                              ) : (
+                                student.name
+                              )}
+                            </span>
+
+                            {/* Семантический матч */}
+                            <SemanticMatchBadge score={student.aiMatch} size="sm" />
+
+                            <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
+                              {student.status}
+                            </span>
+                          </div>
+
+                          <div className="text-xs font-mono text-ink-muted dark:text-stone-400 flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span className="font-medium text-oxblood dark:text-oxblood-light">
+                              {student.specialization}
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {student.university} • {student.group} • {formatYearDisplay(student.year)}
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" /> {student.city}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      {/* Правый блок действий */}
+                      <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto pt-2 md:pt-0">
+                        {onViewStudent && (
+                          <button
+                            type="button"
+                            onClick={() => onViewStudent(studentId)}
+                            className="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard shadow-xs"
+                          >
+                            <span>Резюме</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => onEditProject(p)}
-                          className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer"
+                          onClick={() => onContactCandidate(student.name)}
+                          className="px-4 py-2 text-xs font-mono uppercase tracking-wider bg-oxblood hover:bg-oxblood-hover text-white transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                         >
-                          <Edit className="w-3.5 h-3.5" /> Редактировать
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Удалить проект «${p.title}»?`)) {
-                              onDeleteProject(p.id);
-                            }
-                          }}
-                          className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border border-oxblood/30 hover:bg-oxblood/10 text-oxblood dark:text-oxblood-light transition flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" /> Удалить
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Пригласить</span>
                         </button>
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <h3 className="text-xl sm:text-2xl font-semibold text-ink dark:text-ink-light">
-                        {p.title}
-                      </h3>
-                      <p className="text-xs font-mono text-ink-muted dark:text-stone-400">
-                        Отдел / Заказчик: <strong className="text-ink dark:text-white">{p.department}</strong>
+                    {/* Описание студента */}
+                    {student.bio && (
+                      <p className="text-xs sm:text-sm text-ink-muted dark:text-stone-300 leading-relaxed font-normal line-clamp-2">
+                        {student.bio}
                       </p>
-                      <p className="text-sm text-ink-muted dark:text-stone-300 leading-relaxed font-normal pt-1">
-                        {p.desc}
-                      </p>
-                    </div>
+                    )}
 
-                    <div>
+                    {/* Навыки с уровнями */}
+                    <div className="pt-1">
                       <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-2">
-                        Требуемый технологический стек и уровень компетенций:
+                        Подтвержденные навыки и уровень компетенций:
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {skillsToDisplay.map((skill) => (
+                        {student.skills.map((skill) => (
                           <SkillBadge
                             key={typeof skill === 'string' ? skill : skill.name}
                             skill={skill}
@@ -230,7 +436,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         ))}
                       </div>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
             </div>
@@ -238,16 +444,18 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         </div>
       )}
 
-      {/* Содержимое вкладки: Кандидаты и заявки */}
-      {activeSubTab === 'candidates' && (
+      {/* ========================================================
+          ВКЛАДКА 2: Заявки и отклики студентов
+          ======================================================== */}
+      {activeSubTab === 'applications' && (
         <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard transition-colors duration-300">
           <div className="p-6 border-b border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-2xl font-normal text-ink dark:text-ink-light">
-                Список кандидатов и студенческих команд
+                Список откликов на проекты компании
               </h3>
               <p className="text-xs text-ink-muted dark:text-stone-400 font-mono mt-0.5">
-                Ранжирование по семантическому матчу навыков и стека
+                Студенты, подавшие заявку на решение задач компании {companyName}
               </p>
             </div>
             <span className="text-[11px] font-mono uppercase px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-ink-muted dark:text-stone-400 self-start sm:self-auto">
@@ -259,102 +467,161 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
             id="hr-candidates-list"
             className="divide-y divide-paper-border dark:divide-paper-darkBorder"
           >
-            {candidates.map((c) => {
-              const isAccepted = c.status === 'Принят' || c.status === 'Приглашен';
+            {candidates.length === 0 ? (
+              <div className="p-12 text-center space-y-2">
+                <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
+                  Пока нет новых откликов
+                </p>
+                <p className="text-xs font-mono text-ink-muted dark:text-stone-400">
+                  Перейдите во вкладку «Рекомендованные студенты» для поиска и приглашения кандидатов
+                </p>
+              </div>
+            ) : (
+              candidates.map((c) => {
+                const isAccepted = c.status === 'Принят' || c.status === 'Приглашен';
 
-              return (
-                <div
-                  key={c.id}
-                  className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/60 transition"
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Кликабельный аватар кандидата */}
-                    {onViewStudent && c.studentId ? (
-                      <button
-                        type="button"
-                        onClick={() => onViewStudent(c.studentId!)}
-                        className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer shadow-xs group"
-                        title={`Открыть резюме: ${c.name}`}
-                      >
-                        {c.avatarUrl ? (
-                          <img src={c.avatarUrl} alt={c.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="group-hover:text-oxblood dark:group-hover:text-oxblood-light">
-                            {c.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                          </span>
-                        )}
-                      </button>
-                    ) : (
-                      <div className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base">
-                        {c.name.split(' ').map((n) => n[0]).slice(0, 2).join('')}
-                      </div>
-                    )}
-
-                    <div className="space-y-2.5">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
-                          {onViewStudent && c.studentId ? (
-                            <button
-                              type="button"
-                              onClick={() => onViewStudent(c.studentId!)}
-                              className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
-                            >
-                              {c.name}
-                            </button>
+                return (
+                  <div
+                    key={c.id}
+                    className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/60 transition"
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Кликабельный аватар кандидата */}
+                      {onViewStudent && c.studentId ? (
+                        <button
+                          type="button"
+                          onClick={() => onViewStudent(c.studentId!)}
+                          className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer shadow-xs group"
+                          title={`Открыть резюме: ${c.name}`}
+                        >
+                          {c.avatarUrl ? (
+                            <img
+                              src={c.avatarUrl}
+                              alt={c.name}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
-                            c.name
+                            <span className="group-hover:text-oxblood dark:group-hover:text-oxblood-light">
+                              {c.name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .slice(0, 2)
+                                .join('')}
+                            </span>
                           )}
-                        </span>
-                        {/* Выделенный семантический матч (Requirement 3) */}
-                        <SemanticMatchBadge score={c.match} size="sm" />
-                        {isAccepted && (
-                          <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">
-                            {c.status}
+                        </button>
+                      ) : (
+                        <div className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base">
+                          {c.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .slice(0, 2)
+                            .join('')}
+                        </div>
+                      )}
+
+                      <div className="space-y-2.5">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
+                            {onViewStudent && c.studentId ? (
+                              <button
+                                type="button"
+                                onClick={() => onViewStudent(c.studentId!)}
+                                className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
+                              >
+                                {c.name}
+                              </button>
+                            ) : (
+                              c.name
+                            )}
                           </span>
+                          {/* Выделенный семантический матч */}
+                          <SemanticMatchBadge score={c.match} size="sm" />
+                          {c.isTeam && (
+                            <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-oxblood/10 text-oxblood dark:text-oxblood-light border border-oxblood/30 flex items-center gap-1">
+                              <Users className="w-3 h-3" /> Командный отклик
+                            </span>
+                          )}
+                          {isAccepted && (
+                            <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">
+                              {c.status}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs font-mono text-ink-muted dark:text-stone-400">
+                          {c.group} — Выбранный проект:{' '}
+                          <strong className="text-ink dark:text-stone-200 font-normal underline">
+                            {c.project}
+                          </strong>
+                        </div>
+
+                        {/* Состав команды (application_members) */}
+                        {c.teamMembers && c.teamMembers.length > 0 && (
+                          <div className="p-2 bg-paper-light dark:bg-stone-900 border border-paper-border dark:border-stone-800 space-y-1">
+                            <span className="text-[10px] font-mono text-ink-muted uppercase tracking-wider block">
+                              Участники команды (application_members):
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {c.teamMembers.map((m) => (
+                                <span
+                                  key={String(m.studentId)}
+                                  className="text-[11px] font-mono px-2 py-0.5 bg-paper-card dark:bg-stone-800 border border-paper-border dark:border-stone-700 flex items-center gap-1"
+                                >
+                                  {m.role === 'LEAD' && <Crown className="w-3 h-3 text-brass" />}
+                                  <span>{m.studentName}</span>
+                                  <span className="text-[9px] text-oxblood font-bold">[{m.role}]</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         )}
-                      </div>
-                      <div className="text-xs font-mono text-ink-muted dark:text-stone-400">
-                        {c.group} — Выбранный проект:{' '}
-                        <strong className="text-ink dark:text-stone-200 font-normal underline">
-                          {c.project}
-                        </strong>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {c.stack.map((s) => (
-                          <SkillBadge
-                            key={typeof s === 'string' ? s : s.name}
-                            skill={s as string | SkillItem}
-                            size="sm"
-                          />
-                        ))}
+
+                        {c.coverLetter && (
+                          <p className="text-xs italic text-ink-muted dark:text-stone-300 bg-paper-muted/20 p-2 border-l-2 border-oxblood">
+                            «{c.coverLetter}»
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {c.stack.map((s) => (
+                            <SkillBadge
+                              key={typeof s === 'string' ? s : s.name}
+                              skill={s as string | SkillItem}
+                              size="sm"
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    <button
-                      type="button"
-                      disabled={isAccepted}
-                      onClick={() => onApproveCandidate(c.id)}
-                      className={`px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition cursor-pointer ${
-                        isAccepted
-                          ? 'bg-paper-muted text-ink-muted dark:bg-paper-dark dark:text-stone-500 cursor-not-allowed'
-                          : 'bg-oxblood hover:bg-oxblood-hover text-paper-light shadow-xs'
-                      }`}
-                    >
-                      {isAccepted ? 'Приглашение отправлено' : 'Пригласить в проект'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onContactCandidate(c.name)}
-                      className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder text-[10px] font-mono uppercase tracking-widest hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition cursor-pointer"
-                    >
-                      Написать
-                    </button>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button
+                        type="button"
+                        disabled={isAccepted}
+                        onClick={() => onApproveCandidate(c.id)}
+                        className={`px-4 py-2 text-[10px] font-mono uppercase tracking-widest transition cursor-pointer ${
+                          isAccepted
+                            ? 'bg-paper-muted text-ink-muted dark:bg-paper-dark dark:text-stone-500 cursor-not-allowed'
+                            : 'bg-oxblood hover:bg-oxblood-hover text-paper-light shadow-xs'
+                        }`}
+                      >
+                        {isAccepted ? 'Приглашение отправлено' : 'Пригласить в проект'}
+                      </button>
+                      {onOpenChat && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenChat(c.applicationId ? `chat-${c.applicationId}` : 'chat-app-1')}
+                          className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder text-[10px] font-mono uppercase tracking-widest hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
+                          <span>Чат по отклику</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       )}

@@ -12,6 +12,7 @@ import {
 import type { StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import { formatYearDisplay } from '../../utils/dbValidation';
 
 interface PublicStudentProfileTabProps {
   student: StudentProfile | null;
@@ -120,7 +121,7 @@ export const PublicStudentProfileTab: React.FC<PublicStudentProfileTabProps> = (
                   {student.name}
                 </h3>
                 <p className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-1">
-                  {student.university} • {student.group} • {student.year}
+                  {student.university} • {student.group} • {formatYearDisplay(student.year)}
                 </p>
                 <div className="mt-2 inline-block px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
                   {student.status}
@@ -141,6 +142,12 @@ export const PublicStudentProfileTab: React.FC<PublicStudentProfileTabProps> = (
                   {student.university}
                 </span>
               </div>
+              {student.phone && (
+                <div className="flex justify-between py-1 border-b border-paper-border/60 dark:border-paper-darkBorder/60">
+                  <span className="text-ink-muted dark:text-stone-400">ТЕЛЕФОН:</span>
+                  <span className="font-medium text-ink dark:text-stone-200">{student.phone}</span>
+                </div>
+              )}
               <div className="flex justify-between py-1 border-b border-paper-border/60 dark:border-paper-darkBorder/60">
                 <span className="text-ink-muted dark:text-stone-400 flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> ГОРОД:

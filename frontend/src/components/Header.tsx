@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sun, Moon, User, LogOut } from 'lucide-react';
-import type { Role, TabId } from '../types';
+import type { Role, TabId, AppNotification } from '../types';
+import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface HeaderProps {
   currentRole: Role;
@@ -9,6 +10,9 @@ interface HeaderProps {
   switchTab: (tab: TabId) => void;
   isDark: boolean;
   toggleTheme: () => void;
+  notifications?: AppNotification[];
+  onMarkNotificationAsRead?: (id: string) => void;
+  onMarkAllNotificationsAsRead?: () => void;
   onLogout?: () => void;
 }
 
@@ -18,6 +22,9 @@ export const Header: React.FC<HeaderProps> = ({
   switchTab,
   isDark,
   toggleTheme,
+  notifications = [],
+  onMarkNotificationAsRead = () => {},
+  onMarkAllNotificationsAsRead = () => {},
   onLogout,
 }) => {
   const studentTabs: { id: TabId; label: string }[] = [
@@ -29,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   const hrTabs: { id: TabId; label: string }[] = [
     { id: 'hr-dashboard', label: 'Панель компании' },
     { id: 'company-profile', label: 'Профиль компании' },
-    { id: 'catalog', label: 'Каталог проектов' },
+    { id: 'students-catalog', label: 'Каталог студентов' },
   ];
 
   const activeTabs = currentRole === 'student' ? studentTabs : hrTabs;
@@ -59,8 +66,15 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Правый блок: Переключение темы и Профиль с выезжающей кнопкой выхода */}
+          {/* Правый блок: Уведомления, Переключение темы и Профиль */}
           <div className="flex items-center gap-3 sm:gap-4 self-end md:self-center">
+            {/* Уведомления платформы (notifications: FRIEND_REQUEST, FRIEND_ACCEPTED и др.) */}
+            <NotificationsDropdown
+              notifications={notifications}
+              onMarkAsRead={onMarkNotificationAsRead}
+              onMarkAllAsRead={onMarkAllNotificationsAsRead}
+            />
+
             <button
               id="theme-toggle-btn"
               type="button"

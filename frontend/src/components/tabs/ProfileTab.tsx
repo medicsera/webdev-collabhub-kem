@@ -1,26 +1,51 @@
 import React, { useState } from 'react';
-import { User, RotateCw, Sparkles, CheckCircle2, Edit, LogOut } from 'lucide-react';
-import type { StudentProfile } from '../../types';
+import {
+  RotateCw,
+  Sparkles,
+  CheckCircle2,
+  Edit,
+  LogOut,
+  FileText,
+  Briefcase,
+  ExternalLink,
+} from 'lucide-react';
+import type { StudentProfile, StudentConnection } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import { formatYearDisplay } from '../../utils/dbValidation';
+import { StudentConnectionsSection } from '../StudentConnectionsSection';
 
 interface ProfileTabProps {
   profile: StudentProfile;
+  connections?: StudentConnection[];
+  allStudents?: StudentProfile[];
   onUpdateBio: (newBio: string) => void;
   onRecalculate: () => void;
   isRecalculating: boolean;
   onOpenEditProfileModal: () => void;
   onOpenEditSkillsModal: () => void;
+  onSendFriendRequest?: (targetStudentId: number) => void;
+  onAcceptFriendRequest?: (connectionId: string) => void;
+  onRejectFriendRequest?: (connectionId: string) => void;
+  onCancelFriendRequest?: (connectionId: string) => void;
+  onViewStudent?: (studentId: number) => void;
   onLogout?: () => void;
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
   profile,
+  connections = [],
+  allStudents = [],
   onUpdateBio,
   onRecalculate,
   isRecalculating,
   onOpenEditProfileModal,
   onOpenEditSkillsModal,
+  onSendFriendRequest = () => {},
+  onAcceptFriendRequest = () => {},
+  onRejectFriendRequest = () => {},
+  onCancelFriendRequest = () => {},
+  onViewStudent,
   onLogout,
 }) => {
   const [bioInput, setBioInput] = useState(profile.bio);
@@ -55,15 +80,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         {/* Карточка студента */}
         <div className="lg:col-span-5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-8 space-y-6 transition-colors duration-300">
           <div className="flex items-start gap-4 border-b border-paper-border dark:border-paper-darkBorder pb-6">
-            <div className="w-16 h-16 border-2 border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0">
-              <User className="w-8 h-8" />
+            <div className="w-16 h-16 border-2 border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-bold font-serif text-2xl">
+              {profile.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-2xl font-semibold leading-tight text-ink dark:text-ink-light truncate">
                 {profile.name}
               </h3>
               <p className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-1">
-                {profile.university} • {profile.group} • {profile.year}
+                {profile.university} • {profile.group} • {formatYearDisplay(profile.year)}
               </p>
               <div className="mt-2 inline-block px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
                 {profile.status}
@@ -84,13 +109,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                 {profile.telegram}
               </span>
             </div>
+            {profile.phone && (
+              <div className="flex justify-between py-1 border-b border-paper-border/60 dark:border-paper-darkBorder/60">
+                <span className="text-ink-muted dark:text-stone-400">ТЕЛЕФОН:</span>
+                <span className="font-medium text-ink dark:text-stone-200">{profile.phone}</span>
+              </div>
+            )}
             <div className="flex justify-between py-1 border-b border-paper-border/60 dark:border-paper-darkBorder/60">
               <span className="text-ink-muted dark:text-stone-400">ГОРОД:</span>
               <span className="font-medium text-ink dark:text-stone-200">{profile.city}</span>
             </div>
           </div>
 
-          {/* Подтвержденные навыки с уровнями владения (Requirement 1) */}
+          {/* Подтвержденные навыки с уровнями владения */}
           <div className="pt-2">
             <div className="flex items-center justify-between mb-3">
               <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
@@ -114,6 +145,26 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               ))}
             </div>
           </div>
+
+          {/* Резюме студента (resumes) */}
+          {profile.resumes && profile.resumes.length > 0 && (
+            <div className="pt-3 border-t border-paper-border/60 dark:border-paper-darkBorder/60 space-y-2">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" /> Резюме (resumes)
+              </div>
+              {profile.resumes.map((res) => (
+                <div
+                  key={res.id}
+                  className="p-2.5 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder flex items-center justify-between text-xs font-mono"
+                >
+                  <span className="truncate pr-2 text-ink dark:text-ink-light">{res.fileName}</span>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-hunter text-white uppercase tracking-wider shrink-0">
+                    Основное
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Рекомендации ИИ */}
@@ -137,7 +188,6 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <span className="text-oxblood dark:text-oxblood-light">
                 Анализ навыков и подходящих задач:
               </span>
-              {/* Выделенный семантический матч (Requirement 3) */}
               <SemanticMatchBadge score={profile.aiMatch} size="sm" />
             </div>
             <p className="editorial-serif italic text-xl leading-relaxed text-ink dark:text-stone-200">
@@ -177,8 +227,66 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Портфолио проектов (portfolio_items) */}
+          {profile.portfolio && profile.portfolio.length > 0 && (
+            <div className="pt-4 border-t border-paper-border dark:border-paper-darkBorder space-y-3">
+              <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" /> Опыт и портфолио (portfolio_items)
+              </div>
+              <div className="space-y-2.5">
+                {profile.portfolio.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-3 bg-paper-muted/30 dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder space-y-1.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-semibold text-xs text-ink dark:text-ink-light">
+                        {item.title}
+                      </h4>
+                      {item.url && (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-mono text-oxblood dark:text-oxblood-light hover:underline flex items-center gap-0.5"
+                        >
+                          Репозиторий <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      )}
+                    </div>
+                    <p className="text-xs text-ink-muted dark:text-stone-300 leading-snug">
+                      {item.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {item.technologies.map((t) => (
+                        <span
+                          key={t}
+                          className="px-1.5 py-0.5 text-[9px] font-mono bg-paper-light dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-ink dark:text-stone-300"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Задача 3: Блок напарников и связей (student_connections) */}
+      <StudentConnectionsSection
+        currentStudent={profile}
+        connections={connections}
+        allStudents={allStudents}
+        onSendFriendRequest={onSendFriendRequest}
+        onAcceptFriendRequest={onAcceptFriendRequest}
+        onRejectFriendRequest={onRejectFriendRequest}
+        onCancelFriendRequest={onCancelFriendRequest}
+        onViewStudent={onViewStudent}
+      />
 
       {/* Нижняя панель: кнопка выхода из профиля */}
       <div className="pt-6 border-t border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row items-center justify-between gap-4">

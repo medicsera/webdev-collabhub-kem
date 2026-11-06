@@ -20,9 +20,10 @@ export async function getCompanyProfileApi(id: number): Promise<CompanyProfile> 
     if (res.status === 404) {
       throw new Error('Компания не найдена в реестре');
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     // Если ошибка не 404, а сетевая (бэкенд не запущен локально) — используем локальные моки
-    if (err.message !== 'Компания не найдена в реестре') {
+    if (error?.message !== 'Компания не найдена в реестре') {
       const mock = MOCK_COMPANIES.find((c) => c.id === id);
       if (mock) return mock;
     }
@@ -32,6 +33,27 @@ export async function getCompanyProfileApi(id: number): Promise<CompanyProfile> 
   const mockFallback = MOCK_COMPANIES.find((c) => c.id === id);
   if (mockFallback) return mockFallback;
   throw new Error('Компания не найдена в реестре');
+}
+
+/**
+ * Получение полного каталога студентов для работодателя
+ */
+export async function getAllStudentsApi(): Promise<StudentProfile[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/students`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data as StudentProfile[];
+      }
+    }
+  } catch {
+    console.warn('[API notice] using mock students fallback');
+  }
+
+  return MOCK_STUDENTS;
 }
 
 /**
@@ -49,8 +71,9 @@ export async function getStudentProfileApi(id: number): Promise<StudentProfile> 
     if (res.status === 404) {
       throw new Error('Профиль студента не найден');
     }
-  } catch (err: any) {
-    if (err.message !== 'Профиль студента не найден') {
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error?.message !== 'Профиль студента не найден') {
       if (id >= 1 && id <= MOCK_STUDENTS.length) {
         return MOCK_STUDENTS[id - 1];
       }

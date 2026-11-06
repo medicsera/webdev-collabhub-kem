@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Award,
   Plus,
+  Trash2,
   LogOut,
 } from 'lucide-react';
 import type { CompanyProfile, Project } from '../../types';
@@ -20,6 +21,7 @@ interface CompanyProfileTabProps {
   onOpenEditModal: () => void;
   onOpenCreateProjectModal: () => void;
   onEditProject: (project: Project) => void;
+  onDeleteProject?: (projectId: number) => void;
   onLogout?: () => void;
 }
 
@@ -29,6 +31,7 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
   onOpenEditModal,
   onOpenCreateProjectModal,
   onEditProject,
+  onDeleteProject,
   onLogout,
 }) => {
   const companyProjects = projects.filter(
@@ -213,13 +216,28 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
                         </span>
                         <SemanticMatchBadge score={p.match} size="sm" />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => onEditProject(p)}
-                        className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1 cursor-pointer"
-                      >
-                        <Edit className="w-3 h-3" /> Редактировать
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onEditProject(p)}
+                          className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <Edit className="w-3 h-3" /> Редактировать
+                        </button>
+                        {onDeleteProject && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm(`Удалить проект «${p.title}»?`)) {
+                                onDeleteProject(p.id);
+                              }
+                            }}
+                            className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-oxblood/30 hover:bg-oxblood/10 text-oxblood dark:text-oxblood-light transition flex items-center gap-1 cursor-pointer"
+                          >
+                            <Trash2 className="w-3 h-3" /> Удалить
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <h4 className="text-lg font-semibold text-ink dark:text-ink-light leading-snug">
