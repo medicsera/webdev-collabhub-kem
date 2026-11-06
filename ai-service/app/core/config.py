@@ -1,14 +1,15 @@
 import os
+
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Ищет файл .env в корне проекта и загружает из него переменные
 load_dotenv()
 
 GIGACHAT_CREDENTIALS = os.getenv("GIGACHAT_CREDENTIALS")
 
 if not GIGACHAT_CREDENTIALS:
     raise ValueError("Переменная GIGACHAT_CREDENTIALS не найдена в файле .env")
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CollabHub AI Service"
@@ -18,5 +19,6 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/all-MiniLM-L12-v2"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 settings = Settings()
