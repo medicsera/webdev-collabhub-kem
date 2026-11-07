@@ -84,7 +84,7 @@ export const MOCK_COMPANIES: CompanyProfile[] = [
 export const MOCK_STUDENTS: StudentProfile[] = [
   {
     id: 1,
-    name: 'Сергиенко Александр',
+    name: 'Сергиенко Александр Сергеевич',
     firstName: 'Александр',
     lastName: 'Сергиенко',
     group: 'ФИТ-231',
@@ -174,7 +174,7 @@ export const MOCK_STUDENTS: StudentProfile[] = [
   },
   {
     id: 3,
-    name: 'Мирко Антон Дмитриевич',
+    name: 'Мирко Антон Сергеевич',
     firstName: 'Антон',
     lastName: 'Мирко',
     group: 'ФИТ-231',
@@ -488,6 +488,7 @@ export const INITIAL_CHATS: Chat[] = [
     projectId: 1,
     projectTitle: 'Интеллектуальная система классификации и маршрутизации обращений',
     companyName: 'Софт Инжиниринг',
+    studentName: 'Сергиенко Александр Сергеевич',
     messages: [
       {
         id: 'msg-1',
@@ -527,6 +528,7 @@ export const INITIAL_CHATS: Chat[] = [
     projectId: 2,
     projectTitle: 'Личный кабинет абонента и картографическая система',
     companyName: 'Goodline',
+    studentName: 'Кононенко Егор Сергеевич',
     messages: [
       {
         id: 'msg-4',
@@ -619,7 +621,7 @@ export const INITIAL_CANDIDATES: Candidate[] = [
 
 export const INITIAL_STUDENT_PROFILE: StudentProfile = {
   id: 1,
-  name: 'Сергиенко Александр',
+  name: 'Сергиенко Александр Сергеевич',
   firstName: 'Александр',
   lastName: 'Сергиенко',
   group: 'ФИТ-231',

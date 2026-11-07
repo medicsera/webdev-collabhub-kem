@@ -28,23 +28,23 @@ export const SkillBadge: React.FC<SkillBadgeProps> = ({
       case 'ADVANCED':
         return {
           badge:
-            'bg-oxblood/10 text-oxblood dark:bg-oxblood/25 dark:text-oxblood-light border-oxblood/30 dark:border-oxblood/50',
-          dot: 'bg-oxblood dark:bg-oxblood-light',
+            'bg-emerald-100 text-emerald-950 border-emerald-500/80 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-500 shadow-2xs',
+          dot: 'bg-emerald-600 dark:bg-emerald-400',
           text: 'Продвинутый',
         };
       case 'INTERMEDIATE':
         return {
           badge:
-            'bg-hunter/10 text-hunter dark:bg-hunter/25 dark:text-emerald-300 border-hunter/30 dark:border-emerald-500/40',
-          dot: 'bg-hunter dark:bg-emerald-400',
+            'bg-sky-100 text-sky-950 border-sky-500/80 dark:bg-sky-950/80 dark:text-sky-300 dark:border-sky-500 shadow-2xs',
+          dot: 'bg-sky-600 dark:bg-sky-400',
           text: 'Уверенный',
         };
       case 'BASIC':
       default:
         return {
           badge:
-            'bg-paper-muted dark:bg-paper-dark text-ink-muted dark:text-stone-300 border-paper-border dark:border-paper-darkBorder',
-          dot: 'bg-stone-400 dark:bg-stone-500',
+            'bg-amber-100 text-amber-950 border-amber-500/80 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-500 shadow-2xs',
+          dot: 'bg-amber-600 dark:bg-amber-400',
           text: 'Базовый',
         };
     }

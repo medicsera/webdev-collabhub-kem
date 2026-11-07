@@ -9,10 +9,12 @@ import {
   Search,
   ExternalLink,
   Shield,
+  Send,
 } from 'lucide-react';
 import type { StudentConnection, StudentProfile } from '../types';
 import { SkillBadge } from './SkillBadge';
 import { formatYearDisplay } from '../utils/dbValidation';
+import { EmptyState } from './EmptyState';
 
 interface StudentConnectionsSectionProps {
   currentStudent: StudentProfile;
@@ -157,13 +159,13 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
         </div>
 
         {/* Навигация по подвкладкам */}
-        <div className="flex flex-wrap gap-1.5 self-start sm:self-center bg-paper-light dark:bg-paper-dark p-1 border border-paper-border dark:border-paper-darkBorder">
+        <div className="flex flex-wrap gap-1.5 self-start sm:self-center bg-paper-light dark:bg-paper-dark p-1 border border-paper-border dark:border-paper-darkBorder rounded-xs">
           <button
             type="button"
             onClick={() => setActiveSubTab('friends')}
-            className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
               activeSubTab === 'friends'
-                ? 'bg-oxblood text-white font-semibold'
+                ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
             }`}
           >
@@ -174,9 +176,9 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           <button
             type="button"
             onClick={() => setActiveSubTab('incoming')}
-            className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer relative ${
+            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer relative rounded-xs ${
               activeSubTab === 'incoming'
-                ? 'bg-oxblood text-white font-semibold'
+                ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
             }`}
           >
@@ -192,9 +194,9 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           <button
             type="button"
             onClick={() => setActiveSubTab('outgoing')}
-            className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
               activeSubTab === 'outgoing'
-                ? 'bg-oxblood text-white font-semibold'
+                ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
             }`}
           >
@@ -204,9 +206,9 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           <button
             type="button"
             onClick={() => setActiveSubTab('search')}
-            className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer ${
+            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
               activeSubTab === 'search'
-                ? 'bg-oxblood text-white font-semibold'
+                ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
             }`}
           >
@@ -222,22 +224,13 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
       {activeSubTab === 'friends' && (
         <div className="space-y-4">
           {friendsList.length === 0 ? (
-            <div className="py-10 text-center space-y-3 bg-paper-muted/30 dark:bg-paper-dark border border-dashed border-paper-border dark:border-paper-darkBorder">
-              <Users className="w-8 h-8 mx-auto text-ink-muted dark:text-stone-400 opacity-60" />
-              <div className="text-base font-serif italic text-ink-muted dark:text-stone-300">
-                У вас пока нет подтвержденных напарников
-              </div>
-              <p className="text-xs font-mono text-ink-muted max-w-md mx-auto">
-                Найдите однокурсников или студентов других специальностей и отправьте им заявку, чтобы подаваться на командные проекты.
-              </p>
-              <button
-                type="button"
-                onClick={() => setActiveSubTab('search')}
-                className="px-4 py-2 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <UserPlus className="w-3.5 h-3.5" /> Найти напарника
-              </button>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="У вас пока нет подтвержденных напарников"
+              description="Объединяйтесь в команды со студентами КемГУ для совместного отклика на проекты, ВКР и стажировки."
+              actionText="Найти напарника"
+              onAction={() => setActiveSubTab('search')}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {friendsList.map(({ partnerId, student }) => (
@@ -296,9 +289,11 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
       {activeSubTab === 'incoming' && (
         <div className="space-y-3">
           {incomingRequests.length === 0 ? (
-            <div className="py-8 text-center text-xs font-mono text-ink-muted dark:text-stone-400 bg-paper-muted/20 border border-paper-border dark:border-paper-darkBorder">
-              Нет новых входящих заявок в напарники
-            </div>
+            <EmptyState
+              icon={Clock}
+              title="Нет входящих заявок"
+              description="Когда другой студент отправит вам приглашение объединиться в команду, заявка появится здесь."
+            />
           ) : (
             incomingRequests.map(({ connection, senderId, sender }) => (
               <div
@@ -360,9 +355,13 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
       {activeSubTab === 'outgoing' && (
         <div className="space-y-3">
           {outgoingRequests.length === 0 ? (
-            <div className="py-8 text-center text-xs font-mono text-ink-muted dark:text-stone-400 bg-paper-muted/20 border border-paper-border dark:border-paper-darkBorder">
-              У вас нет активных исходящих заявок в напарники
-            </div>
+            <EmptyState
+              icon={Send}
+              title="Нет исходящих заявок"
+              description="Вы пока не отправляли заявок на совместную работу. Перейдите во вкладку поиска, чтобы выбрать напарника."
+              actionText="Найти студента"
+              onAction={() => setActiveSubTab('search')}
+            />
           ) : (
             outgoingRequests.map(({ connection, targetId, target }) => (
               <div
@@ -424,7 +423,14 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {searchableStudents.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="Студенты не найдены"
+              description="По вашему запросу не найдено студентов. Попробуйте изменить поисковую строку по имени, группе или стеку."
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {searchableStudents.map((stud) => {
               const studId = Number(stud.id);
               const conn = getConnectionWith(studId);
@@ -509,6 +515,7 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
               );
             })}
           </div>
+          )}
         </div>
       )}
     </div>

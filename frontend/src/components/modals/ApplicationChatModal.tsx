@@ -73,7 +73,7 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-2xl w-full shadow-2xl fade-in flex flex-col h-[650px] max-h-[calc(100vh-2rem)] my-auto overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 rounded-xs max-w-2xl w-full shadow-2xl fade-in flex flex-col h-[660px] max-h-[calc(100vh-2.5rem)] min-h-0 my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка чата */}
@@ -130,7 +130,7 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
         </div>
 
         {/* Область сообщений */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 bg-paper-light/40 dark:bg-paper-dark/60 overscroll-contain">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-3 bg-paper-light/40 dark:bg-paper-dark/60 overscroll-contain">
           {/* Системное сообщение о создании чата */}
           <div className="text-center my-2">
             <span className="px-3 py-1 bg-paper-card dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400">
@@ -201,7 +201,7 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
         {/* Форма отправки сообщения */}
         <form
           onSubmit={handleSend}
-          className="shrink-0 p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-end gap-2"
+          className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-end gap-2"
         >
           <div className="flex-1 relative">
             <textarea

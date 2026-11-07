@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { MessageSquare, Users, Crown, FileText, CheckCircle2, Clock } from 'lucide-react';
+import { MessageSquare, Users, Crown, FileText, CheckCircle2, Clock, FolderGit2 } from 'lucide-react';
 import type { Project, ProjectApplication } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { canUserAccessApplicationChat } from '../../utils/dbValidation';
+import { EmptyState } from '../EmptyState';
 
 interface MyProjectsTabProps {
   projects: Project[];
@@ -11,6 +12,7 @@ interface MyProjectsTabProps {
   currentStudentId?: number | string;
   onOpenChat?: (chatId: string) => void;
   onViewCompany?: (companyId: number, companyName: string) => void;
+  onNavigateToCatalog?: () => void;
 }
 
 export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
@@ -19,6 +21,7 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
   currentStudentId = 1,
   onOpenChat,
   onViewCompany,
+  onNavigateToCatalog,
 }) => {
   // Список поданных заявок, где текущий студент является LEAD или MEMBER (application_members)
   const myApplications = useMemo(() => {
@@ -300,9 +303,13 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
               );
             })
           ) : (
-            <div className="p-8 text-center text-sm editorial-serif italic text-ink-muted dark:text-stone-400">
-              У вас пока нет отправленных заявок. Выберите интересующий проект в каталоге.
-            </div>
+            <EmptyState
+              icon={FolderGit2}
+              title="У вас пока нет отправленных заявок"
+              description="Выберите проект или задачу ВКР от индустриальных партнеров КемГУ и отправьте свой первый отклик."
+              actionText={onNavigateToCatalog ? "Перейти в каталог проектов" : undefined}
+              onAction={onNavigateToCatalog}
+            />
           )}
         </div>
       </div>

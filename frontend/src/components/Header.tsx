@@ -30,12 +30,14 @@ export const Header: React.FC<HeaderProps> = ({
   const studentTabs: { id: TabId; label: string }[] = [
     { id: 'catalog', label: 'Каталог проектов' },
     { id: 'my-projects', label: 'Мои заявки и ВКР' },
+    { id: 'chats', label: 'Чаты' },
     { id: 'profile', label: 'Мой профиль и ИИ' },
   ];
 
   const hrTabs: { id: TabId; label: string }[] = [
     { id: 'hr-dashboard', label: 'Панель компании' },
     { id: 'company-profile', label: 'Профиль компании' },
+    { id: 'chats', label: 'Чаты' },
     { id: 'students-catalog', label: 'Каталог студентов' },
   ];
 
@@ -121,62 +123,61 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </button>
 
-            {/* Контейнер профиля с выезжающей кнопкой выхода при наведении */}
-            <div className="relative group/profile flex items-center pl-3 sm:pl-4 border-l border-paper-border dark:border-paper-darkBorder">
-              {/* Выезжающая кнопка выхода (выезжает слева/рядом при hover) */}
-              <div className="overflow-hidden transition-all duration-300 ease-out max-w-0 opacity-0 group-hover/profile:max-w-[110px] group-hover/profile:opacity-100 mr-0 group-hover/profile:mr-2">
+            {/* Плашка профиля */}
+            <div
+              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
+              className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none pl-3 sm:pl-4 border-l border-paper-border dark:border-paper-darkBorder"
+              title="Перейти в профиль"
+            >
+              <div
+                id="user-avatar"
+                className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors group-hover:border-oxblood dark:group-hover:border-oxblood-light"
+              >
+                <User className="w-5 h-5" />
+              </div>
+              <div className="hidden sm:block text-left">
+                <div
+                  id="user-name"
+                  className="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors"
+                >
+                  {currentRole === 'student' ? 'Сергиенко А.' : 'Валерия (HR)'}
+                </div>
+                <div
+                  id="user-sub"
+                  className="text-[10px] font-mono text-ink-muted dark:text-stone-400"
+                >
+                  {currentRole === 'student'
+                    ? 'ФИТ-231 • IV курс'
+                    : 'Софт Инжиниринг'}
+                </div>
+              </div>
+            </div>
+
+            {/* Крайняя правая кнопка: Выйти (Logout) */}
+            {onLogout && (
+              <div className="pl-2 sm:pl-3 border-l border-paper-border dark:border-paper-darkBorder">
                 <button
                   id="header-logout-btn"
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (onLogout) onLogout();
+                    onLogout();
                   }}
                   title="Выйти из аккаунта"
-                  className="px-2.5 py-1.5 bg-oxblood hover:bg-oxblood-hover text-white text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer shadow-xs"
+                  className="px-2.5 sm:px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:border-oxblood dark:hover:text-white text-ink dark:text-ink-light text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Выйти</span>
+                  <span className="hidden sm:inline">Выйти</span>
                 </button>
               </div>
-
-              {/* Плашка профиля */}
-              <div
-                onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
-                className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none"
-                title="Перейти в профиль"
-              >
-                <div
-                  id="user-avatar"
-                  className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors group-hover:border-oxblood dark:group-hover:border-oxblood-light"
-                >
-                  <User className="w-5 h-5" />
-                </div>
-                <div className="hidden sm:block text-left">
-                  <div
-                    id="user-name"
-                    className="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors"
-                  >
-                    {currentRole === 'student' ? 'Сергиенко А.' : 'Валерия (HR)'}
-                  </div>
-                  <div
-                    id="user-sub"
-                    className="text-[10px] font-mono text-ink-muted dark:text-stone-400"
-                  >
-                    {currentRole === 'student'
-                      ? 'ФИТ-231 • IV курс'
-                      : 'Софт Инжиниринг'}
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
         {/* Рубрикатор (Навигация) */}
         <nav
           id="main-nav"
-          className="flex items-center justify-center gap-2 sm:gap-8 py-2.5 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
+          className="flex items-center justify-center gap-2 sm:gap-6 py-2 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
         >
           {activeTabs.map((t) => {
             const isActive = currentTab === t.id;
@@ -185,10 +186,10 @@ export const Header: React.FC<HeaderProps> = ({
                 key={t.id}
                 type="button"
                 onClick={() => switchTab(t.id)}
-                className={`px-3 py-1 transition-all whitespace-nowrap ${
+                className={`min-h-[42px] px-4 py-2.5 inline-flex items-center justify-center rounded-xs transition-all whitespace-nowrap cursor-pointer select-none ${
                   isActive
-                    ? 'text-oxblood dark:text-oxblood-light font-semibold border-b-2 border-oxblood'
-                    : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                    ? 'text-oxblood dark:text-oxblood-light font-semibold bg-oxblood/10 dark:bg-oxblood/20 border-b-2 border-oxblood'
+                    : 'text-ink-muted hover:text-ink hover:bg-paper-muted/50 dark:hover:text-white dark:hover:bg-paper-darkCard'
                 }`}
               >
                 {t.label}

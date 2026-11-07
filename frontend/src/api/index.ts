@@ -1,5 +1,6 @@
-import type { CompanyProfile, StudentProfile } from '../types';
-import { MOCK_COMPANIES, MOCK_STUDENTS } from '../data/mockData';
+import type { CompanyProfile, StudentProfile, Project } from '../types';
+import { MOCK_COMPANIES, MOCK_STUDENTS, INITIAL_PROJECTS } from '../data/mockData';
+import type { CandidateMatchResult } from '../utils/dbValidation';
 
 const API_BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
@@ -85,4 +86,47 @@ export async function getStudentProfileApi(id: number): Promise<StudentProfile> 
     return MOCK_STUDENTS[id - 1];
   }
   throw new Error('Профиль студента не найден');
+}
+
+/**
+ * Получение активных проектов организации (GET /api/v1/organizations/projects?status=ACTIVE)
+ */
+export async function getOrganizationProjectsApi(status = 'ACTIVE'): Promise<Project[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/organizations/projects?status=${encodeURIComponent(status)}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data as Project[];
+      }
+    }
+  } catch {
+    console.warn('[API notice] using fallback organization projects');
+  }
+
+  return INITIAL_PROJECTS.filter((p) => p.company === 'Софт Инжиниринг');
+}
+
+/**
+ * Получение семантических соответствий кандидатов под конкретный проект
+ * (GET /api/v1/organizations/projects/:id/matches)
+ */
+export async function getProjectMatchesApi(projectId: number): Promise<CandidateMatchResult[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/organizations/projects/${projectId}/matches`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data as CandidateMatchResult[];
+      }
+    }
+  } catch {
+    console.warn(`[API notice] using client-side calculation for project matches ${projectId}`);
+  }
+
+  return [];
 }

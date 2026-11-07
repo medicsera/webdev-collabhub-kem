@@ -10,15 +10,6 @@ interface AvatarUploaderProps {
   shape?: 'square' | 'circle';
 }
 
-const REQUIREMENTS = [
-  'Формат: JPG, PNG или WebP',
-  'Размер файла: не более 5 МБ',
-  'Минимальное разрешение: 200 × 200 пикселей',
-  'Рекомендуется квадратное фото (1:1)',
-  'Лицо или логотип — по центру кадра',
-  'Без текста, рамок и коллажей',
-];
-
 export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
   currentUrl,
   label = 'Фото профиля',
@@ -156,19 +147,10 @@ export const AvatarUploader: React.FC<AvatarUploaderProps> = ({
         </div>
       </div>
 
-      {/* Требования (компактная сетка 2 колонки) */}
-      <div className="bg-paper-muted/50 dark:bg-paper-dark border border-paper-border/60 dark:border-paper-darkBorder/60 p-2.5 space-y-1">
-        <div className="text-[9px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-500">
-          Требования к изображению
-        </div>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5">
-          {REQUIREMENTS.map((req) => (
-            <li key={req} className="text-[10.5px] font-mono text-ink-muted dark:text-stone-400 flex items-start gap-1.5 leading-snug">
-              <span className="text-oxblood dark:text-oxblood-light shrink-0">·</span>
-              <span>{req}</span>
-            </li>
-          ))}
-        </ul>
+      {/* Требования (компактная информационная строка) */}
+      <div className="flex items-center gap-2 text-[10px] font-mono text-ink-muted dark:text-stone-400 bg-paper-muted/40 dark:bg-stone-900/40 px-2.5 py-1.5 border border-paper-border/60 dark:border-stone-800">
+        <span className="text-oxblood dark:text-oxblood-light font-bold">INFO:</span>
+        <span className="truncate">JPG, PNG, WebP • до 5 МБ • от 200×200 px • портрет 1:1 по центру</span>
       </div>
     </div>
   );

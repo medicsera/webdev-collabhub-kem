@@ -12,10 +12,12 @@ import { ApplicationChatModal } from './components/modals/ApplicationChatModal';
 import { CatalogTab } from './components/tabs/CatalogTab';
 import { MyProjectsTab } from './components/tabs/MyProjectsTab';
 import { HRDashboardTab } from './components/tabs/HRDashboardTab';
+import { ChatsPage } from './components/ChatsPage';
 import { ProfileTab } from './components/tabs/ProfileTab';
 import { CompanyProfileTab } from './components/tabs/CompanyProfileTab';
 import { PublicCompanyProfileTab } from './components/tabs/PublicCompanyProfileTab';
 import { PublicStudentProfileTab } from './components/tabs/PublicStudentProfileTab';
+import { StudentsCatalogTab } from './components/tabs/StudentsCatalogTab';
 import { AuthScreen } from './components/AuthScreen';
 
 import type {
@@ -201,15 +203,21 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     resetScrollToTop();
+    const frameId = requestAnimationFrame(() => resetScrollToTop());
+    const timerId = setTimeout(() => resetScrollToTop(), 50);
+    return () => {
+      cancelAnimationFrame(frameId);
+      clearTimeout(timerId);
+    };
   }, [currentTab]);
 
   const getRoleTabIndex = (role: Role, tab: TabId): number => {
     if (role === 'student') {
-      const studentOrder: TabId[] = ['catalog', 'my-projects', 'profile'];
+      const studentOrder: TabId[] = ['catalog', 'my-projects', 'chats', 'profile'];
       const idx = studentOrder.indexOf(tab);
       return idx >= 0 ? idx : 0;
     } else {
-      const hrOrder: TabId[] = ['hr-dashboard', 'company-profile', 'catalog'];
+      const hrOrder: TabId[] = ['hr-dashboard', 'company-profile', 'chats', 'students-catalog', 'catalog'];
       const idx = hrOrder.indexOf(tab);
       return idx >= 0 ? idx : 0;
     }
@@ -276,6 +284,9 @@ export const App: React.FC = () => {
       return;
     }
 
+    // При переключении вкладок закрываем любые открытые модальные окна чатов
+    setActiveChatId(null);
+
     const oldIndex = getRoleTabIndex(currentRole, currentTab);
     const newIndex = getRoleTabIndex(currentRole, newTab);
     const direction = newIndex >= oldIndex ? 'forward' : 'backward';
@@ -287,9 +298,14 @@ export const App: React.FC = () => {
     setCurrentTab(newTab);
     setIsTabTransitioning(true);
 
+    requestAnimationFrame(() => {
+      resetScrollToTop();
+    });
+
     setTimeout(() => {
       setExitingTab(null);
       setIsTabTransitioning(false);
+      resetScrollToTop();
     }, 380);
   };
 
@@ -692,6 +708,15 @@ export const App: React.FC = () => {
   useEffect(() => {
     const parseUrlRoute = () => {
       const path = window.location.pathname;
+      if (path === '/chats' || path.startsWith('/chats/')) {
+        const chatMatch = path.match(/^\/chats\/(.+)/);
+        if (chatMatch) {
+          setActiveChatId(chatMatch[1]);
+        }
+        setCurrentTab('chats');
+        return;
+      }
+
       const companyMatch = path.match(/^\/companies\/(\d+)/);
       if (companyMatch) {
         const id = parseInt(companyMatch[1], 10);
@@ -743,6 +768,19 @@ export const App: React.FC = () => {
             currentStudentId={currentStudentId}
             onOpenChat={handleOpenChat}
             onViewCompany={handleViewCompany}
+            onNavigateToCatalog={() => handleSwitchTab('catalog')}
+          />
+        );
+      case 'chats':
+        return (
+          <ChatsPage
+            chats={chats}
+            applications={applications}
+            currentRole={currentRole}
+            currentUserId={currentRole === 'student' ? currentStudentId : 'hr-user'}
+            currentUserName={currentRole === 'student' ? studentProfile.name : `${companyProfile.name} (HR)`}
+            activeChatId={activeChatId}
+            onSendMessage={handleSendMessage}
           />
         );
       case 'hr-dashboard':
@@ -757,6 +795,7 @@ export const App: React.FC = () => {
             onNavigateToCompanyProfile={() => handleSwitchTab('company-profile')}
             onViewStudent={handleViewStudent}
             onOpenChat={handleOpenChat}
+            onOpenCreateModal={() => setIsCreateModalOpen(true)}
           />
         );
       case 'company-profile':
@@ -789,6 +828,18 @@ export const App: React.FC = () => {
             onCancelFriendRequest={handleCancelFriendRequest}
             onViewStudent={handleViewStudent}
             onLogout={handleLogout}
+          />
+        );
+      case 'students-catalog':
+        return (
+          <StudentsCatalogTab
+            students={MOCK_STUDENTS}
+            projects={projects}
+            companyName={companyProfile.name}
+            onViewStudent={handleViewStudent}
+            onContactStudent={(student) => {
+              showToast(`Приглашение отправлено студенту «${student.name}»`);
+            }}
           />
         );
       case 'public-company':
@@ -906,9 +957,9 @@ export const App: React.FC = () => {
         onViewCompany={handleViewCompany}
       />
 
-      {/* Модальное окно: Чат по отклику (Задача 5: chats + messages) */}
+      {/* Модальное окно: Чат по отклику (Задача 5: chats + messages, открывается только вне страницы 'chats') */}
       <ApplicationChatModal
-        isOpen={Boolean(activeChat)}
+        isOpen={Boolean(activeChat) && currentTab !== 'chats'}
         onClose={handleCloseChat}
         chat={activeChat}
         application={activeChatApplication}

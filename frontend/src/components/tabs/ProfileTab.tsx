@@ -14,6 +14,7 @@ import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { formatYearDisplay } from '../../utils/dbValidation';
 import { StudentConnectionsSection } from '../StudentConnectionsSection';
+import { EmptyState } from '../EmptyState';
 
 interface ProfileTabProps {
   profile: StudentProfile;
@@ -147,12 +148,21 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
 
           {/* Резюме студента (resumes) */}
-          {profile.resumes && profile.resumes.length > 0 && (
-            <div className="pt-3 border-t border-paper-border/60 dark:border-paper-darkBorder/60 space-y-2">
+          <div className="pt-3 border-t border-paper-border/60 dark:border-paper-darkBorder/60 space-y-2">
+            <div className="flex items-center justify-between">
               <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" /> Резюме (resumes)
               </div>
-              {profile.resumes.map((res) => (
+              <button
+                type="button"
+                onClick={onOpenEditProfileModal}
+                className="text-[10px] font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light hover:underline cursor-pointer"
+              >
+                + Загрузить
+              </button>
+            </div>
+            {profile.resumes && profile.resumes.length > 0 ? (
+              profile.resumes.map((res) => (
                 <div
                   key={res.id}
                   className="p-2.5 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder flex items-center justify-between text-xs font-mono"
@@ -162,9 +172,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                     Основное
                   </span>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <div className="p-3 bg-paper-light/60 dark:bg-paper-dark border border-dashed border-paper-border dark:border-paper-darkBorder text-center text-xs font-mono text-ink-muted dark:text-stone-400">
+                Резюме не прикреплено. Нажмите «Загрузить», чтобы добавить PDF.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Рекомендации ИИ */}
@@ -229,11 +243,20 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           </div>
 
           {/* Портфолио проектов (portfolio_items) */}
-          {profile.portfolio && profile.portfolio.length > 0 && (
-            <div className="pt-4 border-t border-paper-border dark:border-paper-darkBorder space-y-3">
+          <div className="pt-4 border-t border-paper-border dark:border-paper-darkBorder space-y-3">
+            <div className="flex items-center justify-between">
               <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 flex items-center gap-1.5">
                 <Briefcase className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" /> Опыт и портфолио (portfolio_items)
               </div>
+              <button
+                type="button"
+                onClick={onOpenEditProfileModal}
+                className="text-[10px] font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light hover:underline cursor-pointer"
+              >
+                + Добавить проект
+              </button>
+            </div>
+            {profile.portfolio && profile.portfolio.length > 0 ? (
               <div className="space-y-2.5">
                 {profile.portfolio.map((item) => (
                   <div
@@ -271,8 +294,16 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <EmptyState
+                icon={Briefcase}
+                title="Портфолио пока пусто"
+                description="Добавьте свои учебные или коммерческие проекты, чтобы компании видели ваши реальные практические навыки."
+                actionText="Редактировать профиль"
+                onAction={onOpenEditProfileModal}
+              />
+            )}
+          </div>
         </div>
       </div>
 

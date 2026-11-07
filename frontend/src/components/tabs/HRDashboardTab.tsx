@@ -11,12 +11,18 @@ import {
   ArrowRight,
   MessageSquare,
   Crown,
+  Sparkles,
+  Plus,
 } from 'lucide-react';
 import type { Candidate, Project, SkillItem, StudentProfile } from '../../types';
 import { MOCK_STUDENTS } from '../../data/mockData';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
-import { formatYearDisplay } from '../../utils/dbValidation';
+import {
+  formatYearDisplay,
+  calculateStudentProjectMatch,
+  getBestProjectMatchForStudent,
+} from '../../utils/dbValidation';
 
 interface HRDashboardTabProps {
   candidates: Candidate[];
@@ -29,6 +35,7 @@ interface HRDashboardTabProps {
   onNavigateToCompanyProfile: () => void;
   onViewStudent?: (studentId: number) => void;
   onOpenChat?: (chatId: string) => void;
+  onOpenCreateModal?: () => void;
 }
 
 export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
@@ -42,9 +49,13 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   onNavigateToCompanyProfile,
   onViewStudent,
   onOpenChat,
+  onOpenCreateModal,
 }) => {
   // Вкладка по умолчанию — «Рекомендованные студенты / Каталог студентов»
   const [activeSubTab, setActiveSubTab] = useState<'recommended' | 'applications'>(initialSubTab);
+
+  // Фильтр выбора проекта для семантического матчинга (Задача 8)
+  const [selectedProjectId, setSelectedProjectId] = useState<number | 'all'>('all');
 
   // Фильтры и поиск по каталогу студентов
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,7 +184,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         <button
           type="button"
           onClick={() => setActiveSubTab('recommended')}
-          className={`py-3 px-2 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[44px] py-2.5 px-3 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
             activeSubTab === 'recommended'
               ? 'border-oxblood text-oxblood dark:text-oxblood-light'
               : 'border-transparent text-ink-muted hover:text-ink dark:hover:text-white'
@@ -185,7 +196,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         <button
           type="button"
           onClick={() => setActiveSubTab('applications')}
-          className={`py-3 px-2 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[44px] py-2.5 px-3 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
             activeSubTab === 'applications'
               ? 'border-oxblood text-oxblood dark:text-oxblood-light'
               : 'border-transparent text-ink-muted hover:text-ink dark:hover:text-white'
@@ -201,6 +212,56 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           ======================================================== */}
       {activeSubTab === 'recommended' && (
         <div className="space-y-6">
+          {/* Селектор проекта или баннер отсутствия активных проектов (Задача 8) */}
+          {myCompanyProjects.length === 0 ? (
+            <div className="p-5 border-2 border-dashed border-brass/80 bg-brass/10 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xs bg-brass/20 text-brass flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-sm text-ink dark:text-ink-light">
+                    Нет активных проектов для расчета семантического соответствия
+                  </h4>
+                  <p className="text-xs text-ink-muted dark:text-stone-400 mt-0.5">
+                    Создайте и опубликуйте проект, чтобы рассчитать совместимость кандидатов.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenCreateModal || onNavigateToCompanyProfile}
+                className="px-4 py-2 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 shrink-0 rounded-xs cursor-pointer shadow-xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Создать проект</span>
+              </button>
+            </div>
+          ) : (
+            <div className="p-4 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xs shadow-2xs">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-brass shrink-0" />
+                <span className="text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light font-semibold">
+                  Подобрать под проект:
+                </span>
+              </div>
+              <select
+                value={selectedProjectId}
+                onChange={(e) =>
+                  setSelectedProjectId(e.target.value === 'all' ? 'all' : Number(e.target.value))
+                }
+                className="px-3 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder text-ink dark:text-ink-light focus:outline-none focus:border-oxblood rounded-xs cursor-pointer w-full sm:w-auto sm:min-w-[320px]"
+              >
+                <option value="all">★ Все активные проекты ({myCompanyProjects.length}) — лучший матч</option>
+                {myCompanyProjects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.index} • {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Панель поиска и фильтрации */}
           <div className="p-5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-4">
             <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
@@ -309,6 +370,15 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
               {filteredStudents.map((student, idx) => {
                 const studentId = student.id || idx + 1;
 
+                // Семантический матч кандидата с привязкой к конкретному проекту или лучшему из всех (Задача 8)
+                const matchResult =
+                  selectedProjectId !== 'all'
+                    ? (() => {
+                        const proj = myCompanyProjects.find((p) => p.id === selectedProjectId);
+                        return proj ? calculateStudentProjectMatch(student, proj) : null;
+                      })()
+                    : getBestProjectMatchForStudent(student, myCompanyProjects);
+
                 return (
                   <article
                     key={studentId}
@@ -367,13 +437,50 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                               )}
                             </span>
 
-                            {/* Семантический матч */}
-                            <SemanticMatchBadge score={student.aiMatch} size="sm" />
+                            {/* Семантический матч с привязкой к проекту (Задача 8) */}
+                            {matchResult ? (
+                              <SemanticMatchBadge score={matchResult.matchScore} size="sm" />
+                            ) : (
+                              <span className="px-2 py-0.5 text-[10px] font-mono text-ink-muted border border-paper-border">
+                                Проект не привязан
+                              </span>
+                            )}
 
                             <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
                               {student.status}
                             </span>
                           </div>
+
+                          {/* Подпись соответствия по проекту */}
+                          {matchResult && (
+                            <div className="text-[11px] font-mono text-hunter dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
+                              <Sparkles className="w-3.5 h-3.5 text-brass shrink-0" />
+                              {selectedProjectId === 'all' ? (
+                                <span>
+                                  <strong>{matchResult.matchScore}% матч</strong> • Лучший проект: «{matchResult.projectTitle}»
+                                </span>
+                              ) : (
+                                <span>
+                                  Совпадение по проекту: «{matchResult.projectTitle}»
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Недостающие навыки для выбранного проекта */}
+                          {matchResult && matchResult.missingSkills.length > 0 && (
+                            <div className="text-[10px] font-mono text-ink-muted dark:text-stone-400 flex items-center gap-1.5 flex-wrap pt-0.5">
+                              <span className="text-oxblood dark:text-oxblood-light font-medium">Для проекта требуется:</span>
+                              {matchResult.missingSkills.map((sk) => (
+                                <span
+                                  key={sk}
+                                  className="px-1.5 py-0.2 bg-paper-muted dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-ink dark:text-stone-300 rounded-2xs"
+                                >
+                                  +{sk}
+                                </span>
+                              ))}
+                            </div>
+                          )}
 
                           <div className="text-xs font-mono text-ink-muted dark:text-stone-400 flex flex-wrap items-center gap-x-3 gap-y-1">
                             <span className="font-medium text-oxblood dark:text-oxblood-light">

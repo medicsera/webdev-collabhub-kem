@@ -9,8 +9,10 @@ import {
   canStudentApplyToProject,
   canAddMemberToProjectApplication,
   canUserAccessApplicationChat,
+  calculateStudentProjectMatch,
+  getBestProjectMatchForStudent,
 } from './dbValidation';
-import type { ProjectApplication } from '../types';
+import type { ProjectApplication, StudentProfile, Project } from '../types';
 
 describe('DB Validation & Business Rules Audit', () => {
   // ==========================================
@@ -234,6 +236,101 @@ describe('DB Validation & Business Rules Audit', () => {
     it('canUserAccessApplicationChat: denies access to unrelated third-party student', () => {
       assert.equal(canUserAccessApplicationChat(99, 'student', teamApp), false);
       assert.equal(canUserAccessApplicationChat('99', 'student', teamApp), false);
+    });
+  });
+
+  // ==========================================
+  // 5. Тестирование расчета семантического матчинга (GET /api/organizations/projects/:id/matches)
+  // ==========================================
+  describe('Rule 5: Semantic Match per project and best-project calculation', () => {
+    const student: StudentProfile = {
+      id: 1,
+      name: 'Сергиенко Александр Сергеевич',
+      group: 'ФИТ-231',
+      year: '4',
+      university: 'КемГУ',
+      specialization: 'Fullstack / Team Lead',
+      telegram: '@SERK4S',
+      city: 'Кемерово',
+      status: 'Готов к практике',
+      skills: [
+        { name: 'React', level: 'ADVANCED' },
+        { name: 'TypeScript', level: 'ADVANCED' },
+        { name: 'FastAPI', level: 'INTERMEDIATE' },
+        { name: 'PostgreSQL', level: 'ADVANCED' },
+      ],
+      portfolio: [],
+      resumes: [],
+      bio: 'Fullstack разработчик',
+      aiMatch: 95,
+      aiFeedback: 'Отличный профиль',
+    };
+
+    const projectWeb: Project = {
+      id: 1,
+      index: '№ 01',
+      title: 'Интеллектуальная система',
+      company: 'Софт Инжиниринг',
+      department: 'Отдел веб-разработки',
+      type: 'ВКР / Диплом',
+      match: 96,
+      teamSize: '2–3 студента',
+      desc: 'Проект на React и FastAPI',
+      tags: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'Docker'],
+      requiredSkills: [
+        { name: 'React', level: 'ADVANCED' },
+        { name: 'TypeScript', level: 'INTERMEDIATE' },
+        { name: 'FastAPI', level: 'INTERMEDIATE' },
+        { name: 'PostgreSQL', level: 'BASIC' },
+        { name: 'Docker', level: 'BASIC' },
+      ],
+      applied: false,
+    };
+
+    const projectMobile: Project = {
+      id: 2,
+      index: '№ 02',
+      title: 'Мобильное приложение Kotlin',
+      company: 'Софт Инжиниринг',
+      department: 'Мобильный отдел',
+      type: 'Стажировка',
+      match: 50,
+      teamSize: '1–2',
+      desc: 'Разработка на Kotlin и Swift',
+      tags: ['Kotlin', 'Swift'],
+      requiredSkills: [
+        { name: 'Kotlin', level: 'ADVANCED' },
+        { name: 'Swift', level: 'ADVANCED' },
+      ],
+      applied: false,
+    };
+
+    it('calculateStudentProjectMatch: correctly calculates high score, matched skills and missing skills', () => {
+      const res = calculateStudentProjectMatch(student, projectWeb);
+      assert.equal(res.projectId, 1);
+      assert.ok(res.matchScore >= 80, `Expected score >= 80, got ${res.matchScore}`);
+      assert.equal(res.matchedSkills.length, 4); // React, TypeScript, FastAPI, PostgreSQL
+      assert.deepEqual(res.missingSkills, ['Docker']);
+    });
+
+    it('calculateStudentProjectMatch: returns lower score and all missing skills for non-matching project', () => {
+      const res = calculateStudentProjectMatch(student, projectMobile);
+      assert.equal(res.projectId, 2);
+      assert.equal(res.matchedSkills.length, 0);
+      assert.equal(res.missingSkills.length, 2);
+      assert.equal(res.matchScore, 50);
+    });
+
+    it('getBestProjectMatchForStudent: finds the project with maximum matchScore', () => {
+      const best = getBestProjectMatchForStudent(student, [projectMobile, projectWeb]);
+      assert.ok(best !== null);
+      assert.equal(best?.projectId, 1);
+      assert.equal(best?.projectTitle, 'Интеллектуальная система');
+    });
+
+    it('getBestProjectMatchForStudent: returns null when projects list is empty', () => {
+      const best = getBestProjectMatchForStudent(student, []);
+      assert.equal(best, null);
     });
   });
 });

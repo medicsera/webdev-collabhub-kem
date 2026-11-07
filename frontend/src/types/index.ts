@@ -8,7 +8,8 @@ export type TabId =
   | 'company-profile'
   | 'public-company'
   | 'public-student'
-  | 'students-catalog';
+  | 'students-catalog'
+  | 'chats';
 
 export type ProjectFormat = 'all' | 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект';
 
@@ -189,6 +190,7 @@ export interface Chat {
   projectId: number;
   projectTitle: string;
   companyName: string;
+  studentName?: string;
   messages: ChatMessage[];
 }
 

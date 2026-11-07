@@ -1,4 +1,4 @@
-import type { ProjectApplication, Role } from '../types';
+import type { ProjectApplication, Role, StudentProfile, Project, SkillItem } from '../types';
 
 /**
  * 1. Валидация курса (таблица `students.year` VARCHAR(50))
@@ -150,4 +150,81 @@ export function canUserAccessApplicationChat(
   const isMember = application.members?.some((m) => String(m.studentId) === targetId);
 
   return isLead || Boolean(isMember);
+}
+
+/**
+ * 5. Расчет семантического соответствия кандидата и проекта
+ * (REST API: GET /api/organizations/projects/:id/matches)
+ */
+export interface CandidateMatchResult {
+  studentId: number | string;
+  projectId: number;
+  projectTitle: string;
+  matchScore: number;
+  matchedSkills: SkillItem[];
+  missingSkills: string[];
+}
+
+export function calculateStudentProjectMatch(
+  student: StudentProfile,
+  project: Project
+): CandidateMatchResult {
+  const projectSkills =
+    project.requiredSkills && project.requiredSkills.length > 0
+      ? project.requiredSkills
+      : project.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
+
+  const studentSkillMap = new Map<string, SkillItem>();
+  student.skills.forEach((s) => {
+    studentSkillMap.set(s.name.toLowerCase(), s);
+  });
+
+  const matchedSkills: SkillItem[] = [];
+  const missingSkills: string[] = [];
+
+  let totalWeight = 0;
+  let earnedWeight = 0;
+
+  projectSkills.forEach((reqSkill) => {
+    totalWeight += 1;
+    const found = studentSkillMap.get(reqSkill.name.toLowerCase());
+    if (found) {
+      matchedSkills.push(found);
+      const levelMultiplier =
+        found.level === 'ADVANCED' ? 1.0 : found.level === 'INTERMEDIATE' ? 0.8 : 0.6;
+      earnedWeight += levelMultiplier;
+    } else {
+      missingSkills.push(reqSkill.name);
+    }
+  });
+
+  let score = 55;
+  if (totalWeight > 0) {
+    const ratio = earnedWeight / totalWeight;
+    score = Math.round(50 + ratio * 48);
+  }
+
+  return {
+    studentId: student.id || 0,
+    projectId: project.id,
+    projectTitle: project.title,
+    matchScore: Math.min(98, Math.max(50, score)),
+    matchedSkills,
+    missingSkills,
+  };
+}
+
+export function getBestProjectMatchForStudent(
+  student: StudentProfile,
+  projects: Project[]
+): CandidateMatchResult | null {
+  if (projects.length === 0) return null;
+  let best: CandidateMatchResult | null = null;
+  for (const proj of projects) {
+    const res = calculateStudentProjectMatch(student, proj);
+    if (!best || res.matchScore > best.matchScore) {
+      best = res;
+    }
+  }
+  return best;
 }

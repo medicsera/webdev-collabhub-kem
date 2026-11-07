@@ -82,17 +82,17 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
 
       {/* Список добавленных навыков с селектором уровня */}
       {skills.length > 0 ? (
-        <div className="space-y-2 max-h-48 overflow-y-auto p-2 border border-paper-border dark:border-paper-darkBorder bg-paper-light/50 dark:bg-paper-dark/60 rounded-xs">
+        <div className="space-y-1.5 max-h-52 overflow-y-auto p-2 border border-paper-border dark:border-paper-darkBorder bg-paper-light/50 dark:bg-paper-dark/60 rounded-xs">
           {skills.map((skill) => (
             <div
               key={skill.name}
-              className="flex flex-wrap items-center justify-between gap-2 p-2 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder text-xs font-mono"
+              className="flex items-center justify-between gap-3 px-3 py-2 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder text-xs font-mono"
             >
-              <span className="font-semibold text-ink dark:text-ink-light min-w-[100px]">
+              <span className="font-semibold text-ink dark:text-ink-light truncate max-w-[200px]">
                 {skill.name}
               </span>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {(['BASIC', 'INTERMEDIATE', 'ADVANCED'] as SkillLevel[]).map((lvl) => {
                   const isActive = skill.level === lvl;
                   return (
@@ -100,14 +100,14 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
                       key={lvl}
                       type="button"
                       onClick={() => handleLevelChange(skill.name, lvl)}
-                      className={`px-2 py-0.5 text-[10px] uppercase tracking-wider transition-colors cursor-pointer border ${
+                      className={`px-2.5 py-1 text-[10px] font-mono font-medium uppercase tracking-wider transition-colors cursor-pointer border rounded-xs ${
                         isActive
                           ? lvl === 'ADVANCED'
-                            ? 'bg-oxblood text-white border-oxblood'
+                            ? 'bg-emerald-700 text-white border-emerald-800 dark:bg-emerald-600'
                             : lvl === 'INTERMEDIATE'
-                            ? 'bg-hunter text-white border-hunter'
-                            : 'bg-stone-600 text-white border-stone-600'
-                          : 'bg-transparent text-ink-muted dark:text-stone-400 border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400'
+                            ? 'bg-sky-700 text-white border-sky-800 dark:bg-sky-600'
+                            : 'bg-amber-700 text-white border-amber-800 dark:bg-amber-600'
+                          : 'bg-paper-light dark:bg-stone-900 text-ink-muted dark:text-stone-300 border-paper-border dark:border-stone-700 hover:border-ink dark:hover:border-stone-400'
                       }`}
                     >
                       {SKILL_LEVEL_NAMES[lvl]}
@@ -118,8 +118,8 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
                 <button
                   type="button"
                   onClick={() => handleRemoveSkill(skill.name)}
-                  className="p-1 text-ink-muted hover:text-oxblood dark:hover:text-oxblood-light transition-colors ml-1"
-                  title="Удалить"
+                  className="w-6 h-6 flex items-center justify-center text-ink-muted hover:text-oxblood dark:hover:text-oxblood-light transition-colors ml-1 cursor-pointer font-bold text-sm"
+                  title="Удалить навык"
                 >
                   ×
                 </button>
@@ -152,40 +152,47 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
         </div>
       )}
 
-      {/* Поле ввода для добавления нового навыка */}
-      <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-1">
-        <input
-          type="text"
-          value={newSkillName}
-          onChange={(e) => setNewSkillName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleAddSkill();
-            }
-          }}
-          placeholder="Название навыка (например, Next.js)"
-          className="flex-1 px-3 py-1.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light"
-        />
+      {/* Поле ввода для добавления нового навыка по четкой сетке */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+        <div className="sm:col-span-6">
+          <input
+            type="text"
+            value={newSkillName}
+            onChange={(e) => setNewSkillName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddSkill();
+              }
+            }}
+            placeholder="Название компетенции (например, Next.js)"
+            className="w-full h-10 px-3 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
+          />
+        </div>
 
-        <select
-          value={newSkillLevel}
-          onChange={(e) => setNewSkillLevel(e.target.value as SkillLevel)}
-          className="px-2.5 py-1.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light"
-        >
-          <option value="BASIC">Базовый</option>
-          <option value="INTERMEDIATE">Уверенный</option>
-          <option value="ADVANCED">Продвинутый</option>
-        </select>
+        <div className="sm:col-span-3">
+          <select
+            value={newSkillLevel}
+            onChange={(e) => setNewSkillLevel(e.target.value as SkillLevel)}
+            className="w-full h-10 px-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
+          >
+            <option value="BASIC">Базовый</option>
+            <option value="INTERMEDIATE">Уверенный</option>
+            <option value="ADVANCED">Продвинутый</option>
+          </select>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => handleAddSkill()}
-          disabled={!newSkillName.trim()}
-          className="px-3.5 py-1.5 text-xs font-mono uppercase tracking-wider bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood disabled:opacity-40 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-        >
-          <Plus className="w-3.5 h-3.5" /> Добавить
-        </button>
+        <div className="sm:col-span-3">
+          <button
+            type="button"
+            onClick={() => handleAddSkill()}
+            disabled={!newSkillName.trim()}
+            className="w-full h-10 text-xs font-mono uppercase tracking-wider bg-ink text-paper-light dark:bg-stone-200 dark:text-stone-900 hover:bg-oxblood dark:hover:bg-oxblood dark:hover:text-white disabled:opacity-40 transition-colors flex items-center justify-center gap-1.5 cursor-pointer font-semibold"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Добавить</span>
+          </button>
+        </div>
       </div>
     </div>
   );

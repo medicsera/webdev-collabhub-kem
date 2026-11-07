@@ -141,7 +141,7 @@ const FALLBACK_PROJECTS = [
 const FALLBACK_STUDENTS = [
   {
     id: 1,
-    name: 'Сергиенко Александр',
+    name: 'Сергиенко Александр Сергеевич',
     group: 'ФИТ-231',
     year: 'IV Курс',
     university: 'КемГУ',
@@ -185,7 +185,7 @@ const FALLBACK_STUDENTS = [
   },
   {
     id: 3,
-    name: 'Мирко Антон Дмитриевич',
+    name: 'Мирко Антон Сергеевич',
     group: 'ФИТ-231',
     year: 'IV Курс',
     university: 'КемГУ',
@@ -422,6 +422,56 @@ app.get('/api/v1/students/:id', async (req: Request, res: Response) => {
     aiFeedback: fallbackStudent.aiFeedback,
   });
 });
+
+// 3. Активные проекты организации (GET /api/v1/organizations/projects и GET /api/organizations/projects)
+const handleGetOrgProjects = async (_req: Request, res: Response) => {
+  const activeProjects = FALLBACK_PROJECTS.map((p) => ({
+    ...p,
+    projectStatus: 'ACTIVE',
+  }));
+  return res.json(activeProjects);
+};
+
+app.get('/api/v1/organizations/projects', handleGetOrgProjects);
+app.get('/api/organizations/projects', handleGetOrgProjects);
+
+// 4. Семантические матчи кандидатов под проект (GET /api/v1/organizations/projects/:id/matches)
+const handleGetProjectMatches = async (req: Request, res: Response) => {
+  const rawId = typeof req.params.id === 'string' ? req.params.id : '';
+  const projectId = parseInt(rawId, 10);
+  const targetProject = FALLBACK_PROJECTS.find((p) => p.id === projectId);
+  if (!targetProject) {
+    return res.status(404).json({ error: 'Проект не найден' });
+  }
+
+  const matches = FALLBACK_STUDENTS.map((student) => {
+    const studentSkills = student.skills.map((s) => s.name.toLowerCase());
+    const matchedSkills = student.skills.filter((s) =>
+      targetProject.tags.some((t) => t.toLowerCase() === s.name.toLowerCase())
+    );
+    const missingSkills = targetProject.tags.filter(
+      (t) => !studentSkills.includes(t.toLowerCase())
+    );
+
+    const matchRatio = matchedSkills.length / (targetProject.tags.length || 1);
+    const matchScore = Math.min(98, Math.max(50, Math.round(50 + matchRatio * 48)));
+
+    return {
+      studentId: student.id,
+      studentName: student.name,
+      projectId: targetProject.id,
+      projectTitle: targetProject.title,
+      matchScore,
+      matchedSkills,
+      missingSkills,
+    };
+  });
+
+  return res.json(matches);
+};
+
+app.get('/api/v1/organizations/projects/:id/matches', handleGetProjectMatches);
+app.get('/api/organizations/projects/:id/matches', handleGetProjectMatches);
 
 app.listen(port, () => {
   console.log(`Backend server running on http://localhost:${port}`);
