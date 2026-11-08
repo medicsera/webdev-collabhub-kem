@@ -355,7 +355,7 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
                   htmlFor="student-bio-input"
                   className="block text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400 mb-1.5 font-semibold"
                 >
-                  Описание опыта (используется для семантического векторного подбора RuBERT + Qwen)
+                  Описание опыта (используется для семантического векторного подбора MiniLM-L12-v2 + GigaChat)
                 </label>
                 <textarea
                   id="student-bio-input"

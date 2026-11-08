@@ -111,7 +111,7 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
               Проектирование и программная реализация веб-платформы с интеллектуальным микросервисом
               рекомендаций на базе векторного поиска (
               <span className="font-mono text-xs text-ink dark:text-stone-200">pgvector</span>) и
-              локальных больших языковых моделей (Qwen 2.5 + RuBERT).
+              семантического поиска MiniLM-L12-v2 (pgvector) и генеративной модели GigaChat.
             </p>
             <div className="pt-3 flex flex-wrap gap-2">
               {[

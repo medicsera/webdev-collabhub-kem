@@ -29,7 +29,7 @@ export const SemanticMatchBadge: React.FC<SemanticMatchBadgeProps> = ({
   return (
     <div
       className={`inline-flex items-center font-mono font-bold tracking-wider uppercase text-white bg-emerald-700 dark:bg-emerald-600 border-2 border-emerald-950 dark:border-emerald-300 shadow-md ring-1 ring-emerald-500/40 rounded-xs select-none ${sizeClasses} ${className}`}
-      title="Показатель векторного семантического соответствия профиля студента и требований проекта (ru-en-RoSBERTa + Qwen)"
+      title="Показатель векторного семантического соответствия профиля студента и требований проекта (MiniLM-L12-v2 + pgvector)"
     >
       <Sparkles className={`${iconSizes} text-emerald-200 shrink-0`} />
       <span>

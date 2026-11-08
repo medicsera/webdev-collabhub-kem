@@ -15,8 +15,8 @@ export const Footer: React.FC = () => {
           </div>
           <div className="flex items-center gap-5">
             <span>
-              МОДЕЛЬ СЕМАНТИЧЕСКОГО АНАЛИЗА:{' '}
-              <strong className="text-ink dark:text-ink-light">RuBERT + Qwen 2.5</strong>
+              ТЕХНОЛОГИЯ ВЕКТОРНОГО ПОИСКА:{' '}
+              <strong className="text-ink dark:text-ink-light">MiniLM-L12-v2 + pgvector • GigaChat</strong>
             </span>
           </div>
         </div>

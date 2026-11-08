@@ -159,11 +159,11 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
         </div>
 
         {/* Навигация по подвкладкам */}
-        <div className="flex flex-wrap gap-1.5 self-start sm:self-center bg-paper-light dark:bg-paper-dark p-1 border border-paper-border dark:border-paper-darkBorder rounded-xs">
+        <div className="flex flex-wrap gap-2 self-start sm:self-center bg-paper-light dark:bg-paper-dark p-1.5 border border-paper-border dark:border-paper-darkBorder rounded-xs">
           <button
             type="button"
             onClick={() => setActiveSubTab('friends')}
-            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
               activeSubTab === 'friends'
                 ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
@@ -176,7 +176,7 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           <button
             type="button"
             onClick={() => setActiveSubTab('incoming')}
-            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer relative rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer relative rounded-xs ${
               activeSubTab === 'incoming'
                 ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
@@ -194,7 +194,7 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           <button
             type="button"
             onClick={() => setActiveSubTab('outgoing')}
-            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
               activeSubTab === 'outgoing'
                 ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'
@@ -206,7 +206,7 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           <button
             type="button"
             onClick={() => setActiveSubTab('search')}
-            className={`min-h-[38px] px-3.5 py-2 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
               activeSubTab === 'search'
                 ? 'bg-oxblood text-white font-semibold shadow-2xs'
                 : 'text-ink-muted hover:text-ink dark:hover:text-white'

@@ -287,7 +287,7 @@ export const INITIAL_PROJECTS: Project[] = [
     type: 'ВКР / Диплом',
     match: 96,
     teamSize: '2–3 студента',
-    desc: 'Разработка веб-интерфейса и микросервиса автоматической категоризации тикетов на основе семантического анализа с использованием векторов pgvector и локальных LLM.',
+    desc: 'Разработка веб-интерфейса и микросервиса автоматической категоризации тикетов на основе семантического анализа с использованием векторов pgvector (MiniLM-L12-v2) и GigaChat.',
     tags: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'Docker'],
     requiredSkills: [
       { name: 'React', level: 'ADVANCED' },
@@ -589,7 +589,7 @@ export const INITIAL_CANDIDATES: Candidate[] = [
       { name: 'TypeScript', level: 'ADVANCED' },
       { name: 'FastAPI', level: 'INTERMEDIATE' },
       { name: 'pgvector', level: 'INTERMEDIATE' },
-      { name: 'Qwen 2.5', level: 'ADVANCED' },
+      { name: 'GigaChat API', level: 'ADVANCED' },
     ],
     status: 'Новая заявка',
     applicationId: 'app-1',

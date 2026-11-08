@@ -223,7 +223,7 @@ export const PublicStudentProfileTab: React.FC<PublicStudentProfileTabProps> = (
                 </h3>
               </div>
               <span className="font-mono text-xs px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-ink-muted dark:text-stone-300 shrink-0">
-                RuBERT + Qwen 2.5
+                MiniLM-L12-v2 + GigaChat
               </span>
             </div>
 

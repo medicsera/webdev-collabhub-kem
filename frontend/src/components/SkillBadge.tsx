@@ -53,14 +53,14 @@ export const SkillBadge: React.FC<SkillBadgeProps> = ({
   const levelInfo = getLevelStyle(level);
 
   const sizeClasses = {
-    sm: 'px-2.5 py-0.5 text-xs font-mono',
-    md: 'px-3.5 py-1 text-xs sm:text-sm font-mono',
-    lg: 'px-4 py-1.5 text-sm sm:text-base font-mono',
+    sm: 'px-2.5 py-1 text-xs font-mono',
+    md: 'px-3.5 py-1.5 text-xs sm:text-sm font-mono',
+    lg: 'px-4 py-2 text-sm sm:text-base font-mono',
   }[size];
 
   return (
     <span
-      className={`inline-flex items-center gap-2 border font-medium bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs hover:border-ink/40 dark:hover:border-stone-500 transition-colors ${sizeClasses} ${className}`}
+      className={`inline-flex items-center gap-2 border font-medium whitespace-nowrap shrink-0 bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs hover:border-ink/40 dark:hover:border-stone-500 transition-colors ${sizeClasses} ${className}`}
     >
       <span className="font-semibold">{name}</span>
 

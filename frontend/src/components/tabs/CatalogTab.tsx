@@ -152,7 +152,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
       ) : (
         <div
           id="projects-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-paper-border dark:bg-paper-darkBorder border border-paper-border dark:border-paper-darkBorder"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {filteredProjects.map((p) => {
             const skillsToDisplay =
@@ -163,7 +163,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
             return (
               <article
                 key={p.id}
-                className="bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:bg-paper-muted/40 dark:hover:bg-paper-dark/80 transition-colors"
+                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-oxblood/60 transition-colors shadow-2xs rounded-xs"
               >
                 <div className="space-y-4">
                   {/* Заголовок карточки с выделенным семантическим матчем (Requirement 3) */}

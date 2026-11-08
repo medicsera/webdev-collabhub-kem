@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Рубрикатор (Навигация) */}
         <nav
           id="main-nav"
-          className="flex items-center justify-center gap-2 sm:gap-6 py-2 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
+          className="flex items-center justify-center gap-3 sm:gap-6 py-2.5 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
         >
           {activeTabs.map((t) => {
             const isActive = currentTab === t.id;
@@ -186,11 +186,12 @@ export const Header: React.FC<HeaderProps> = ({
                 key={t.id}
                 type="button"
                 onClick={() => switchTab(t.id)}
-                className={`min-h-[42px] px-4 py-2.5 inline-flex items-center justify-center rounded-xs transition-all whitespace-nowrap cursor-pointer select-none ${
+                className={`nav-tab-button min-h-[44px] min-w-[140px] px-5 py-2.5 inline-flex items-center justify-center rounded-xs transition-all whitespace-nowrap cursor-pointer select-none ${
                   isActive
-                    ? 'text-oxblood dark:text-oxblood-light font-semibold bg-oxblood/10 dark:bg-oxblood/20 border-b-2 border-oxblood'
-                    : 'text-ink-muted hover:text-ink hover:bg-paper-muted/50 dark:hover:text-white dark:hover:bg-paper-darkCard'
+                    ? 'text-oxblood dark:text-oxblood-light font-bold bg-oxblood/10 dark:bg-oxblood/20 border-2 border-oxblood shadow-2xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-paper-muted/50 dark:hover:text-white dark:hover:bg-paper-darkCard border border-transparent'
                 }`}
+                style={{ padding: '10px 20px', minHeight: '44px' }}
               >
                 {t.label}
               </button>

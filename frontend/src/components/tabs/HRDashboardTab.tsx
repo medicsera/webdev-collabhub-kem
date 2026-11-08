@@ -141,8 +141,8 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
       </div>
 
       {/* Сводка (Статистика) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-paper-border dark:bg-paper-darkBorder border border-paper-border dark:border-paper-darkBorder">
-        <div className="bg-paper-card dark:bg-paper-darkCard p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 rounded-xs shadow-2xs">
           <div className="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             Студентов в каталоге
           </div>
@@ -154,7 +154,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-paper-card dark:bg-paper-darkCard p-6">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 rounded-xs shadow-2xs">
           <div className="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             Заявок от студентов
           </div>
@@ -166,7 +166,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-paper-card dark:bg-paper-darkCard p-6">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 rounded-xs shadow-2xs">
           <div className="text-[11px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             Задачи нашей компании
           </div>
@@ -180,13 +180,13 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
       </div>
 
       {/* Переключение вкладок: Каталог студентов / Заявки и отклики */}
-      <div className="flex border-b border-paper-border dark:border-paper-darkBorder gap-2 sm:gap-6 text-xs uppercase font-mono tracking-wider">
+      <div className="flex border-b border-paper-border dark:border-paper-darkBorder gap-2 sm:gap-6 text-xs uppercase font-mono tracking-wider overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveSubTab('recommended')}
-          className={`min-h-[44px] py-2.5 px-3 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[46px] px-5 py-3 border-b-2 font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeSubTab === 'recommended'
-              ? 'border-oxblood text-oxblood dark:text-oxblood-light'
+              ? 'border-oxblood text-oxblood dark:text-oxblood-light bg-oxblood/5 dark:bg-oxblood/10'
               : 'border-transparent text-ink-muted hover:text-ink dark:hover:text-white'
           }`}
         >
@@ -196,9 +196,9 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         <button
           type="button"
           onClick={() => setActiveSubTab('applications')}
-          className={`min-h-[44px] py-2.5 px-3 border-b-2 font-semibold transition-colors flex items-center gap-2 cursor-pointer ${
+          className={`min-h-[46px] px-5 py-3 border-b-2 font-semibold transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
             activeSubTab === 'applications'
-              ? 'border-oxblood text-oxblood dark:text-oxblood-light'
+              ? 'border-oxblood text-oxblood dark:text-oxblood-light bg-oxblood/5 dark:bg-oxblood/10'
               : 'border-transparent text-ink-muted hover:text-ink dark:hover:text-white'
           }`}
         >
@@ -242,7 +242,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-brass shrink-0" />
                 <span className="text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light font-semibold">
-                  Подобрать под проект:
+                  Проект для подбора:
                 </span>
               </div>
               <select
@@ -250,9 +250,9 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 onChange={(e) =>
                   setSelectedProjectId(e.target.value === 'all' ? 'all' : Number(e.target.value))
                 }
-                className="px-3 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder text-ink dark:text-ink-light focus:outline-none focus:border-oxblood rounded-xs cursor-pointer w-full sm:w-auto sm:min-w-[320px]"
+                className="px-3.5 py-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder text-ink dark:text-ink-light focus:outline-none focus:border-oxblood rounded-xs cursor-pointer w-full sm:w-auto sm:min-w-[340px]"
               >
-                <option value="all">★ Все активные проекты ({myCompanyProjects.length}) — лучший матч</option>
+                <option value="all">★ Все проекты (лучшее совпадение)</option>
                 {myCompanyProjects.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.index} • {p.title}
@@ -437,12 +437,16 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                               )}
                             </span>
 
-                            {/* Семантический матч с привязкой к проекту (Задача 8) */}
-                            {matchResult ? (
+                            {/* Семантический матч с обязательной привязкой к проекту */}
+                            {myCompanyProjects.length === 0 ? (
+                              <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
+                                Опубликуйте проект для расчета совместимости
+                              </span>
+                            ) : matchResult ? (
                               <SemanticMatchBadge score={matchResult.matchScore} size="sm" />
                             ) : (
-                              <span className="px-2 py-0.5 text-[10px] font-mono text-ink-muted border border-paper-border">
-                                Проект не привязан
+                              <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
+                                Опубликуйте проект для расчета совместимости
                               </span>
                             )}
 
@@ -451,17 +455,17 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                             </span>
                           </div>
 
-                          {/* Подпись соответствия по проекту */}
-                          {matchResult && (
-                            <div className="text-[11px] font-mono text-hunter dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
+                          {/* Заметная подпись соответствия по проекту */}
+                          {myCompanyProjects.length > 0 && matchResult && (
+                            <div className="text-xs font-mono text-hunter dark:text-emerald-400 flex items-center gap-1.5 pt-0.5">
                               <Sparkles className="w-3.5 h-3.5 text-brass shrink-0" />
                               {selectedProjectId === 'all' ? (
-                                <span>
-                                  <strong>{matchResult.matchScore}% матч</strong> • Лучший проект: «{matchResult.projectTitle}»
+                                <span className="font-medium text-ink dark:text-stone-300">
+                                  Лучшее совпадение по проекту: <strong className="text-oxblood dark:text-oxblood-light font-bold">«{matchResult.projectTitle}»</strong>
                                 </span>
                               ) : (
-                                <span>
-                                  Совпадение по проекту: «{matchResult.projectTitle}»
+                                <span className="font-medium text-ink dark:text-stone-300">
+                                  Совпадение с проектом: <strong className="text-oxblood dark:text-oxblood-light font-bold">«{matchResult.projectTitle}»</strong>
                                 </span>
                               )}
                             </div>

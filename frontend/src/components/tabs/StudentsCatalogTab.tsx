@@ -43,13 +43,14 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
   const [minMatch, setMinMatch] = useState<number>(0);
   const [sortBy, setSortBy] = useState<'match' | 'year' | 'name'>('match');
 
-  // Проекты данной компании (или все доступные проекты)
+  // Проекты данной компании (из проектов организации)
   const companyProjects = useMemo(() => {
-    const list = projects.filter(
+    return projects.filter(
       (p) => !companyName || p.company.toLowerCase() === companyName.toLowerCase()
     );
-    return list.length > 0 ? list : projects;
   }, [projects, companyName]);
+
+  const hasCompanyProjects = companyProjects.length > 0;
 
   // Выбранный проект для расчета соответствия (если выбран конкретный)
   const targetProject = useMemo(() => {
@@ -60,6 +61,16 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
   // Вычисляем семантический матч для каждого студента
   const studentsWithMatch = useMemo(() => {
     return students.map((student) => {
+      if (!hasCompanyProjects) {
+        return {
+          student,
+          matchScore: 0,
+          matchedSkills: [],
+          missingSkills: [],
+          matchedProjectTitle: '',
+        };
+      }
+
       let matchResult;
       if (targetProject) {
         matchResult = calculateStudentProjectMatch(student, targetProject);
@@ -67,12 +78,12 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
         matchResult = getBestProjectMatchForStudent(student, companyProjects);
       }
 
-      const matchScore = matchResult ? matchResult.matchScore : (student.aiMatch || 80);
+      const matchScore = matchResult ? matchResult.matchScore : 0;
       const matchedSkills = matchResult ? matchResult.matchedSkills : [];
       const missingSkills = matchResult ? matchResult.missingSkills : [];
       const matchedProjectTitle = matchResult
         ? matchResult.projectTitle
-        : companyProjects[0]?.title || 'Проекты компании';
+        : (companyProjects[0]?.title || '');
 
       return {
         student,
@@ -82,7 +93,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
         matchedProjectTitle,
       };
     });
-  }, [students, targetProject, companyProjects]);
+  }, [students, targetProject, companyProjects, hasCompanyProjects]);
 
   // Фильтрация и сортировка студентов
   const filteredStudents = useMemo(() => {
@@ -181,8 +192,8 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
 
             <p className="text-sm font-sans text-ink-muted dark:text-stone-300 leading-relaxed max-w-2xl">
               Студенты профильных ИТ-направлений (КемГУ и вузы региона), готовые к
-              стажировкам, производственной практике и работе над проектами ВКР. Семантическая
-              модель RuBERT + Qwen рассчитывает персональный процент совместимости стека студента
+              стажировкам, производственной практике и работе над проектами ВКР. Векторный
+              поиск MiniLM-L12-v2 (pgvector) и LLM GigaChat рассчитывают персональный процент совместимости стека студента
               с требованиями вашей компании ({companyName}).
             </p>
 
@@ -213,7 +224,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                 (BASIC, INTERMEDIATE, ADVANCED) стеку проектов вашей компании.
               </p>
               <div className="pt-1 text-[11px] text-oxblood dark:text-oxblood-light font-semibold">
-                Векторная модель: RuBERT + pgvector
+                Векторный поиск: MiniLM-L12-v2 + pgvector (LLM: GigaChat)
               </div>
             </div>
           </div>
@@ -238,22 +249,29 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
           <div className="md:col-span-5 flex items-center gap-2">
             <label
               htmlFor="students-project-filter"
-              className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400 shrink-0 hidden sm:inline"
+              className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400 shrink-0 hidden sm:inline font-semibold"
             >
-              Матч с проектом:
+              Проект для подбора:
             </label>
             <select
               id="students-project-filter"
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="w-full h-10 px-3 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
+              disabled={!hasCompanyProjects}
+              className="w-full h-10 px-3 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light disabled:opacity-50"
             >
-              <option value="all">★ Все проекты (лучший матч)</option>
-              {companyProjects.map((proj) => (
-                <option key={proj.id} value={String(proj.id)}>
-                  {proj.title}
-                </option>
-              ))}
+              {hasCompanyProjects ? (
+                <>
+                  <option value="all">★ Все проекты (лучшее совпадение)</option>
+                  {companyProjects.map((proj) => (
+                    <option key={proj.id} value={String(proj.id)}>
+                      {proj.title}
+                    </option>
+                  ))}
+                </>
+              ) : (
+                <option value="all">Нет опубликованных проектов компании</option>
+              )}
             </select>
           </div>
         </div>
@@ -450,9 +468,30 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
 
                     {/* ИИ-Бейдж совместимости */}
                     <div className="shrink-0">
-                      <SemanticMatchBadge score={matchScore} size="sm" />
+                      {hasCompanyProjects ? (
+                        <SemanticMatchBadge score={matchScore} size="sm" />
+                      ) : (
+                        <span className="px-2.5 py-1 text-[10px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
+                          Опубликуйте проект
+                        </span>
+                      )}
                     </div>
                   </div>
+
+                  {/* Заметное указание названия проекта */}
+                  {hasCompanyProjects && (
+                    <div className="text-xs font-mono text-hunter dark:text-emerald-400 font-medium pt-0.5">
+                      {selectedProjectId === 'all' ? (
+                        <span>
+                          Лучшее совпадение по проекту: <strong className="text-oxblood dark:text-oxblood-light font-bold">«{matchedProjectTitle}»</strong>
+                        </span>
+                      ) : (
+                        <span>
+                          Совпадение с проектом: <strong className="text-oxblood dark:text-oxblood-light font-bold">«{matchedProjectTitle}»</strong>
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Статус поиска студента */}
                   <div className="flex items-center gap-2 flex-wrap text-[11px] font-mono">
@@ -503,30 +542,42 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                       <span className="flex items-center gap-1 font-semibold text-oxblood dark:text-oxblood-light">
                         <Sparkles className="w-3 h-3" /> Совместимость с проектом
                       </span>
-                      <span className="font-bold text-ink dark:text-ink-light">
-                        {matchScore}%
-                      </span>
+                      {hasCompanyProjects && (
+                        <span className="font-bold text-ink dark:text-ink-light">
+                          {matchScore}%
+                        </span>
+                      )}
                     </div>
 
-                    <div className="text-[11px] font-semibold text-ink dark:text-ink-light truncate">
-                      «{matchedProjectTitle}»
-                    </div>
+                    {hasCompanyProjects ? (
+                      <>
+                        <div className="text-[11px] font-semibold text-ink dark:text-ink-light truncate">
+                          {selectedProjectId === 'all'
+                            ? `Лучшее совпадение по проекту: «${matchedProjectTitle}»`
+                            : `Совпадение с проектом: «${matchedProjectTitle}»`}
+                        </div>
 
-                    {matchedSkills.length > 0 && (
-                      <div className="text-[10px] text-ink-muted dark:text-stone-400 flex items-center gap-1 flex-wrap pt-0.5">
-                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
-                          <CheckCircle2 className="w-3 h-3" /> Совпало ({matchedSkills.length}):
-                        </span>
-                        <span>{matchedSkills.map((s) => s.name).join(', ')}</span>
-                      </div>
-                    )}
+                        {matchedSkills.length > 0 && (
+                          <div className="text-[10px] text-ink-muted dark:text-stone-400 flex items-center gap-1 flex-wrap pt-0.5">
+                            <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
+                              <CheckCircle2 className="w-3 h-3" /> Совпало ({matchedSkills.length}):
+                            </span>
+                            <span>{matchedSkills.map((s) => s.name).join(', ')}</span>
+                          </div>
+                        )}
 
-                    {missingSkills.length > 0 && (
-                      <div className="text-[10px] text-ink-muted dark:text-stone-400 flex items-center gap-1 flex-wrap">
-                        <span className="text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-0.5">
-                          <AlertCircle className="w-3 h-3" /> Требуется освоить:
-                        </span>
-                        <span>{missingSkills.slice(0, 3).join(', ')}</span>
+                        {missingSkills.length > 0 && (
+                          <div className="text-[10px] text-ink-muted dark:text-stone-400 flex items-center gap-1 flex-wrap">
+                            <span className="text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-0.5">
+                              <AlertCircle className="w-3 h-3" /> Требуется освоить:
+                            </span>
+                            <span>{missingSkills.slice(0, 3).join(', ')}</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="text-[11px] font-mono text-ink-muted italic py-1">
+                        Опубликуйте проект для расчета совместимости
                       </div>
                     )}
                   </div>
