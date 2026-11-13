@@ -24,6 +24,7 @@ import type {
   Role,
   TabId,
   Project,
+  ProjectStatus,
   Candidate,
   StudentProfile,
   CompanyProfile,
@@ -585,6 +586,7 @@ export const App: React.FC = () => {
       index: formattedIndex,
       match: 94,
       applied: false,
+      projectStatus: newProjData.projectStatus || 'ACTIVE',
     };
 
     setProjects((prev) => [newProject, ...prev]);
@@ -600,6 +602,19 @@ export const App: React.FC = () => {
   const handleDeleteProject = (projectId: number) => {
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
     showToast('Проект удален из базы данных');
+  };
+
+  const handleStatusChangeProject = (projectId: number, newStatus: ProjectStatus) => {
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, projectStatus: newStatus } : p))
+    );
+    const statusLabels: Record<ProjectStatus, string> = {
+      ACTIVE: 'опубликован (ACTIVE)',
+      DRAFT: 'переведен в черновики (DRAFT)',
+      CLOSED: 'набор закрыт (CLOSED)',
+      ARCHIVED: 'перенесен в архив (ARCHIVED)',
+    };
+    showToast(`Статус проекта изменен: ${statusLabels[newStatus] || newStatus}`);
   };
 
   const handleUpdateStudentProfile = (updated: StudentProfile) => {
@@ -796,16 +811,17 @@ export const App: React.FC = () => {
             onViewStudent={handleViewStudent}
             onOpenChat={handleOpenChat}
             onOpenCreateModal={() => setIsCreateModalOpen(true)}
+            onEditProject={(p) => setProjectToEdit(p)}
+            onDeleteProject={handleDeleteProject}
+            onUpdateProjectStatus={handleStatusChangeProject}
           />
         );
       case 'company-profile':
         return (
           <CompanyProfileTab
             company={companyProfile}
-            projects={projects}
             onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
-            onOpenCreateProjectModal={() => setIsCreateModalOpen(true)}
-            onEditProject={(p) => setProjectToEdit(p)}
+            onNavigateToDashboard={() => handleSwitchTab('hr-dashboard')}
             onLogout={handleLogout}
           />
         );

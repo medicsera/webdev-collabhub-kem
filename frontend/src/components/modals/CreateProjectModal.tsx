@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import type { Project, SkillItem } from '../../types';
+import type { Project, ProjectStatus, SkillItem } from '../../types';
 import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
 
 interface CreateProjectModalProps {
@@ -20,9 +20,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   initialDepartment = 'Департамент веб-разработки',
 }) => {
   const [title, setTitle] = useState('');
-  const [company, setCompany] = useState(initialCompany);
+  const company = initialCompany;
   const [department, setDepartment] = useState(initialDepartment);
   const [type, setType] = useState<'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект'>('ВКР / Диплом');
+  const [projectStatus, setProjectStatus] = useState<ProjectStatus>('ACTIVE');
   const [teamSize, setTeamSize] = useState('2–3 студента');
   const [desc, setDesc] = useState('');
   const [requiredSkills, setRequiredSkills] = useState<SkillItem[]>([
@@ -43,6 +44,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       company: company.trim() || 'Софт Инжиниринг',
       department: department.trim() || 'Департамент веб-разработки',
       type,
+      projectStatus,
       teamSize,
       desc: desc.trim() || 'Новое проектное задание от регионального партнера.',
       tags: requiredSkills.map((s) => s.name),
@@ -51,6 +53,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     setTitle('');
     setDesc('');
+    setProjectStatus('ACTIVE');
     onClose();
   };
 
@@ -86,122 +89,125 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Прокручиваемое тело модального окна */}
           <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-4 space-y-4 text-sm overscroll-contain">
-          <div>
-            <label
-              htmlFor="new-proj-title"
-              className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-            >
-              Название темы / проекта *
-            </label>
-            <input
-              id="new-proj-title"
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Например: Разработка модуля аналитики и рекомендаций"
-              className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label
-                htmlFor="new-proj-company"
+                htmlFor="new-proj-title"
                 className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
               >
-                Компания
+                Название темы / проекта *
               </label>
               <input
-                id="new-proj-company"
+                id="new-proj-title"
                 type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs"
+                required
+                placeholder="Например: Разработка сервиса анализа телеметрии на Go..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light"
               />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="new-proj-dept"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Отдел / Направление
+                </label>
+                <input
+                  id="new-proj-dept"
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="new-proj-status"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Статус при создании
+                </label>
+                <select
+                  id="new-proj-status"
+                  value={projectStatus}
+                  onChange={(e) => setProjectStatus(e.target.value as ProjectStatus)}
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light font-mono text-xs cursor-pointer"
+                >
+                  <option value="ACTIVE">● Опубликовать сразу (ACTIVE)</option>
+                  <option value="DRAFT">✎ Сохранить как черновик (DRAFT)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="new-proj-type"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Формат работы
+                </label>
+                <select
+                  id="new-proj-type"
+                  value={type}
+                  onChange={(e) =>
+                    setType(e.target.value as 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект')
+                  }
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light font-mono text-xs"
+                >
+                  <option value="ВКР / Диплом">ВКР / Диплом</option>
+                  <option value="Стажировка">Стажировка</option>
+                  <option value="Курсовой проект">Курсовой проект</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="new-proj-teamsize"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Размер команды
+                </label>
+                <input
+                  id="new-proj-teamsize"
+                  type="text"
+                  value={teamSize}
+                  onChange={(e) => setTeamSize(e.target.value)}
+                  placeholder="2–3 студента"
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs font-mono"
+                />
+              </div>
+            </div>
+
             <div>
               <label
-                htmlFor="new-proj-dept"
+                htmlFor="new-proj-desc"
                 className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
               >
-                Отдел / Заказчик
+                Описание задач и требования
               </label>
-              <input
-                id="new-proj-dept"
-                type="text"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs"
+              <textarea
+                id="new-proj-desc"
+                rows={3}
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Опишите стек, контекст задачи, ожидаемые результаты и условия стажировки..."
+                className="w-full p-3 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light leading-relaxed min-h-[70px] max-h-[160px] resize-y text-xs sm:text-sm"
               />
             </div>
-            <div>
-              <label
-                htmlFor="new-proj-type"
-                className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-              >
-                Формат
-              </label>
-              <select
-                id="new-proj-type"
-                value={type}
-                onChange={(e) =>
-                  setType(e.target.value as 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект')
-                }
-                className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light font-mono text-xs"
-              >
-                <option value="ВКР / Диплом">ВКР / Диплом</option>
-                <option value="Стажировка">Стажировка</option>
-                <option value="Курсовой проект">Курсовой проект</option>
-              </select>
-            </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="new-proj-teamsize"
-              className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-            >
-              Состав команды
-            </label>
-            <input
-              id="new-proj-teamsize"
-              type="text"
-              value={teamSize}
-              onChange={(e) => setTeamSize(e.target.value)}
-              placeholder="1–2 студента"
-              className="w-full px-3.5 py-1.5 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs font-mono"
+            {/* Редактор требуемых навыков с уровнями владения */}
+            <SkillsWithLevelsEditor
+              skills={requiredSkills}
+              onChange={setRequiredSkills}
+              label="Требуемый технологический стек и уровень компетенций:"
             />
-          </div>
-
-          <div>
-            <label
-              htmlFor="new-proj-desc"
-              className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-            >
-              Описание и задачи проекта
-            </label>
-            <textarea
-              id="new-proj-desc"
-              rows={3}
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              placeholder="Опишите задачи и требования к проекту..."
-              className="w-full p-3 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light leading-relaxed min-h-[70px] max-h-[160px] resize-y text-xs sm:text-sm"
-            />
-          </div>
-
-          {/* Редактор требуемых навыков с уровнями владения (Requirement 2) */}
-          <SkillsWithLevelsEditor
-            skills={requiredSkills}
-            onChange={setRequiredSkills}
-            label="Требуемые навыки и минимальный уровень владения (согласно БД):"
-          />
-
           </div>
 
           {/* Зафиксированный подвал с кнопками — всегда на виду! */}
-          <div className="shrink-0 flex justify-end gap-3 px-5 sm:px-7 py-3.5 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card/95 dark:bg-paper-darkCard/95 backdrop-blur-xs">
+          <div className="shrink-0 flex items-center justify-end gap-2 px-5 sm:px-7 py-3.5 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card/95 dark:bg-paper-darkCard/95 backdrop-blur-xs">
             <button
               type="button"
               onClick={onClose}
@@ -211,9 +217,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-oxblood hover:bg-oxblood-hover text-white transition cursor-pointer shadow-xs"
+              className="px-5 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood transition cursor-pointer shadow-xs"
             >
-              Опубликовать проект
+              Создать проект
             </button>
           </div>
         </form>

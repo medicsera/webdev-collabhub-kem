@@ -7,37 +7,27 @@ import {
   Edit,
   CheckCircle2,
   Award,
-  Plus,
-  Trash2,
   LogOut,
+  ShieldCheck,
+  FileText,
+  Briefcase,
+  Users,
 } from 'lucide-react';
-import type { CompanyProfile, Project } from '../../types';
-import { SkillBadge } from '../SkillBadge';
-import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import type { CompanyProfile } from '../../types';
 
 interface CompanyProfileTabProps {
   company: CompanyProfile;
-  projects: Project[];
   onOpenEditModal: () => void;
-  onOpenCreateProjectModal: () => void;
-  onEditProject: (project: Project) => void;
-  onDeleteProject?: (projectId: number) => void;
+  onNavigateToDashboard?: () => void;
   onLogout?: () => void;
 }
 
 export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
   company,
-  projects,
   onOpenEditModal,
-  onOpenCreateProjectModal,
-  onEditProject,
-  onDeleteProject,
+  onNavigateToDashboard,
   onLogout,
 }) => {
-  const companyProjects = projects.filter(
-    (p) => p.company.toLowerCase() === company.name.toLowerCase()
-  );
-
   return (
     <section id="tab-company-profile" className="fade-in space-y-8">
       {/* Шапка раздела */}
@@ -50,13 +40,25 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
             Профиль компании и условия практики
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={onOpenEditModal}
-          className="px-4 py-2 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 self-start sm:self-auto cursor-pointer shadow-xs"
-        >
-          <Edit className="w-3.5 h-3.5" /> Редактировать профиль компании
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {onNavigateToDashboard && (
+            <button
+              type="button"
+              onClick={onNavigateToDashboard}
+              className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard shadow-xs"
+            >
+              <Briefcase className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
+              <span>Панель проектов</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onOpenEditModal}
+            className="px-4 py-2 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 cursor-pointer shadow-xs"
+          >
+            <Edit className="w-3.5 h-3.5" /> Редактировать профиль компании
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -64,8 +66,16 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
         <div className="lg:col-span-5 space-y-6">
           <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-6">
             <div className="flex items-start gap-4 border-b border-paper-border dark:border-paper-darkBorder pb-5">
-              <div className="w-16 h-16 border-2 border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 text-2xl font-bold font-serif">
-                {company.name.slice(0, 2).toUpperCase()}
+              <div className="w-16 h-16 border-2 border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 text-2xl font-bold font-serif overflow-hidden">
+                {company.avatarUrl ? (
+                  <img
+                    src={company.avatarUrl}
+                    alt={company.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  company.name.slice(0, 2).toUpperCase()
+                )}
               </div>
               <div>
                 <h3 className="text-2xl font-semibold leading-tight text-ink dark:text-ink-light">
@@ -147,15 +157,40 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Статус верификации организации */}
+          <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 space-y-3">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-hunter dark:text-emerald-400" />
+              <span>Статус аккредитации организации</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-hunter shrink-0" />
+              <span className="text-sm font-semibold text-ink dark:text-ink-light">
+                {company.verificationStatus === 'VERIFIED'
+                  ? 'Верифицированный профиль работодателя'
+                  : 'Аккредитованная IT-организация'}
+              </span>
+            </div>
+            <p className="text-xs text-ink-muted dark:text-stone-400 font-mono leading-relaxed">
+              Организация включена в региональный реестр базовых предприятий Кемеровского
+              государственного университета для проведения практической подготовки и руководства ВКР.
+            </p>
+          </div>
         </div>
 
-        {/* Правая колонка: Описание, Условия практики и Проекты компании */}
+        {/* Правая колонка: Описание и Условия практики */}
         <div className="lg:col-span-7 space-y-6">
           {/* О компании */}
           <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-4">
-            <h3 className="text-2xl font-normal text-ink dark:text-ink-light border-b border-paper-border dark:border-paper-darkBorder pb-3">
-              О компании и проектном сотрудничестве
-            </h3>
+            <div className="flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder pb-3">
+              <h3 className="text-2xl font-normal text-ink dark:text-ink-light">
+                О компании и проектном сотрудничестве
+              </h3>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Досье
+              </span>
+            </div>
             <p className="text-sm text-ink-muted dark:text-stone-300 leading-relaxed font-normal">
               {company.description}
             </p>
@@ -181,80 +216,33 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
             </div>
           </div>
 
-          {/* Активные проекты компании */}
-          <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-5">
+          {/* Сводка взаимодействия с академической средой */}
+          <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-4">
             <div className="flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder pb-3">
-              <div>
-                <h3 className="text-2xl font-normal text-ink dark:text-ink-light">
-                  Опубликованные проекты ({companyProjects.length})
-                </h3>
-                <p className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-0.5">
-                  Задачи компании в общем академическом реестре
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={onOpenCreateProjectModal}
-                className="px-3 py-1.5 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <Plus className="w-3.5 h-3.5" /> Добавить
-              </button>
+              <h3 className="text-2xl font-normal text-ink dark:text-ink-light">
+                Регламент взаимодействия со студентами
+              </h3>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 flex items-center gap-1">
+                <Users className="w-3 h-3" /> Практика &amp; ВКР
+              </span>
             </div>
-
-            <div className="divide-y divide-paper-border dark:divide-paper-darkBorder">
-              {companyProjects.length === 0 ? (
-                <div className="py-6 text-center text-xs font-mono text-ink-muted dark:text-stone-400">
-                  У компании пока нет опубликованных проектов. Нажмите «Добавить», чтобы создать задачу.
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+              <div className="p-3 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder space-y-1">
+                <div className="text-oxblood dark:text-oxblood-light font-semibold uppercase tracking-wider text-[10px]">
+                  Форматы подготовки
                 </div>
-              ) : (
-                companyProjects.map((p) => (
-                  <div key={p.id} className="py-4 space-y-2 first:pt-0 last:pb-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-medium text-oxblood dark:text-oxblood-light">
-                          {p.index} • {p.type}
-                        </span>
-                        <SemanticMatchBadge score={p.match} size="sm" />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onEditProject(p)}
-                          className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1 cursor-pointer"
-                        >
-                          <Edit className="w-3 h-3" /> Редактировать
-                        </button>
-                        {onDeleteProject && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (window.confirm(`Удалить проект «${p.title}»?`)) {
-                                onDeleteProject(p.id);
-                              }
-                            }}
-                            className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-oxblood/30 hover:bg-oxblood/10 text-oxblood dark:text-oxblood-light transition flex items-center gap-1 cursor-pointer"
-                          >
-                            <Trash2 className="w-3 h-3" /> Удалить
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <h4 className="text-lg font-semibold text-ink dark:text-ink-light leading-snug">
-                      {p.title}
-                    </h4>
-
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {(p.requiredSkills && p.requiredSkills.length > 0
-                        ? p.requiredSkills
-                        : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }))
-                      ).map((sk) => (
-                        <SkillBadge key={typeof sk === 'string' ? sk : sk.name} skill={sk} size="sm" />
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
+                <div className="text-ink dark:text-stone-200">
+                  ВКР / Дипломные проекты, проектные практикумы, стажировки
+                </div>
+              </div>
+              <div className="p-3 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder space-y-1">
+                <div className="text-oxblood dark:text-oxblood-light font-semibold uppercase tracking-wider text-[10px]">
+                  Кураторство от индустрии
+                </div>
+                <div className="text-ink dark:text-stone-200">
+                  Персональный наставник уровня Senior / Lead на каждый проект
+                </div>
+              </div>
             </div>
           </div>
         </div>

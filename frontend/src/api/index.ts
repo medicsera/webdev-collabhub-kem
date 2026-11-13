@@ -1,4 +1,4 @@
-import type { CompanyProfile, StudentProfile, Project } from '../types';
+import type { CompanyProfile, StudentProfile, Project, ProjectStatus } from '../types';
 import { MOCK_COMPANIES, MOCK_STUDENTS, INITIAL_PROJECTS } from '../data/mockData';
 import type { CandidateMatchResult } from '../utils/dbValidation';
 
@@ -129,4 +129,51 @@ export async function getProjectMatchesApi(projectId: number): Promise<Candidate
   }
 
   return [];
+}
+
+/**
+ * Изменение статуса проекта (DRAFT / ACTIVE / CLOSED / ARCHIVED)
+ * Поддерживает эндпоинты:
+ * - POST /api/v1/organizations/projects/:id/publish
+ * - POST /api/v1/organizations/projects/:id/close
+ * - POST /api/v1/organizations/projects/:id/archive
+ * - PATCH /api/v1/organizations/projects/:id
+ */
+export async function updateProjectStatusApi(
+  projectId: number,
+  newStatus: ProjectStatus
+): Promise<boolean> {
+  try {
+    let endpoint = `${API_BASE_URL}/organizations/projects/${projectId}`;
+    let method = 'PATCH';
+    let body: BodyInit | null = JSON.stringify({ projectStatus: newStatus });
+
+    if (newStatus === 'ACTIVE') {
+      endpoint = `${API_BASE_URL}/organizations/projects/${projectId}/publish`;
+      method = 'POST';
+      body = null;
+    } else if (newStatus === 'CLOSED') {
+      endpoint = `${API_BASE_URL}/organizations/projects/${projectId}/close`;
+      method = 'POST';
+      body = null;
+    } else if (newStatus === 'ARCHIVED') {
+      endpoint = `${API_BASE_URL}/organizations/projects/${projectId}/archive`;
+      method = 'POST';
+      body = null;
+    }
+
+    const res = await fetch(endpoint, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      ...(body ? { body } : {}),
+    });
+
+    return res.ok;
+  } catch {
+    console.warn(`[API notice] using mock status update for project ${projectId} -> ${newStatus}`);
+    return true;
+  }
 }
