@@ -1,6 +1,6 @@
 import express, { type Request, type Response } from 'express';
 import { eq } from 'drizzle-orm';
-import { db } from '../db';
+import { db } from '../db/index.js';
 import {
     applications,
     applicationMembers,
@@ -127,6 +127,10 @@ export const applyForProject = async (req: Request, res: Response) => {
                 status: 'PENDING',
             })
             .returning()
+
+        if (!newApplication) {
+            return res.status(500).json({ error: 'Не удалось создать отклик' })
+        }
 
         // Состав команды: LEAD + напарники
         const members = [

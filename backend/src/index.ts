@@ -2,11 +2,13 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv'
+import { eq } from 'drizzle-orm';
 
 // Импортируем подключение к БД и схему
 import { db } from './db/index.js';
-import { companies, projects, students, studentSkills, skills } from './db/schema.js';
+import { organizations, projects, students, studentSkills, skills } from './db/schema.js';
 import applicationRoutes from "./controllers/application.routes.js";
+import { aiService } from "./services/aiService.js";
 
 dotenv.config()
 
@@ -15,6 +17,7 @@ const port = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/application', applicationRoutes);
 
 // Резервные публичные данные компаний (fallback при отсутствии живой БД в dev-окружении)
 const FALLBACK_COMPANIES = [
@@ -163,7 +166,7 @@ const FALLBACK_STUDENTS = [
     aiMatch: 96,
     aiFeedback:
       'Ваш профиль показывает 96% семантический матч с требованиями ведущих проектов от компаний «Софт Инжиниринг» и «Goodline».',
-0  },
+  },
   {
     id: 2,
     name: 'Кононенко Егор Сергеевич',
@@ -262,16 +265,13 @@ app.get('/api/v1/health', (req: Request, res: Response) => {
 app.get('/api/v1/companies/:id', async (req: Request, res: Response) => {
   const rawId = typeof req.params.id === 'string' ? req.params.id : '';
   const companyId = parseInt(rawId, 10);
-  if (isNaN(companyId)) {
-    return res.status(400).json({ error: 'Неверный идентификатор компании' });
-  }
 
   try {
-    // Попытка получить из PostgreSQL через Drizzle
+    // Новая схема: организации идентифицируются по uuid
     const foundCompanies = await db
       .select()
-      .from(companies)
-      .where(eq(companies.id, companyId))
+      .from(organizations)
+      .where(eq(organizations.id, rawId))
       .limit(1);
 
     if (foundCompanies.length > 0 && foundCompanies[0]) {
@@ -279,20 +279,23 @@ app.get('/api/v1/companies/:id', async (req: Request, res: Response) => {
       const companyProjects = await db
         .select()
         .from(projects)
-        .where(eq(projects.companyId, company.id));
+        .where(eq(projects.organizationId, company.id));
 
       return res.json({
         ...company,
+        name: company.companyName,
         vacancies: companyProjects,
       });
     }
   } catch (err) {
     // В случае отсутствия активного соединения с Postgres — прозрачный переход к fallback-данным
-    console.warn(`[DB notice] fallback to in-memory records for company ${companyId}`);
+    console.warn(`[DB notice] fallback to in-memory records for company ${rawId}`);
   }
 
-  // Fallback поиск
-  const fallbackCompany = FALLBACK_COMPANIES.find((c) => c.id === companyId);
+  // Fallback поиск (числовые id из резервных данных)
+  const fallbackCompany = isNaN(companyId)
+    ? undefined
+    : FALLBACK_COMPANIES.find((c) => c.id === companyId);
   if (!fallbackCompany) {
     return res.status(404).json({ error: 'Компания не найдена' });
   }
@@ -311,8 +314,9 @@ app.get('/api/v1/students', async (_req: Request, res: Response) => {
     const allStudents = await db
       .select({
         id: students.id,
-        name: students.name,
-        group: students.group,
+        firstName: students.firstName,
+        lastName: students.lastName,
+        universityGroup: students.universityGroup,
         year: students.year,
         university: students.university,
         specialization: students.specialization,
@@ -337,6 +341,8 @@ app.get('/api/v1/students', async (_req: Request, res: Response) => {
             .where(eq(studentSkills.studentId, st.id));
 
           return {
+            name: `${st.firstName} ${st.lastName}`.trim(),
+            group: st.universityGroup,
             ...st,
             skills: stSkills,
             aiMatch: 90,
@@ -352,27 +358,21 @@ app.get('/api/v1/students', async (_req: Request, res: Response) => {
   }
 
   return res.json(FALLBACK_STUDENTS);
-app.use('/api/application',applicationRoutes)
-
-app.get('/api/v1/health', (req, res) => {
-0    res.json({ status: 'ok', service: 'CollabHub Backend API' });
 });
 
 // 3. Публичный профиль/резюме студента по ID (без конфиденциальных системных полей)
 app.get('/api/v1/students/:id', async (req: Request, res: Response) => {
   const rawId = typeof req.params.id === 'string' ? req.params.id : '';
   const studentId = parseInt(rawId, 10);
-  if (isNaN(studentId)) {
-    return res.status(400).json({ error: 'Неверный идентификатор студента' });
-  }
 
   try {
-    // Попытка получить из PostgreSQL через Drizzle
+    // Новая схема: студенты идентифицируются по uuid
     const foundStudents = await db
       .select({
         id: students.id,
-        name: students.name,
-        group: students.group,
+        firstName: students.firstName,
+        lastName: students.lastName,
+        universityGroup: students.universityGroup,
         year: students.year,
         university: students.university,
         specialization: students.specialization,
@@ -382,7 +382,7 @@ app.get('/api/v1/students/:id', async (req: Request, res: Response) => {
         bio: students.bio,
       })
       .from(students)
-      .where(eq(students.id, studentId))
+      .where(eq(students.id, rawId))
       .limit(1);
 
     if (foundStudents.length > 0 && foundStudents[0]) {
@@ -398,6 +398,8 @@ app.get('/api/v1/students/:id', async (req: Request, res: Response) => {
 
       return res.json({
         ...student,
+        name: `${student.firstName} ${student.lastName}`.trim(),
+        group: student.universityGroup,
         skills: studentSkillRecords,
       });
     }
@@ -478,6 +480,33 @@ const handleGetProjectMatches = async (req: Request, res: Response) => {
 
 app.get('/api/v1/organizations/projects/:id/matches', handleGetProjectMatches);
 app.get('/api/organizations/projects/:id/matches', handleGetProjectMatches);
+
+// 5. Семантический матч через эмбеддинги ai-service (MiniLM-L12-v2, шкала 0-100)
+type SemanticMatchPair = {
+  key: string;
+  studentSkills: Array<{ name: string; proficiency_level?: string }> | string[];
+  projectRequirements: Array<{ name: string; importance_level?: string }> | string[];
+};
+
+app.post('/api/v1/semantic-match', async (req: Request, res: Response) => {
+  const pairs = (req.body as { pairs?: SemanticMatchPair[] })?.pairs;
+  if (!Array.isArray(pairs) || pairs.length === 0) {
+    return res.status(400).json({ error: 'Ожидается непустой массив pairs' });
+  }
+
+  try {
+    const results = await Promise.all(
+      pairs.map(async (pair) => ({
+        key: pair.key,
+        matchScore: await aiService.match(pair.studentSkills, pair.projectRequirements),
+      })),
+    );
+    return res.json({ source: 'ai-service', results });
+  } catch (err) {
+    console.warn('[AI notice] semantic-match недоступен, отдаём 502:', err);
+    return res.status(502).json({ error: 'AI-сервис недоступен' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Backend server running on http://localhost:${port}`);

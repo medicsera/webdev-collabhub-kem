@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,11 +28,13 @@ app.add_middleware(
 
 
 class MatchRequest(BaseModel):
-    student_skills: List[str] = Field(
-        ..., description="Список навыков и технологий студента"
+    # Строки либо объекты {name, proficiency_level} — encoder взвешивает уровни
+    student_skills: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Список навыков студента: строки или {name, proficiency_level}"
     )
-    project_requirements: List[str] = Field(
-        ..., description="Требуемые компетенции проекта"
+    # Строки либо объекты {name, importance_level} — encoder взвешивает критичность
+    project_requirements: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Требования проекта: строки или {name, importance_level}"
     )
 
 

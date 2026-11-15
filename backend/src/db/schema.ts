@@ -7,7 +7,7 @@ import {
     jsonb,
     real,
     boolean,
-    uuid,0
+    uuid,
     uniqueIndex,
     index,
     date,
@@ -369,7 +369,7 @@ export const projects = pgTable(
             .notNull()
             .references(() => organizations.id, { onDelete: 'cascade' }),
         categoryId: uuid('category_id').references(() => projectCategories.id, {
-            onDelete: 'set null',0
+            onDelete: 'set null',
         }),
         title: varchar('title', { length: 255 }).notNull(),
         description: text('description').notNull(),
@@ -387,7 +387,7 @@ export const projects = pgTable(
         deadline: timestamp('deadline', { withTimezone: true }),
         /** Эмбеддинг требований для векторного поиска (НФР-12) */
         embedding: vector384('embedding'),
-        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),0
+        createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
         updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     },
     (t) => [
