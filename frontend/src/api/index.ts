@@ -131,6 +131,37 @@ export async function getProjectMatchesApi(projectId: number): Promise<Candidate
   return [];
 }
 
+export interface SemanticMatchPair {
+  key: string;
+  studentSkills: { name: string; proficiency_level?: string }[];
+  projectRequirements: string[];
+}
+
+/**
+ * Семантический матч через эмбеддинги ai-service (MiniLM-L12-v2).
+ * Принимает батч пар «студент ↔ проект», возвращает счёт по каждой паре (0-100).
+ * При недоступности AI-сервиса кидает ошибку — вызывающий остаётся на локальной эвристике.
+ */
+export async function postSemanticMatchApi(pairs: SemanticMatchPair[]): Promise<Record<string, number>> {
+  const res = await fetch(`${API_BASE_URL}/semantic-match`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ pairs }),
+  });
+  if (!res.ok) {
+    throw new Error(`semantic-match failed: ${res.status}`);
+  }
+  const data = (await res.json()) as { results?: { key: string; matchScore: number }[] };
+  const scores: Record<string, number> = {};
+  for (const r of data.results ?? []) {
+    scores[r.key] = Math.round(r.matchScore);
+  }
+  return scores;
+}
+
 /**
  * Изменение статуса проекта (DRAFT / ACTIVE / CLOSED / ARCHIVED)
  * Поддерживает эндпоинты:

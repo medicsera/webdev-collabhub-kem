@@ -34,6 +34,7 @@ import {
   calculateStudentProjectMatch,
   getBestProjectMatchForStudent,
 } from '../../utils/dbValidation';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface HRDashboardTabProps {
   candidates: Candidate[];
@@ -97,6 +98,12 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
       (p) => p.company.toLowerCase() === companyName.toLowerCase()
     );
   }, [projects, companyName]);
+
+  // ИИ-счёт через эмбеддинги ai-service (батч «студенты × проекты»)
+  const { getScore, bestScore, status: semanticStatus } = useSemanticMatches(
+    allStudents,
+    myCompanyProjects
+  );
 
   // Статистика проектов компании
   const activeProjectsCount = myCompanyProjects.filter(
@@ -529,11 +536,20 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 const status = p.projectStatus || 'ACTIVE';
 
                 // Считаем топ кандидатов для этого конкретного проекта
+                // (приоритет — счёт из эмбеддингов ai-service, иначе локальная эвристика)
                 const topCandidatesForThisProject = allStudents
-                  .map((student) => ({
-                    student,
-                    match: calculateStudentProjectMatch(student, p),
-                  }))
+                  .map((student) => {
+                    const localMatch = calculateStudentProjectMatch(student, p);
+                    const aiScore = getScore(student, p);
+                    return {
+                      student,
+                      match: {
+                        ...localMatch,
+                        matchScore: aiScore ?? localMatch.matchScore,
+                      },
+                      aiPowered: aiScore !== undefined,
+                    };
+                  })
                   .sort((a, b) => b.match.matchScore - a.match.matchScore)
                   .slice(0, 3);
 
@@ -713,7 +729,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         </div>
 
                         <div className="divide-y divide-paper-border/60 dark:divide-paper-darkBorder/60 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder">
-                          {topCandidatesForThisProject.map(({ student, match }) => {
+                          {topCandidatesForThisProject.map(({ student, match, aiPowered }) => {
                             const studentId = student.id || 1;
                             return (
                               <div
@@ -725,7 +741,12 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                                     <span className="font-semibold text-sm text-ink dark:text-ink-light">
                                       {student.name}
                                     </span>
-                                    <SemanticMatchBadge score={match.matchScore} size="sm" />
+                                    <SemanticMatchBadge
+                                      score={match.matchScore}
+                                      size="sm"
+                                      aiPowered={aiPowered}
+                                      pending={semanticStatus === 'loading'}
+                                    />
                                     <span className="text-[10px] font-mono text-ink-muted dark:text-stone-400">
                                       {student.group} • {formatYearDisplay(student.year)}
                                     </span>
@@ -966,6 +987,21 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                       })()
                     : getBestProjectMatchForStudent(student, myCompanyProjects);
 
+                // Приоритет: счёт из эмбеддингов ai-service, иначе локальная эвристика
+                const aiBest =
+                  selectedMatchingProjectId !== 'all'
+                    ? (() => {
+                        const proj = myCompanyProjects.find(
+                          (p) => p.id === selectedMatchingProjectId
+                        );
+                        if (!proj) return undefined;
+                        const score = getScore(student, proj);
+                        return score !== undefined ? { score, project: proj } : undefined;
+                      })()
+                    : bestScore(student, myCompanyProjects);
+                const matchScore = aiBest?.score ?? matchResult?.matchScore ?? 0;
+                const aiPowered = aiBest !== undefined;
+
                 return (
                   <article
                     key={studentId}
@@ -1028,7 +1064,12 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                                 Опубликуйте проект для расчета совместимости
                               </span>
                             ) : matchResult ? (
-                              <SemanticMatchBadge score={matchResult.matchScore} size="sm" />
+                              <SemanticMatchBadge
+                                score={matchScore}
+                                size="sm"
+                                aiPowered={aiPowered}
+                                pending={semanticStatus === 'loading'}
+                              />
                             ) : (
                               <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
                                 Опубликуйте проект для расчета совместимости
