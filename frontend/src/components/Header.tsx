@@ -1,33 +1,44 @@
 import React from 'react';
-import { Sun, Moon, User } from 'lucide-react';
-import type { Role, TabId } from '../types';
+import { Sun, Moon, User, LogOut } from 'lucide-react';
+import type { Role, TabId, AppNotification } from '../types';
+import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface HeaderProps {
   currentRole: Role;
-  setRole: (role: Role) => void;
+  setRole?: (role: Role) => void;
   currentTab: TabId;
   switchTab: (tab: TabId) => void;
   isDark: boolean;
   toggleTheme: () => void;
+  notifications?: AppNotification[];
+  onMarkNotificationAsRead?: (id: string) => void;
+  onMarkAllNotificationsAsRead?: () => void;
+  onLogout?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   currentRole,
-  setRole,
   currentTab,
   switchTab,
   isDark,
   toggleTheme,
+  notifications = [],
+  onMarkNotificationAsRead = () => {},
+  onMarkAllNotificationsAsRead = () => {},
+  onLogout,
 }) => {
   const studentTabs: { id: TabId; label: string }[] = [
     { id: 'catalog', label: 'Каталог проектов' },
     { id: 'my-projects', label: 'Мои заявки и ВКР' },
+    { id: 'chats', label: 'Чаты' },
     { id: 'profile', label: 'Мой профиль и ИИ' },
   ];
 
   const hrTabs: { id: TabId; label: string }[] = [
     { id: 'hr-dashboard', label: 'Панель компании' },
-    { id: 'catalog', label: 'Каталог проектов' },
+    { id: 'company-profile', label: 'Профиль компании' },
+    { id: 'chats', label: 'Чаты' },
+    { id: 'students-catalog', label: 'Каталог студентов' },
   ];
 
   const activeTabs = currentRole === 'student' ? studentTabs : hrTabs;
@@ -37,37 +48,11 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Основная полоса заголовка */}
         <div className="py-5 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-paper-border dark:border-paper-darkBorder">
-          {/* Выбор режима (Студент / Компания) */}
-          <div className="flex items-center gap-2 self-start md:self-center">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mr-1">
-              Режим:
+          {/* Левый блок: академический бейдж */}
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-[10px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-oxblood dark:text-oxblood-light bg-paper-card dark:bg-paper-darkCard">
+              {currentRole === 'student' ? 'Студенческий доступ' : 'Индустриальный партнер'}
             </span>
-            <div className="inline-flex border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-0.5">
-              <button
-                id="role-student-btn"
-                type="button"
-                onClick={() => setRole('student')}
-                className={`px-3 py-1 text-xs font-medium tracking-wide transition-colors ${
-                  currentRole === 'student'
-                    ? 'bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark'
-                    : 'text-ink-muted dark:text-stone-400 hover:text-ink dark:hover:text-white'
-                }`}
-              >
-                Студент
-              </button>
-              <button
-                id="role-hr-btn"
-                type="button"
-                onClick={() => setRole('hr')}
-                className={`px-3 py-1 text-xs font-medium tracking-wide transition-colors ${
-                  currentRole === 'hr'
-                    ? 'bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark'
-                    : 'text-ink-muted dark:text-stone-400 hover:text-ink dark:hover:text-white'
-                }`}
-              >
-                Компания (HR)
-              </button>
-            </div>
           </div>
 
           {/* Центральный логотип */}
@@ -83,32 +68,70 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Правый блок: Переключение темы и Профиль */}
-          <div className="flex items-center gap-4 self-end md:self-center">
+          {/* Правый блок: Уведомления, Переключение темы и Профиль */}
+          <div className="flex items-center gap-3 sm:gap-4 self-end md:self-center">
+            {/* Уведомления платформы (notifications: FRIEND_REQUEST, FRIEND_ACCEPTED и др.) */}
+            <NotificationsDropdown
+              notifications={notifications}
+              onMarkAsRead={onMarkNotificationAsRead}
+              onMarkAllAsRead={onMarkAllNotificationsAsRead}
+            />
+
             <button
+              id="theme-toggle-btn"
               type="button"
               onClick={toggleTheme}
-              title="Переключить тему оформления"
-              className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 transition flex items-center gap-1.5 text-xs font-mono uppercase"
+              title={isDark ? 'Переключить тему (Рассвет)' : 'Переключить тему (Закат)'}
+              className="w-[98px] h-[34px] shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 text-xs font-mono uppercase select-none relative overflow-hidden group shadow-xs cursor-pointer"
             >
-              {isDark ? (
-                <Moon className="w-3.5 h-3.5 text-brass" />
-              ) : (
-                <Sun className="w-3.5 h-3.5 text-brass" />
-              )}
-              <span id="theme-label" className="text-[10px]">
-                {isDark ? 'Темная' : 'Светлая'}
-              </span>
+              {/* Солнце и Луна с плавным восходом / закатом */}
+              <div className="relative w-3.5 h-3.5 overflow-hidden shrink-0 flex items-center justify-center">
+                <Sun
+                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                    isDark
+                      ? 'translate-y-4 opacity-0 rotate-90 scale-50'
+                      : 'translate-y-0 opacity-100 rotate-0 scale-100'
+                  }`}
+                />
+                <Moon
+                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                    isDark
+                      ? 'translate-y-0 opacity-100 rotate-0 scale-100'
+                      : '-translate-y-4 opacity-0 -rotate-90 scale-50'
+                  }`}
+                />
+              </div>
+
+              {/* Текстовая метка */}
+              <div className="w-[50px] h-3.5 relative overflow-hidden shrink-0 flex items-center">
+                <span
+                  id="theme-label-light"
+                  className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
+                    isDark ? 'translate-y-3.5 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+                  }`}
+                >
+                  Светлая
+                </span>
+                <span
+                  id="theme-label-dark"
+                  className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
+                    isDark ? 'translate-y-0 opacity-100' : '-translate-y-3.5 opacity-0 pointer-events-none'
+                  }`}
+                >
+                  Темная
+                </span>
+              </div>
             </button>
 
+            {/* Плашка профиля */}
             <div
-              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'hr-dashboard')}
-              className="flex items-center gap-3 pl-4 border-l border-paper-border dark:border-paper-darkBorder cursor-pointer group select-none"
+              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
+              className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none pl-3 sm:pl-4 border-l border-paper-border dark:border-paper-darkBorder"
               title="Перейти в профиль"
             >
               <div
                 id="user-avatar"
-                className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors"
+                className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors group-hover:border-oxblood dark:group-hover:border-oxblood-light"
               >
                 <User className="w-5 h-5" />
               </div>
@@ -129,13 +152,32 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Крайняя правая кнопка: Выйти (Logout) */}
+            {onLogout && (
+              <div className="pl-2 sm:pl-3 border-l border-paper-border dark:border-paper-darkBorder">
+                <button
+                  id="header-logout-btn"
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLogout();
+                  }}
+                  title="Выйти из аккаунта"
+                  className="px-2.5 sm:px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:border-oxblood dark:hover:text-white text-ink dark:text-ink-light text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Выйти</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Рубрикатор (Навигация) */}
         <nav
           id="main-nav"
-          className="flex items-center justify-center gap-2 sm:gap-8 py-2.5 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
+          className="flex items-center justify-center gap-3 sm:gap-6 py-2.5 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
         >
           {activeTabs.map((t) => {
             const isActive = currentTab === t.id;
@@ -144,11 +186,12 @@ export const Header: React.FC<HeaderProps> = ({
                 key={t.id}
                 type="button"
                 onClick={() => switchTab(t.id)}
-                className={`px-3 py-1 transition-all whitespace-nowrap ${
+                className={`nav-tab-button min-h-[44px] min-w-[140px] px-5 py-2.5 inline-flex items-center justify-center rounded-xs transition-all whitespace-nowrap cursor-pointer select-none ${
                   isActive
-                    ? 'text-oxblood dark:text-oxblood-light font-semibold border-b-2 border-oxblood'
-                    : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                    ? 'text-oxblood dark:text-oxblood-light font-bold bg-oxblood/10 dark:bg-oxblood/20 border-2 border-oxblood shadow-2xs'
+                    : 'text-ink-muted hover:text-ink hover:bg-paper-muted/50 dark:hover:text-white dark:hover:bg-paper-darkCard border border-transparent'
                 }`}
+                style={{ padding: '10px 20px', minHeight: '44px' }}
               >
                 {t.label}
               </button>

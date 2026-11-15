@@ -1,187 +1,230 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import type { Project } from '../../types';
+import type { Project, ProjectStatus, SkillItem } from '../../types';
+import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreate: (newProject: Omit<Project, 'id' | 'index' | 'match' | 'applied'>) => void;
+  initialCompany?: string;
+  initialDepartment?: string;
 }
 
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   isOpen,
   onClose,
   onCreate,
+  initialCompany = 'Софт Инжиниринг',
+  initialDepartment = 'Департамент веб-разработки',
 }) => {
   const [title, setTitle] = useState('');
-  const [company, setCompany] = useState('Софт Инжиниринг');
+  const company = initialCompany;
+  const [department, setDepartment] = useState(initialDepartment);
   const [type, setType] = useState<'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект'>('ВКР / Диплом');
+  const [projectStatus, setProjectStatus] = useState<ProjectStatus>('ACTIVE');
+  const [teamSize, setTeamSize] = useState('2–3 студента');
   const [desc, setDesc] = useState('');
-  const [tagsInput, setTagsInput] = useState('React, TypeScript, FastAPI, PostgreSQL');
+  const [requiredSkills, setRequiredSkills] = useState<SkillItem[]>([
+    { name: 'React', level: 'INTERMEDIATE' },
+    { name: 'TypeScript', level: 'INTERMEDIATE' },
+    { name: 'FastAPI', level: 'BASIC' },
+  ]);
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     onCreate({
       title: title.trim(),
       company: company.trim() || 'Софт Инжиниринг',
-      department: 'Департамент веб-разработки',
+      department: department.trim() || 'Департамент веб-разработки',
       type,
-      teamSize: '2–3 студента',
+      projectStatus,
+      teamSize,
       desc: desc.trim() || 'Новое проектное задание от регионального партнера.',
-      tags: tags.length > 0 ? tags : ['React', 'TypeScript'],
+      tags: requiredSkills.map((s) => s.name),
+      requiredSkills,
     });
 
-    // Reset form
     setTitle('');
     setDesc('');
+    setProjectStatus('ACTIVE');
     onClose();
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
       onClick={onClose}
     >
       <div
-        className="bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl fade-in"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder pb-3">
+        {/* Зафиксированная шапка модального окна */}
+        <div className="shrink-0 flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder px-5 sm:px-7 py-3.5 bg-paper-card dark:bg-paper-darkCard">
           <div>
             <div className="text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
-              Кабинет компании
+              Кабинет компании • {company}
             </div>
-            <h3 className="text-2xl font-semibold text-ink dark:text-ink-light">
+            <h3 className="text-xl sm:text-2xl font-semibold text-ink dark:text-ink-light leading-snug">
               Публикация проектной задачи
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-ink-muted hover:text-ink dark:hover:text-white transition-colors"
+            className="p-1 text-ink-muted hover:text-ink dark:hover:text-white transition-colors cursor-pointer shrink-0 ml-2"
             title="Закрыть"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-          <div>
-            <label
-              htmlFor="new-proj-title"
-              className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-            >
-              Название темы / проекта
-            </label>
-            <input
-              id="new-proj-title"
-              type="text"
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Например: Разработка модуля аналитики"
-              className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          {/* Прокручиваемое тело модального окна */}
+          <div className="flex-1 overflow-y-auto px-5 sm:px-7 py-4 space-y-4 text-sm overscroll-contain">
             <div>
               <label
-                htmlFor="new-proj-company"
+                htmlFor="new-proj-title"
                 className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
               >
-                Компания
+                Название темы / проекта *
               </label>
               <input
-                id="new-proj-company"
+                id="new-proj-title"
                 type="text"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
+                required
+                placeholder="Например: Разработка сервиса анализа телеметрии на Go..."
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light"
               />
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="new-proj-dept"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Отдел / Направление
+                </label>
+                <input
+                  id="new-proj-dept"
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="new-proj-status"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Статус при создании
+                </label>
+                <select
+                  id="new-proj-status"
+                  value={projectStatus}
+                  onChange={(e) => setProjectStatus(e.target.value as ProjectStatus)}
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light font-mono text-xs cursor-pointer"
+                >
+                  <option value="ACTIVE">● Опубликовать сразу (ACTIVE)</option>
+                  <option value="DRAFT">✎ Сохранить как черновик (DRAFT)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  htmlFor="new-proj-type"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Формат работы
+                </label>
+                <select
+                  id="new-proj-type"
+                  value={type}
+                  onChange={(e) =>
+                    setType(e.target.value as 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект')
+                  }
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light font-mono text-xs"
+                >
+                  <option value="ВКР / Диплом">ВКР / Диплом</option>
+                  <option value="Стажировка">Стажировка</option>
+                  <option value="Курсовой проект">Курсовой проект</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="new-proj-teamsize"
+                  className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
+                >
+                  Размер команды
+                </label>
+                <input
+                  id="new-proj-teamsize"
+                  type="text"
+                  value={teamSize}
+                  onChange={(e) => setTeamSize(e.target.value)}
+                  placeholder="2–3 студента"
+                  className="w-full px-3 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light text-xs font-mono"
+                />
+              </div>
+            </div>
+
             <div>
               <label
-                htmlFor="new-proj-type"
+                htmlFor="new-proj-desc"
                 className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
               >
-                Формат
+                Описание задач и требования
               </label>
-              <select
-                id="new-proj-type"
-                value={type}
-                onChange={(e) =>
-                  setType(e.target.value as 'ВКР / Диплом' | 'Стажировка' | 'Курсовой проект')
-                }
-                className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light font-mono text-xs"
-              >
-                <option value="ВКР / Диплом">ВКР / Диплом</option>
-                <option value="Стажировка">Стажировка</option>
-                <option value="Курсовой проект">Курсовой проект</option>
-              </select>
+              <textarea
+                id="new-proj-desc"
+                rows={3}
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Опишите стек, контекст задачи, ожидаемые результаты и условия стажировки..."
+                className="w-full p-3 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light leading-relaxed min-h-[70px] max-h-[160px] resize-y text-xs sm:text-sm"
+              />
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="new-proj-desc"
-              className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-            >
-              Описание и требования
-            </label>
-            <textarea
-              id="new-proj-desc"
-              rows={3}
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              placeholder="Опишите задачи и требования к команде..."
-              className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light leading-relaxed"
+            {/* Редактор требуемых навыков с уровнями владения */}
+            <SkillsWithLevelsEditor
+              skills={requiredSkills}
+              onChange={setRequiredSkills}
+              label="Требуемый технологический стек и уровень компетенций:"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="new-proj-tags"
-              className="block text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-1"
-            >
-              Стек (через запятую)
-            </label>
-            <input
-              id="new-proj-tags"
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="React, TypeScript, FastAPI, PostgreSQL"
-              className="w-full px-3.5 py-2 bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light text-ink dark:text-ink-light font-mono text-xs"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-paper-border dark:border-paper-darkBorder">
+          {/* Зафиксированный подвал с кнопками — всегда на виду! */}
+          <div className="shrink-0 flex items-center justify-end gap-2 px-5 sm:px-7 py-3.5 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card/95 dark:bg-paper-darkCard/95 backdrop-blur-xs">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-mono uppercase tracking-widest text-ink-muted hover:text-ink dark:hover:text-white transition-colors"
+              className="px-4 py-2 text-xs font-mono uppercase tracking-widest text-ink-muted hover:text-ink dark:hover:text-white transition-colors cursor-pointer"
             >
               Отмена
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood transition"
+              className="px-5 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood transition cursor-pointer shadow-xs"
             >
-              Опубликовать
+              Создать проект
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -41,6 +41,37 @@ h3,
   font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
+/* Нативная поддержка плавного перехода View Transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.65s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Высокопроизводительный шелковистый переход цветов основных плоскостей */
+html,
+body {
+  transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+header,
+footer,
+article,
+nav,
+aside,
+main,
+section,
+.bg-paper-card,
+.bg-paper-light,
+.bg-paper-dark,
+.bg-paper-darkCard,
+.bg-paper-muted {
+  transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Эффект двойной газетной линейки */
 .double-rule-b {
   border-bottom: 3px double #D5CCB8;
@@ -71,4 +102,166 @@ h3,
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Атмосферный эффект рассвета (Dawn) — мягкий золотисто-розовый утренний свет */
+.dawn-overlay {
+  background: radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.32) 0%, rgba(249, 115, 22, 0.18) 35%, rgba(168, 66, 77, 0.1) 60%, transparent 80%),
+              linear-gradient(to top, rgba(254, 240, 138, 0.22) 0%, rgba(254, 215, 170, 0.15) 50%, transparent 100%);
+  animation: smoothAtmosphere 750ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* Атмосферный эффект заката (Sunset) — глубокие сумеречные янтарно-багряные тона */
+.sunset-overlay {
+  background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.28) 0%, rgba(185, 28, 28, 0.22) 35%, rgba(30, 27, 75, 0.25) 65%, transparent 85%),
+              linear-gradient(to bottom, rgba(15, 23, 42, 0.35) 0%, rgba(110, 30, 38, 0.2) 50%, transparent 100%);
+  animation: smoothAtmosphere 750ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  will-change: opacity, transform;
+}
+
+@keyframes smoothAtmosphere {
+  0% {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.01);
+  }
+}
+
+/* ============================================================
+   Плавный переход между экраном авторизации и основным экраном
+   ============================================================ */
+
+/* Вход на экран: элемент появляется снизу */
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Выход с экрана: элемент уходит вверх и становится прозрачным */
+@keyframes screenExit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+.screen-enter {
+  animation: screenEnter 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.screen-exit {
+  animation: screenExit 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Анимация горизонтальной прокрутки при переключении окон/вкладок
+   (Каталог проектов / Мои заявки и ВКР / Мой профиль и ИИ)
+   (Панель компании / Профиль компании / Каталог проектов)
+   ============================================================ */
+
+.tabs-viewport {
+  position: relative;
+  width: 100%;
+  overflow-x: clip;
+}
+
+/* Переход вперед (вправо): старая вкладка уезжает влево, новая въезжает справа */
+@keyframes tabSlideOutToLeft {
+  0% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0.1;
+  }
+}
+
+@keyframes tabSlideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+/* Переход назад (влево): старая вкладка уезжает вправо, новая въезжает слева */
+@keyframes tabSlideOutToRight {
+  0% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0.1;
+  }
+}
+
+@keyframes tabSlideInFromLeft {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translateX(0%);
+    opacity: 1;
+  }
+}
+
+.tab-slide-out-left {
+  animation: tabSlideOutToLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.tab-slide-in-right {
+  animation: tabSlideInFromRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.tab-slide-out-right {
+  animation: tabSlideOutToRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.tab-slide-in-left {
+  animation: tabSlideInFromLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* ============================================================
+   Увеличенные отступы и комфортные размеры табов и ячеек
+   ============================================================ */
+
+.nav-tab-button {
+  min-height: 44px;
+  min-width: 140px;
+  padding: 10px 20px;
+  letter-spacing: 0.15em;
+}
+
+.subtab-button {
+  min-height: 44px;
+  padding: 10px 18px;
 }
