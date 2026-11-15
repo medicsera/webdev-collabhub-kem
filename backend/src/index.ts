@@ -1,12 +1,14 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import cors from 'cors';
-import 'dotenv/config';
-import { eq } from 'drizzle-orm';
+import dotenv from 'dotenv'
 
 // Импортируем подключение к БД и схему
 import { db } from './db/index.js';
 import { companies, projects, students, studentSkills, skills } from './db/schema.js';
+import applicationRoutes from "./controllers/application.routes.js";
+
+dotenv.config()
 
 const app = express();
 const port = process.env.PORT || 5001;
@@ -161,7 +163,7 @@ const FALLBACK_STUDENTS = [
     aiMatch: 96,
     aiFeedback:
       'Ваш профиль показывает 96% семантический матч с требованиями ведущих проектов от компаний «Софт Инжиниринг» и «Goodline».',
-  },
+0  },
   {
     id: 2,
     name: 'Кононенко Егор Сергеевич',
@@ -350,6 +352,10 @@ app.get('/api/v1/students', async (_req: Request, res: Response) => {
   }
 
   return res.json(FALLBACK_STUDENTS);
+app.use('/api/application',applicationRoutes)
+
+app.get('/api/v1/health', (req, res) => {
+0    res.json({ status: 'ok', service: 'CollabHub Backend API' });
 });
 
 // 3. Публичный профиль/резюме студента по ID (без конфиденциальных системных полей)

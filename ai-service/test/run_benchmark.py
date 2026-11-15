@@ -40,7 +40,7 @@ MODELS_TO_BENCHMARK = [
 
 # 2. Поиск и чтение benchmark_dataset.json v2
 current_dir = Path(__file__).resolve().parent
-dataset_path = current_dir.parent / "data" / "benchmark_dataset.json"
+dataset_path = current_dir.parent.parent / "data" / "benchmark_dataset.json"
 if not dataset_path.exists():
     dataset_path = current_dir / "data" / "benchmark_dataset.json"
 
@@ -65,10 +65,11 @@ SYSTEM_PROMPT = """Ты — интеллектуальный модуль соп
 
 Сформируй краткий профессиональный отзыв (ai_feedback) с указанием сильных сторон и дефицитов.
 
-Ответь СТРОГО в формате валидного JSON без разметки markdown:
+Ответь СТРОГО в формате валидного JSON без разметки markdown. Выводи ТОЛЬКО JSON, начиная с символа '{':
 {
-  "ai_match_score": <число от 0 до 100>,
-  "ai_feedback": "<краткое пояснение причин выставленного балла>"
+  "ai_match_score": <число от 0 до 100>,
+  "ai_feedback": "<максимум 1-2 предложения, почему выставлен этот балл>"
+}
 }"""
 
 
@@ -112,6 +113,7 @@ def benchmark_single_model(model_info: dict) -> dict:
                     {"role": "user", "content": user_content}
                 ],
                 temperature=0.0,
+                max_tokens=500,  # Ограничение для обхода ошибки 429
                 response_format={"type": "json_object"}
             )
             elapsed = time.perf_counter() - start_time
@@ -158,12 +160,12 @@ def benchmark_single_model(model_info: dict) -> dict:
         })
 
         # Пауза между запросами для контроля Rate Limits
-        time.sleep(0.5)
+        time.sleep(2.0)
 
     # Расчет метрик
-    json_validity = (valid_json_count / total_pairs) * 100
+    json_validity = (valid_json_count / total_pairs) * 100 if total_pairs > 0 else 0
     mae = float(np.mean(np.abs(np.array(predicted_scores) - np.array(ground_truth_scores))))
-    accuracy_hits = (range_hits / total_pairs) * 100
+    accuracy_hits = (range_hits / total_pairs) * 100 if total_pairs > 0 else 0
     corr, _ = spearmanr(ground_truth_scores, predicted_scores)
     spearman_val = 0.0 if np.isnan(corr) else float(corr)
     avg_latency = float(np.mean(latencies))
@@ -194,7 +196,7 @@ def benchmark_single_model(model_info: dict) -> dict:
 
 def save_benchmark_reports(results: list, base_dir: Path):
     """Сохраняет Markdown-таблицу и подробный JSON-дамп в директорию data/results/"""
-    results_dir = base_dir.parent / "data" / "results"
+    results_dir = base_dir.parent.parent.parent / "data" / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")

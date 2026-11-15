@@ -1,0 +1,311 @@
+@startuml CollabHub_ER
+title CollabHubKem — итоговая ER-модель БД
+
+skinparam linetype ortho
+skinparam entity {
+  BackgroundColor #FEFEFE
+  BorderColor #333333
+  FontStyle bold
+}
+skinparam note {
+  BackgroundColor #FFF8E1
+  BorderColor #F0C040
+}
+
+' ========== ENUM (справочно) ==========
+legend right
+  **Enum-типы**
+  role: STUDENT | COMPANY | ADMIN
+  application_status: PENDING | REVIEWING | INTERVIEW | ACCEPTED | REJECTED
+  project_status: DRAFT | ACTIVE | CLOSED | ARCHIVED
+  project_type: INTERNSHIP | VKR | COURSE_PROJECT | COMMERCIAL | OPEN_SOURCE
+  difficulty_level: JUNIOR | MIDDLE | SENIOR
+  employment_type: FULL_TIME | PART_TIME | PROJECT | VOLUNTEER | UNPAID_INTERNSHIP
+  importance_level: CRITICAL | IMPORTANT | OPTIONAL
+  proficiency_level: BASIC | INTERMEDIATE | ADVANCED
+  company_verification: PENDING | VERIFIED | REJECTED
+  skill_category: HARD | SOFT | LANGUAGE | TOOL
+  connection_request_status: PENDING | ACCEPTED | REJECTED | CANCELLED
+  application_member_role: LEAD | MEMBER
+  notification_type: APPLICATION_STATUS_CHANGED | NEW_APPLICATION | INTERVIEW_INVITE
+                     | FRIEND_REQUEST | FRIEND_ACCEPTED | SYSTEM
+endlegend
+
+' ========== AUTH ==========
+entity "users" as users {
+  * id : UUID <<PK>>
+  --
+  * email : VARCHAR(255) <<UNIQUE>>
+  * password_hash : VARCHAR(255)
+  * role : role <<ENUM>>
+  * is_blocked : BOOLEAN
+  * created_at : TIMESTAMPTZ
+  * updated_at : TIMESTAMPTZ
+}
+
+' ========== ПРОФИЛИ 1:1 ==========
+entity "students" as students {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK, UNIQUE>>
+  * first_name : VARCHAR(100)
+  * last_name : VARCHAR(100)
+  * university_group : VARCHAR(100)
+  * year : VARCHAR(50)
+  * university : VARCHAR(255)
+  specialization : VARCHAR(255)
+  telegram : VARCHAR(100)
+  city : VARCHAR(100)
+  phone : VARCHAR(30)
+  status : VARCHAR(100)
+  bio : TEXT
+  avatar_url : VARCHAR(500)
+  embedding : vector(384)
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "organizations" as organizations {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK, UNIQUE>>
+  * company_name : VARCHAR(255)
+  industry : VARCHAR(255)
+  description : TEXT
+  website : VARCHAR(255)
+  city : VARCHAR(100)
+  address : TEXT
+  contact_person : VARCHAR(255)
+  contact_role : VARCHAR(255)
+  contact_email : VARCHAR(255)
+  contact_telegram : VARCHAR(100)
+  avatar_url : VARCHAR(500)
+  * verification_status : company_verification <<ENUM>>
+  verification_note : TEXT
+  verified_at : TIMESTAMPTZ
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+' ========== СПРАВОЧНИКИ ==========
+entity "project_categories" as project_categories {
+  * id : UUID <<PK>>
+  --
+  * name : VARCHAR(100)
+  * slug : VARCHAR(100) <<UNIQUE>>
+  description : TEXT
+  created_at : TIMESTAMPTZ
+}
+
+entity "skills" as skills {
+  * id : UUID <<PK>>
+  --
+  * name : VARCHAR(100) <<UNIQUE>>
+  * slug : VARCHAR(100) <<UNIQUE>>
+  * category : skill_category <<ENUM>>
+  description : TEXT
+  * is_active : BOOLEAN
+  created_at : TIMESTAMPTZ
+}
+
+' ========== НАВЫКИ ==========
+entity "student_skills" as student_skills {
+  * student_id : UUID <<PK, FK>>
+  * skill_id : UUID <<PK, FK>>
+  --
+  * proficiency_level : proficiency_level <<ENUM>>
+}
+
+entity "project_skills" as project_skills {
+  * project_id : UUID <<PK, FK>>
+  * skill_id : UUID <<PK, FK>>
+  --
+  * importance_level : importance_level <<ENUM>>
+  * min_proficiency_level : proficiency_level <<ENUM>>
+}
+
+' ========== РЕЗЮМЕ / ПОРТФОЛИО ==========
+entity "resumes" as resumes {
+  * id : UUID <<PK>>
+  --
+  * student_id : UUID <<FK>>
+  * file_name : VARCHAR(255)
+  * file_url : VARCHAR(500)
+  * mime_type : VARCHAR(100)
+  parsed_text : TEXT
+  ai_parsed_data : JSONB
+  * is_primary : BOOLEAN
+  created_at : TIMESTAMPTZ
+}
+
+entity "portfolio_items" as portfolio_items {
+  * id : UUID <<PK>>
+  --
+  * student_id : UUID <<FK>>
+  * title : VARCHAR(255)
+  description : TEXT
+  role : VARCHAR(100)
+  technologies : JSONB
+  url : VARCHAR(500)
+  started_at : DATE
+  finished_at : DATE
+  created_at : TIMESTAMPTZ
+}
+
+' ========== ДРУЗЬЯ / НАПАРНИКИ ==========
+entity "student_connections" as student_connections {
+  * id : UUID <<PK>>
+  --
+  * student_id : UUID <<FK>>
+  * partner_id : UUID <<FK>>
+  * status : connection_request_status <<ENUM>>
+  * requested_by : UUID <<FK>>
+  responded_at : TIMESTAMPTZ
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+  --
+  note: UNIQUE(student_id, partner_id)
+  note: CHECK (student_id < partner_id)
+}
+
+' ========== ПРОЕКТЫ ==========
+entity "projects" as projects {
+  * id : UUID <<PK>>
+  --
+  * organization_id : UUID <<FK>>
+  category_id : UUID <<FK>>
+  * title : VARCHAR(255)
+  * description : TEXT
+  expected_results : TEXT
+  conditions : TEXT
+  * type : project_type <<ENUM>>
+  * difficulty : difficulty_level <<ENUM>>
+  * employment_type : employment_type <<ENUM>>
+  * status : project_status <<ENUM>>
+  team_size : VARCHAR(100)
+  city : VARCHAR(100)
+  * is_remote : BOOLEAN
+  deadline : TIMESTAMPTZ
+  embedding : vector(384)
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+' ========== ОТКЛИКИ + КОМАНДА ==========
+entity "applications" as applications {
+  * id : UUID <<PK>>
+  --
+  * project_id : UUID <<FK>>
+  * student_id : UUID <<FK>>
+  * is_team : BOOLEAN
+  * status : application_status <<ENUM>>
+  status_comment : TEXT
+  status_changed_at : TIMESTAMPTZ
+  status_changed_by : UUID <<FK>>
+  ai_match_score : FLOAT
+  ai_feedback : JSONB
+  cover_letter : TEXT
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+  --
+  note: UNIQUE(project_id, student_id) — lead
+}
+
+entity "application_members" as application_members {
+  * application_id : UUID <<PK, FK>>
+  * student_id : UUID <<PK, FK>>
+  --
+  project_id : UUID <<FK>>
+  * role : application_member_role <<ENUM>>
+  ai_match_score : FLOAT
+  joined_at : TIMESTAMPTZ
+  --
+  note: UNIQUE(student_id, project_id)
+}
+
+' ========== ЧАТ ==========
+entity "chats" as chats {
+  * id : UUID <<PK>>
+  --
+  * application_id : UUID <<FK, UNIQUE>>
+  created_at : TIMESTAMPTZ
+  updated_at : TIMESTAMPTZ
+}
+
+entity "messages" as messages {
+  * id : UUID <<PK>>
+  --
+  * chat_id : UUID <<FK>>
+  * sender_id : UUID <<FK>>
+  * content : TEXT
+  * is_read : BOOLEAN
+  created_at : TIMESTAMPTZ
+}
+
+' ========== УВЕДЕМЛЕНИЯ / ЛОГИ ==========
+entity "notifications" as notifications {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  * type : notification_type <<ENUM>>
+  * title : VARCHAR(255)
+  body : TEXT
+  link : VARCHAR(500)
+  * is_read : BOOLEAN
+  created_at : TIMESTAMPTZ
+}
+
+entity "system_logs" as system_logs {
+  * id : UUID <<PK>>
+  --
+  * level : VARCHAR(20)
+  * source : VARCHAR(100)
+  * message : TEXT
+  context : JSONB
+  user_id : UUID <<FK>>
+  created_at : TIMESTAMPTZ
+}
+
+' =================== СВЯЗИ ===================
+
+' Auth → профили (1:1)
+users ||--|| students : "user_id 1:1"
+users ||--|| organizations : "user_id 1:1"
+
+' Профили → контент
+students ||--o{ student_skills : "1:M"
+students ||--o{ resumes : "1:M"
+students ||--o{ portfolio_items : "1:M"
+
+' Напарники (ненаправленная пара)
+students ||--o{ student_connections : "student_id (A)"
+students ||--o{ student_connections : "partner_id (B)"
+students ||--o{ student_connections : "requested_by"
+
+' Справочники ↔ проекты
+project_categories ||--o{ projects : "1:M"
+skills ||--o{ student_skills : "1:M"
+skills ||--o{ project_skills : "1:M"
+
+' Организации → проекты
+organizations ||--o{ projects : "1:M"
+projects ||--o{ project_skills : "1:M"
+
+' Отклики
+projects ||--o{ applications : "1:M"
+students ||--o{ applications : "LEAD 1:M"
+users ||--o{ applications : "status_changed_by"
+applications ||--o{ application_members : "1:M"
+students ||--o{ application_members : "1:M"
+projects ||--o{ application_members : "1:M (denorm)"
+
+' Чат
+applications ||--|| chats : "1:1"
+chats ||--o{ messages : "1:M"
+users ||--o{ messages : "sender 1:M"
+
+' Служебное
+users ||--o{ notifications : "1:M"
+users ||--o{ system_logs : "optional 1:M"
+
+@enduml

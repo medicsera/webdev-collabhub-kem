@@ -66,3 +66,5 @@ mongo_data/
 # Служебные файлы ОС
 .DS_Store
 Thumbs.db
+
+docs/

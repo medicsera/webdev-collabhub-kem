@@ -1,25 +1,24 @@
-# Читает API-ключи
 import os
+
 from dotenv import load_dotenv
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-# Ищет файл .env в корне проекта и загружает из него переменные в систему
 load_dotenv()
 
-# Сохраняем ключ для удобного импорта в других модулях
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GIGACHAT_CREDENTIALS = os.getenv("GIGACHAT_CREDENTIALS")
 
-if not GROQ_API_KEY:
-    raise ValueError("Переменная GROQ_API_KEY не найдена в файле .env")
+if not GIGACHAT_CREDENTIALS:
+    raise ValueError("Переменная GIGACHAT_CREDENTIALS не найдена в файле .env")
 
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CollabHub AI Service"
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_AI_MODEL", "openai/gpt-oss-120b")
+    GIGACHAT_CREDENTIALS: str = os.getenv("GIGACHAT_CREDENTIALS", "")
+    GIGACHAT_SCOPE: str = os.getenv("GIGACHAT_SCOPE", "GIGACHAT_API_PERS")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_AI_MODEL", "GigaChat-2")
+    EMBEDDING_MODEL_NAME: str = "sentence-transformers/all-MiniLM-L12-v2"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 settings = Settings()
