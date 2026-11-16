@@ -105,6 +105,42 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
     myCompanyProjects
   );
 
+  // Отклики: для каждого кандидата — навыки из stack, проект по названию c.project
+  const candidateMatchScores = useMemo(() => {
+    const map = new Map<string, { score: number; ai: boolean }>();
+    for (const c of candidates) {
+      const project = myCompanyProjects.find(
+        (p) => p.title.toLowerCase().trim() === c.project.toLowerCase().trim()
+      );
+      const studentLike: StudentProfile = {
+        id: c.studentId ?? (Number(c.id.replace(/\D/g, '')) || 0),
+        name: c.name,
+        group: c.group,
+        year: '4',
+        university: 'КемГУ',
+        specialization: '',
+        telegram: '',
+        city: 'Кемерово',
+        status: c.status,
+        skills: (c.stack || []).map((s) =>
+          typeof s === 'string'
+            ? { name: s, level: 'INTERMEDIATE' as const }
+            : { name: s.name, level: s.level || 'INTERMEDIATE' }
+        ),
+        bio: '',
+        aiMatch: c.match,
+        aiFeedback: '',
+      };
+
+      let ai: number | undefined;
+      if (project) {
+        ai = getScore(studentLike, project);
+      }
+      map.set(c.id, { score: ai ?? c.match, ai: ai !== undefined });
+    }
+    return map;
+  }, [candidates, myCompanyProjects, getScore]);
+
   // Статистика проектов компании
   const activeProjectsCount = myCompanyProjects.filter(
     (p) => (p.projectStatus || 'ACTIVE') === 'ACTIVE'
@@ -1282,7 +1318,15 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                             </span>
                           )}
 
-                          <SemanticMatchBadge score={c.match} size="sm" />
+                          <SemanticMatchBadge
+                            score={candidateMatchScores.get(c.id)?.score ?? c.match}
+                            size="sm"
+                            aiPowered={candidateMatchScores.get(c.id)?.ai ?? false}
+                            pending={
+                              semanticStatus === 'loading' &&
+                              !(candidateMatchScores.get(c.id)?.ai ?? false)
+                            }
+                          />
 
                           {isAccepted && (
                             <span className="px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-brass text-brass">

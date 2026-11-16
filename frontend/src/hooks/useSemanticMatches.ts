@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Project, StudentProfile } from '../types';
 import { postSemanticMatchApi } from '../api';
+import {
+  buildMatchPairs,
+  loadCachedScores,
+  saveCachedScores,
+  type SemanticScores,
+} from '../utils/semanticMatchCache';
 
-export type SemanticScores = Record<string, number>;
+export type { SemanticScores };
 export type SemanticMatchStatus = 'loading' | 'ready' | 'error';
 
 /** Ключ пары «студент ↔ проект»: `${student}:${project}` */
@@ -23,12 +29,14 @@ interface UseSemanticMatchesResult {
 
 /**
  * Семантический матч через ai-service (эмбеддинги MiniLM-L12-v2).
+ *
  * Считает батч «студенты × проекты» одним запросом к POST /api/v1/semantic-match.
- * При недоступности AI-сервиса возвращает пустые scores — вызывающий код
- * остаётся на локальной эвристике.
+ * Результаты кэшируются в localStorage: при повторном открытии вкладки счёт
+ * берётся из кэша, запрос уходит только для пар, чей хеш входных данных
+ * (навыки студента × требования проекта) изменился.
  *
  * Важно: students и projects должны быть стабильными ссылками
- * (useMemo в родителе), иначе запрос будет уходить на каждый рендер.
+ * (useMemo в родителе), иначе эффект будет перезапускаться на каждый рендер.
  */
 export function useSemanticMatches(
   students: StudentProfile[],
@@ -37,29 +45,15 @@ export function useSemanticMatches(
   const [scores, setScores] = useState<SemanticScores>({});
   const [status, setStatus] = useState<SemanticMatchStatus>('loading');
 
-  const pairs = useMemo(() => {
-    const list = [];
-    for (const student of students) {
-      const studentSkills = student.skills.map((sk) => ({
-        name: sk.name,
-        proficiency_level: sk.level,
-      }));
-      if (studentSkills.length === 0) continue;
-      for (const project of projects) {
-        const requirements =
-          project.requiredSkills && project.requiredSkills.length > 0
-            ? project.requiredSkills.map((r) => r.name)
-            : project.tags;
-        if (requirements.length === 0) continue;
-        list.push({
-          key: semanticKey(student, project),
-          studentSkills,
-          projectRequirements: requirements,
-        });
-      }
-    }
-    return list;
-  }, [students, projects]);
+  const pairs = useMemo(() => buildMatchPairs(students, projects), [students, projects]);
+
+  // Подпись состава пар: эффект перезапускается только при изменении
+  // ключей/хешей (т.е. реально изменились навыки или требования), а не при
+  // новой ссылке на массив students/projects.
+  const pairsSignature = useMemo(
+    () => pairs.map((p) => `${p.key}@${p.hash}`).join('|'),
+    [pairs],
+  );
 
   useEffect(() => {
     if (pairs.length === 0) {
@@ -69,26 +63,49 @@ export function useSemanticMatches(
     }
 
     let cancelled = false;
+
+    // 1. Кэш: только пары с совпавшим хешем входных данных
+    const cached = loadCachedScores(pairs);
+    const missing = pairs.filter((p) => cached[p.key] === undefined);
+
+    if (missing.length === 0) {
+      // Всё уже посчитано и данные не менялись — без сетевого запроса
+      setScores(cached);
+      setStatus('ready');
+      return;
+    }
+
+    // 2. Частичный кэш показываем сразу, недостающее — докачиваем
+    setScores(cached);
     setStatus('loading');
-    postSemanticMatchApi(pairs)
-      .then((next) => {
-        if (!cancelled) {
-          setScores(next);
-          setStatus('ready');
-        }
+
+    postSemanticMatchApi(missing)
+      .then((fresh) => {
+        if (cancelled) return;
+
+        const next: SemanticScores = { ...cached, ...fresh };
+        const toSave = missing
+          .filter((p) => fresh[p.key] !== undefined)
+          .map((p) => ({ key: p.key, hash: p.hash, score: fresh[p.key] }));
+        saveCachedScores(toSave);
+
+        setScores(next);
+        setStatus('ready');
       })
       .catch((err: unknown) => {
         console.warn('[semantic-match] AI-сервис недоступен, используем локальную эвристику', err);
-        if (!cancelled) {
-          setScores({});
-          setStatus('error');
-        }
+        if (cancelled) return;
+        // Кэшированные счёта оставляем; без кэша — пусто → локальная эвристика
+        setScores(cached);
+        setStatus(Object.keys(cached).length > 0 ? 'ready' : 'error');
       });
 
     return () => {
       cancelled = true;
     };
-  }, [pairs]);
+    // pairsSignature покрывает changes keys/hashes; pairs нужен для значений внутри
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pairsSignature]);
 
   return useMemo(() => {
     const getScore = (student: StudentProfile, project: Project): number | undefined =>

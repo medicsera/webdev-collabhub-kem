@@ -1,15 +1,18 @@
 import React, { useMemo } from 'react';
 import { MessageSquare, Users, Crown, FileText, CheckCircle2, Clock, FolderGit2 } from 'lucide-react';
-import type { Project, ProjectApplication } from '../../types';
+import type { Project, ProjectApplication, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { canUserAccessApplicationChat } from '../../utils/dbValidation';
 import { EmptyState } from '../EmptyState';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface MyProjectsTabProps {
   projects: Project[];
   applications?: ProjectApplication[];
   currentStudentId?: number | string;
+  /** Текущий студент — для векторного матча с проектами */
+  studentProfile?: StudentProfile;
   onOpenChat?: (chatId: string) => void;
   onViewCompany?: (companyId: number, companyName: string) => void;
   onNavigateToCatalog?: () => void;
@@ -19,6 +22,7 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
   projects,
   applications = [],
   currentStudentId = 1,
+  studentProfile,
   onOpenChat,
   onViewCompany,
   onNavigateToCatalog,
@@ -31,6 +35,56 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
   }, [applications, currentStudentId]);
 
   const hasApplications = myApplications.length > 0;
+
+  // Векторный матч текущего студента с проектами (MiniLM embeddings)
+  const studentForMatch = useMemo(
+    () => (studentProfile ? [studentProfile] : []),
+    [studentProfile],
+  );
+
+  // Карточка ВКР как отдельная «проектная» единица для матчинга стека диплома
+  const vkrProject = useMemo<Project>(
+    () => ({
+      id: -1,
+      index: 'ВКР',
+      title: 'Информационная система взаимодействия студентов и профильных организаций',
+      company: 'КемГУ / IT-дирекция',
+      department: 'IT-дирекция КемГУ',
+      type: 'ВКР / Диплом',
+      match: 98,
+      teamSize: '2 студента',
+      desc: 'Веб-платформа с микросервисом рекомендаций на pgvector и MiniLM-L12-v2.',
+      tags: ['React', 'TypeScript', 'FastAPI', 'PostgreSQL', 'Docker'],
+      requiredSkills: [
+        { name: 'React', level: 'ADVANCED' },
+        { name: 'TypeScript', level: 'ADVANCED' },
+        { name: 'FastAPI', level: 'INTERMEDIATE' },
+        { name: 'PostgreSQL', level: 'ADVANCED' },
+        { name: 'Docker', level: 'INTERMEDIATE' },
+      ],
+      applied: false,
+    }),
+    [],
+  );
+
+  const matchProjects = useMemo(
+    () => (studentProfile ? [...projects, vkrProject] : projects),
+    [projects, studentProfile, vkrProject],
+  );
+
+  const { getScore, status: semanticStatus } = useSemanticMatches(
+    studentForMatch,
+    matchProjects,
+  );
+
+  /** Счёт для карточки проекта: AI-эмбеддинги, иначе локальная эвристика */
+  const scoreForProject = (project: Project | undefined): { score: number; ai: boolean } => {
+    if (!project || !studentProfile) return { score: project?.match ?? 0, ai: false };
+    const ai = getScore(studentProfile, project);
+    return ai !== undefined ? { score: ai, ai: true } : { score: project.match, ai: false };
+  };
+
+  const vkrScore = scoreForProject(vkrProject);
 
   const getApplicationStatusBadge = (status: ProjectApplication['status']) => {
     switch (status) {
@@ -94,7 +148,14 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
             <span className="text-xs font-mono text-ink-muted dark:text-stone-400">
               Шифр: FIT-2026-CH
             </span>
-            <SemanticMatchBadge score={98} size="sm" label="Семантический матч ВКР" />
+            {/* ВКР: матч стека диплома с навыками студента через embeddings */}
+            <SemanticMatchBadge
+              score={vkrScore.score}
+              size="sm"
+              label="Семантический матч ВКР"
+              aiPowered={vkrScore.ai}
+              pending={studentForMatch.length > 0 && semanticStatus === 'loading' && !vkrScore.ai}
+            />
           </div>
           <span className="text-xs font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light font-medium">
             Срок сдачи: 15 Ноября 2026
@@ -207,7 +268,16 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
                         )}
                         <span>• {project.type}</span>
                       </div>
-                      <SemanticMatchBadge score={project.match} size="sm" />
+                      <SemanticMatchBadge
+                        score={scoreForProject(project).score}
+                        size="sm"
+                        aiPowered={scoreForProject(project).ai}
+                        pending={
+                          studentForMatch.length > 0 &&
+                          semanticStatus === 'loading' &&
+                          !scoreForProject(project).ai
+                        }
+                      />
                       {app.isTeam && (
                         <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-oxblood/10 text-oxblood dark:text-oxblood-light border border-oxblood/30 flex items-center gap-1">
                           <Users className="w-3 h-3" /> Командный отклик

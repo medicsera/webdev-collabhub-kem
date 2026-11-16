@@ -1,12 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Plus } from 'lucide-react';
-import type { Project, Role, ProjectFormat } from '../../types';
+import type { Project, Role, ProjectFormat, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface CatalogTabProps {
   projects: Project[];
   currentRole: Role;
+  /** Текущий студент — для векторного матча «я ↔ проект» */
+  studentProfile?: StudentProfile;
   onSelectProject: (project: Project) => void;
   onOpenCreateModal: () => void;
   onViewCompany?: (companyId: number, companyName: string) => void;
@@ -15,6 +18,7 @@ interface CatalogTabProps {
 export const CatalogTab: React.FC<CatalogTabProps> = ({
   projects,
   currentRole,
+  studentProfile,
   onSelectProject,
   onOpenCreateModal,
   onViewCompany,
@@ -22,6 +26,13 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
   const [search, setSearch] = useState('');
   const [selectedFormat, setSelectedFormat] = useState<ProjectFormat>('all');
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
+
+  // Векторный матч текущего студента с каждым проектом (MiniLM embeddings)
+  const studentForMatch = useMemo(
+    () => (currentRole === 'student' && studentProfile ? [studentProfile] : []),
+    [currentRole, studentProfile],
+  );
+  const { getScore, status: semanticStatus } = useSemanticMatches(studentForMatch, projects);
 
   const companies = useMemo(() => {
     const set = new Set<string>();
@@ -160,6 +171,14 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                 ? p.requiredSkills
                 : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
 
+            // Приоритет: векторный счёт ai-service, иначе локальная эвристика проекта
+            const aiScore =
+              studentForMatch.length > 0 && studentProfile
+                ? getScore(studentProfile, p)
+                : undefined;
+            const matchScore = aiScore ?? p.match;
+            const aiPowered = aiScore !== undefined;
+
             return (
               <article
                 key={p.id}
@@ -194,7 +213,12 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                         </span>
                       )}
                     </div>
-                    <SemanticMatchBadge score={p.match} size="sm" />
+                    <SemanticMatchBadge
+                      score={matchScore}
+                      size="sm"
+                      aiPowered={aiPowered}
+                      pending={studentForMatch.length > 0 && semanticStatus === 'loading' && !aiPowered}
+                    />
                   </div>
 
                   <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">

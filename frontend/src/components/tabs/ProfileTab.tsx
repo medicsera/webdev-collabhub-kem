@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   RotateCw,
   Sparkles,
@@ -9,15 +9,18 @@ import {
   Briefcase,
   ExternalLink,
 } from 'lucide-react';
-import type { StudentProfile, StudentConnection } from '../../types';
+import type { StudentProfile, StudentConnection, Project } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { formatYearDisplay } from '../../utils/dbValidation';
 import { StudentConnectionsSection } from '../StudentConnectionsSection';
 import { EmptyState } from '../EmptyState';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface ProfileTabProps {
   profile: StudentProfile;
+  /** Проекты для векторного матча профиля с задачами компаний */
+  projects?: Project[];
   connections?: StudentConnection[];
   allStudents?: StudentProfile[];
   onUpdateBio: (newBio: string) => void;
@@ -35,6 +38,7 @@ interface ProfileTabProps {
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({
   profile,
+  projects = [],
   connections = [],
   allStudents = [],
   onUpdateBio,
@@ -50,6 +54,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onLogout,
 }) => {
   const [bioInput, setBioInput] = useState(profile.bio);
+
+  // Векторный анализ: лучший матч профиля среди проектов (MiniLM embeddings)
+  const { bestScore, status: semanticStatus } = useSemanticMatches(
+    useMemo(() => [profile], [profile]),
+    projects,
+  );
+  const aiBest = bestScore(profile, projects);
+  const matchScore = aiBest?.score ?? profile.aiMatch;
+  const aiPowered = aiBest !== undefined;
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setBioInput(e.target.value);
@@ -202,7 +215,13 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               <span className="text-oxblood dark:text-oxblood-light">
                 Анализ навыков и подходящих задач:
               </span>
-              <SemanticMatchBadge score={profile.aiMatch} size="sm" />
+              <SemanticMatchBadge
+                score={matchScore}
+                size="sm"
+                aiPowered={aiPowered}
+                pending={projects.length > 0 && semanticStatus === 'loading' && !aiPowered}
+                label={aiBest ? `Матч «${aiBest.project.title.slice(0, 28)}…»` : 'Семантический матч'}
+              />
             </div>
             <p className="editorial-serif italic text-xl leading-relaxed text-ink dark:text-stone-200">
               «{profile.aiFeedback}»

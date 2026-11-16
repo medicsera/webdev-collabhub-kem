@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Building2,
   ExternalLink,
@@ -11,13 +11,16 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react';
-import type { CompanyProfile, Project } from '../../types';
+import type { CompanyProfile, Project, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface PublicCompanyProfileTabProps {
   company: CompanyProfile | null;
   projects: Project[];
+  /** Текущий студент — для векторного матча «я ↔ проекты компании» */
+  studentProfile?: StudentProfile;
   isLoading: boolean;
   error: string | null;
   onBack: () => void;
@@ -27,11 +30,29 @@ interface PublicCompanyProfileTabProps {
 export const PublicCompanyProfileTab: React.FC<PublicCompanyProfileTabProps> = ({
   company,
   projects,
+  studentProfile,
   isLoading,
   error,
   onBack,
   onSelectProject,
 }) => {
+  // Проекты этой компании — матч считаем только по ним
+  const companyProjects = useMemo(() => {
+    if (!company) return [];
+    return projects.filter(
+      (p) => p.company.toLowerCase() === company.name.toLowerCase()
+    );
+  }, [projects, company]);
+
+  const matchSubject = useMemo(
+    () => (studentProfile && studentProfile.skills?.length ? [studentProfile] : []),
+    [studentProfile],
+  );
+  const { getScore, status: semanticStatus } = useSemanticMatches(
+    matchSubject,
+    companyProjects,
+  );
+
   // Состояние загрузки
   if (isLoading) {
     return (
@@ -80,11 +101,6 @@ export const PublicCompanyProfileTab: React.FC<PublicCompanyProfileTabProps> = (
       </section>
     );
   }
-
-  // Проекты этой компании
-  const companyProjects = projects.filter(
-    (p) => p.company.toLowerCase() === company.name.toLowerCase()
-  );
 
   return (
     <section id="tab-public-company" className="fade-in space-y-8">
@@ -262,6 +278,13 @@ export const PublicCompanyProfileTab: React.FC<PublicCompanyProfileTabProps> = (
                       ? p.requiredSkills
                       : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
 
+                  const aiScore =
+                    matchSubject.length > 0 && studentProfile
+                      ? getScore(studentProfile, p)
+                      : undefined;
+                  const matchScore = aiScore ?? p.match;
+                  const aiPowered = aiScore !== undefined;
+
                   return (
                     <div
                       key={p.id}
@@ -272,7 +295,16 @@ export const PublicCompanyProfileTab: React.FC<PublicCompanyProfileTabProps> = (
                           <span className="text-xs font-mono font-medium text-oxblood dark:text-oxblood-light">
                             {p.index} • {p.type} • Группа: {p.teamSize}
                           </span>
-                          <SemanticMatchBadge score={p.match} size="sm" />
+                          <SemanticMatchBadge
+                            score={matchScore}
+                            size="sm"
+                            aiPowered={aiPowered}
+                            pending={
+                              matchSubject.length > 0 &&
+                              semanticStatus === 'loading' &&
+                              !aiPowered
+                            }
+                          />
                         </div>
                         {onSelectProject && (
                           <button
