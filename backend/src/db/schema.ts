@@ -168,6 +168,10 @@ export const students = pgTable(
         avatarUrl: varchar('avatar_url', { length: 500 }),
         /** Эмбеддинг профиля для векторного поиска (НФР-12, ФР-04/07) */
         embedding: vector384('embedding'),
+        /** Последний ИИ-матч профиля с лучшим проектом (0-100) */
+        aiMatchScore: real('ai_match_score'),
+        /** Текстовая сводка GigaChat-анализа для блока рекомендаций */
+        aiFeedback: text('ai_feedback'),
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
         updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
     },

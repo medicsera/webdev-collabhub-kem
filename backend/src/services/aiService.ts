@@ -81,6 +81,78 @@ export class AiService {
             return null
         }
     }
+
+    /** GigaChat-разбор пробелов (без эмбеддингов) — для блока рекомендаций */
+    async analyze(
+        studentSkills: string[],
+        projectTitle: string,
+        projectDescription: string,
+        projectRequirements: string[],
+        extra?: { studentBio?: string; matchScore?: number },
+    ): Promise<{
+        summary: string
+        matching_skills: string[]
+        missing_skills: string[]
+        recommendations: string[]
+    }> {
+        const response = await fetch(`${this.baseUrl}/api/v1/analyze`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                student_skills: studentSkills,
+                project_title: projectTitle,
+                project_description: projectDescription,
+                project_requirements: projectRequirements,
+                student_bio: extra?.studentBio,
+                match_score: extra?.matchScore,
+            }),
+        })
+        if (!response.ok) {
+            const errorDetails = await response.text()
+            console.error('Analyze error:', errorDetails)
+            throw new Error(`AI service analyze error ${response.status}`)
+        }
+        return response.json()
+    }
+}
+
+/** Сводка GigaChat-анализа → один абзац для profile.aiFeedback */
+export function formatAiFeedback(
+    analysis: {
+        summary?: string
+        matching_skills?: string[]
+        missing_skills?: string[]
+        recommendations?: string[]
+    },
+    projectTitle: string,
+    matchScore: number,
+    studentSkills?: string[],
+): string {
+    // Страховка: missing без пересечения с навыками студента не показываем
+    const skillSet = new Set((studentSkills ?? []).map((s) => s.trim().toLowerCase()))
+    const missing = studentSkills
+        ? (analysis.missing_skills ?? []).filter(
+              (m) => !skillSet.has(m.trim().toLowerCase()),
+          )
+        : (analysis.missing_skills ?? []).filter(Boolean)
+
+    const parts: string[] = []
+    const summary = analysis.summary?.trim()
+    if (summary) {
+        parts.push(summary)
+    } else {
+        parts.push(
+            `Ваш профиль показывает ${Math.round(matchScore)}% семантического соответствия с требованиями проекта «${projectTitle}».`,
+        )
+    }
+    if (missing.length > 0) {
+        parts.push(`Стоит закрыть пробелы: ${missing.join(', ')}.`)
+    }
+    const recs = analysis.recommendations?.filter(Boolean) ?? []
+    if (recs.length > 0) {
+        parts.push(recs.join(' '))
+    }
+    return parts.join(' ')
 }
 
 export const aiService = new AiService()
