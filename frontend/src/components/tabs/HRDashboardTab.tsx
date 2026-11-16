@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users,
-  Building2,
   Search,
   Filter,
   X,
@@ -43,7 +43,7 @@ interface HRDashboardTabProps {
   initialSubTab?: 'projects' | 'matching' | 'applications';
   onApproveCandidate: (candidateId: string) => void;
   onContactCandidate: (candidateName: string) => void;
-  onNavigateToCompanyProfile: () => void;
+  onNavigateToCompanyProfile?: () => void;
   onViewStudent?: (studentId: number) => void;
   onOpenChat?: (chatId: string) => void;
   onOpenCreateModal?: () => void;
@@ -68,10 +68,60 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   onDeleteProject,
   onUpdateProjectStatus,
 }) => {
-  // Главная система вкладок панели компании (По умолчанию — «Мои проекты»)
-  const [activeSubTab, setActiveSubTab] = useState<'projects' | 'matching' | 'applications'>(
-    initialSubTab
-  );
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Главная система вкладок панели компании, синхронизированная с URL (?tab=projects|matching|applications)
+  const subTabFromUrl = searchParams.get('tab') as 'projects' | 'matching' | 'applications' | null;
+  const activeSubTab = subTabFromUrl || initialSubTab || 'projects';
+
+  const setActiveSubTab = (newSubTab: 'projects' | 'matching' | 'applications') => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', newSubTab);
+      return next;
+    }, { replace: true });
+  };
+
+  const handleCreateProjectNav = () => {
+    if (onOpenCreateModal) {
+      onOpenCreateModal();
+    } else {
+      navigate('/hr/projects/create');
+    }
+  };
+
+  const handleEditProjectNav = (project: Project) => {
+    if (onEditProject) {
+      onEditProject(project);
+    } else {
+      navigate(`/hr/projects/${project.id}/edit`);
+    }
+  };
+
+  const handleViewStudentNav = (studentId: number) => {
+    if (onViewStudent) {
+      onViewStudent(studentId);
+    } else {
+      navigate(`/students/${studentId}`);
+    }
+  };
+
+  const handleOpenChatNav = (chatId: string) => {
+    if (onOpenChat) {
+      onOpenChat(chatId);
+    } else {
+      navigate(`/chats?chatId=${encodeURIComponent(chatId)}`);
+    }
+  };
+
+  const handleEditCompanyNav = () => {
+    if (onNavigateToCompanyProfile) {
+      onNavigateToCompanyProfile();
+    } else {
+      navigate('/company/profile/edit');
+    }
+  };
 
   // Фильтры списка проектов
   const [projectStatusFilter, setProjectStatusFilter] = useState<string>('all');
@@ -268,22 +318,20 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
           <button
             type="button"
-            onClick={onNavigateToCompanyProfile}
-            className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard shadow-xs"
+            onClick={handleEditCompanyNav}
+            className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
           >
-            <Building2 className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
-            <span>Визитка компании</span>
+            <Edit className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
+            <span>Редактировать компанию</span>
           </button>
-          {onOpenCreateModal && (
-            <button
-              type="button"
-              onClick={onOpenCreateModal}
-              className="px-4 py-2 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-widest transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Добавить проект</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleCreateProjectNav}
+            className="btn-editorial px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-widest transition flex items-center gap-1.5 cursor-pointer border border-ink dark:border-paper-light"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Добавить проект</span>
+          </button>
         </div>
       </div>
 
@@ -291,7 +339,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           Сводка статистики
           ======================================================== */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 rounded-xs shadow-2xs">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
           <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             Всего проектов
           </div>
@@ -303,7 +351,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           </div>
         </div>
 
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 rounded-xs shadow-2xs">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
           <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             Активных (ACTIVE)
           </div>
@@ -315,11 +363,11 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           </div>
         </div>
 
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 rounded-xs shadow-2xs">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
           <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             В черновиках (DRAFT)
           </div>
-          <div className="editorial-serif text-3xl sm:text-4xl font-bold mt-1.5 text-amber-600 dark:text-amber-400">
+          <div className="editorial-serif text-3xl sm:text-4xl font-bold mt-1.5 text-oxblood dark:text-oxblood-light">
             {String(draftProjectsCount).padStart(2, '0')}
           </div>
           <div className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-1.5">
@@ -327,7 +375,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           </div>
         </div>
 
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 rounded-xs shadow-2xs">
+        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
           <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
             Откликов студентов
           </div>
@@ -419,16 +467,19 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400">
                   Формат:
                 </span>
-                <select
-                  value={projectTypeFilter}
-                  onChange={(e) => setProjectTypeFilter(e.target.value)}
-                  className="px-3 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
-                >
-                  <option value="all">Все форматы</option>
-                  <option value="ВКР / Диплом">ВКР / Диплом</option>
-                  <option value="Стажировка">Стажировка</option>
-                  <option value="Курсовой проект">Курсовой проект</option>
-                </select>
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={projectTypeFilter}
+                    onChange={(e) => setProjectTypeFilter(e.target.value)}
+                    className="appearance-none pl-3.5 pr-9 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+                  >
+                    <option value="all">Все форматы</option>
+                    <option value="ВКР / Диплом">ВКР / Диплом</option>
+                    <option value="Стажировка">Стажировка</option>
+                    <option value="Курсовой проект">Курсовой проект</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-ink-muted dark:text-stone-400" />
+                </div>
               </div>
             </div>
 
@@ -511,16 +562,14 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                   ? 'Опубликуйте первый проект или сохраните его в черновик для начала отбора кандидатов'
                   : 'Попробуйте изменить параметры поиска или фильтрации по статусу'}
               </p>
-              {onOpenCreateModal && (
-                <button
-                  type="button"
-                  onClick={onOpenCreateModal}
-                  className="mt-2 px-5 py-2.5 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Создать новый проект</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleCreateProjectNav}
+                className="btn-editorial mt-2 px-5 py-2.5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer border border-ink dark:border-paper-light"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Создать новый проект</span>
+              </button>
             </div>
           ) : (
             <div className="space-y-5">
@@ -545,7 +594,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 return (
                   <article
                     key={p.id}
-                    className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-4 hover:border-ink/40 dark:hover:border-stone-500 transition-colors shadow-2xs"
+                    className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-4 hover:border-ink/60 dark:hover:border-paper-darkBorder transition-colors"
                   >
                     {/* Верхняя строка: Индекс, формат, статус и переключатель статуса */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-paper-border/60 dark:border-paper-darkBorder/60 pb-3">
@@ -640,7 +689,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenMatchingForProject(p.id)}
-                          className="px-3.5 py-1.5 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                          className="btn-editorial px-3.5 py-1.5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer border border-ink dark:border-paper-light"
                           title="Открыть детальный подбор кандидатов с ИИ-ранжированием под этот проект"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-amber-300" />
@@ -665,16 +714,14 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
 
                       {/* Правая группа: Редактирование, статус и удаление */}
                       <div className="flex items-center gap-2 self-start md:self-auto">
-                        {onEditProject && (
-                          <button
-                            type="button"
-                            onClick={() => onEditProject(p)}
-                            className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                            <span>Редактировать</span>
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleEditProjectNav(p)}
+                          className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Редактировать</span>
+                        </button>
 
                         {onDeleteProject && (
                           <button
@@ -741,7 +788,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                                       {match.missingSkills.map((sk) => (
                                         <span
                                           key={sk}
-                                          className="px-1.5 py-0.2 bg-paper-muted dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-ink dark:text-stone-300 rounded-2xs"
+                                          className="px-1.5 py-0.2 bg-paper-muted dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-ink dark:text-stone-300"
                                         >
                                           +{sk}
                                         </span>
@@ -751,15 +798,13 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                                 </div>
 
                                 <div className="flex items-center gap-2 shrink-0">
-                                  {onViewStudent && (
-                                    <button
-                                      type="button"
-                                      onClick={() => onViewStudent(studentId)}
-                                      className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink text-ink dark:text-ink-light transition cursor-pointer"
-                                    >
-                                      Резюме
-                                    </button>
-                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleViewStudentNav(studentId)}
+                                    className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink text-ink dark:text-ink-light transition cursor-pointer"
+                                  >
+                                    Резюме
+                                  </button>
                                   <button
                                     type="button"
                                     onClick={() => onContactCandidate(student.name)}
@@ -790,9 +835,9 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         <div className="space-y-6">
           {/* Селектор проекта для семантического матчинга */}
           {myCompanyProjects.length === 0 ? (
-            <div className="p-5 border-2 border-dashed border-brass/80 bg-brass/10 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xs">
+            <div className="p-5 border-2 border-dashed border-brass/80 bg-brass/10 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xs bg-brass/20 text-brass flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-brass/20 text-brass flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
@@ -804,19 +849,17 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                   </p>
                 </div>
               </div>
-              {onOpenCreateModal && (
-                <button
-                  type="button"
-                  onClick={onOpenCreateModal}
-                  className="px-4 py-2 bg-oxblood hover:bg-oxblood-hover text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 shrink-0 rounded-xs cursor-pointer shadow-xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Создать проект</span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleCreateProjectNav}
+                className="btn-editorial px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 shrink-0 cursor-pointer border border-ink dark:border-paper-light"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Создать проект</span>
+              </button>
             </div>
           ) : (
-            <div className="p-4 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xs shadow-2xs">
+            <div className="p-4 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-brass shrink-0" />
                 <div>
@@ -828,22 +871,25 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                   </span>
                 </div>
               </div>
-              <select
-                value={selectedMatchingProjectId}
-                onChange={(e) =>
-                  setSelectedMatchingProjectId(
-                    e.target.value === 'all' ? 'all' : Number(e.target.value)
-                  )
-                }
-                className="px-3.5 py-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder text-ink dark:text-ink-light focus:outline-none focus:border-oxblood rounded-xs cursor-pointer w-full sm:w-auto sm:min-w-[340px]"
-              >
-                <option value="all">★ Все проекты (лучшее совпадение)</option>
-                {myCompanyProjects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.index} • {p.title}
-                  </option>
-                ))}
-              </select>
+              <div className="relative w-full sm:w-auto">
+                <select
+                  value={selectedMatchingProjectId}
+                  onChange={(e) =>
+                    setSelectedMatchingProjectId(
+                      e.target.value === 'all' ? 'all' : Number(e.target.value)
+                    )
+                  }
+                  className="appearance-none pl-3.5 pr-9 py-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder text-ink dark:text-ink-light focus:outline-none focus:border-oxblood cursor-pointer w-full sm:w-auto sm:min-w-[340px]"
+                >
+                  <option value="all">★ Все проекты (лучшее совпадение)</option>
+                  {myCompanyProjects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.index} • {p.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+              </div>
             </div>
           )}
 
@@ -876,15 +922,18 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400">
                   Курс:
                 </span>
-                <select
-                  value={selectedCourse}
-                  onChange={(e) => setSelectedCourse(e.target.value)}
-                  className="px-3 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
-                >
-                  <option value="all">Все курсы</option>
-                  <option value="IV Курс">IV Курс (ВКР)</option>
-                  <option value="III Курс">III Курс (Практика)</option>
-                </select>
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={selectedCourse}
+                    onChange={(e) => setSelectedCourse(e.target.value)}
+                    className="appearance-none pl-3.5 pr-9 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+                  >
+                    <option value="all">Все курсы</option>
+                    <option value="IV Курс">IV Курс (ВКР)</option>
+                    <option value="III Курс">III Курс (Практика)</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-ink-muted dark:text-stone-400" />
+                </div>
               </div>
             </div>
 
@@ -974,63 +1023,49 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       {/* Левый блок: Аватар и Инфо о студенте */}
                       <div className="flex items-start gap-4">
-                        {onViewStudent ? (
-                          <button
-                            type="button"
-                            onClick={() => onViewStudent(studentId)}
-                            className="w-14 h-14 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-lg hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer shadow-xs group overflow-hidden"
-                            title={`Открыть резюме: ${student.name}`}
-                          >
-                            {student.avatarUrl ? (
-                              <img
-                                src={student.avatarUrl}
-                                alt={student.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <span className="group-hover:text-oxblood dark:group-hover:text-oxblood-light">
-                                {student.name
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .slice(0, 2)
-                                  .join('')}
-                              </span>
-                            )}
-                          </button>
-                        ) : (
-                          <div className="w-14 h-14 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-lg overflow-hidden">
-                            {student.name
-                              .split(' ')
-                              .map((n) => n[0])
-                              .slice(0, 2)
-                              .join('')}
-                          </div>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleViewStudentNav(studentId)}
+                          className="w-14 h-14 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-lg hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer group overflow-hidden"
+                          title={`Открыть резюме: ${student.name}`}
+                        >
+                          {student.avatarUrl ? (
+                            <img
+                              src={student.avatarUrl}
+                              alt={student.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="group-hover:text-oxblood dark:group-hover:text-oxblood-light">
+                              {student.name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .slice(0, 2)
+                                .join('')}
+                            </span>
+                          )}
+                        </button>
 
                         <div className="space-y-1.5">
                           <div className="flex flex-wrap items-center gap-3">
                             <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
-                              {onViewStudent ? (
-                                <button
-                                  type="button"
-                                  onClick={() => onViewStudent(studentId)}
-                                  className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
-                                >
-                                  {student.name}
-                                </button>
-                              ) : (
-                                student.name
-                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleViewStudentNav(studentId)}
+                                className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
+                              >
+                                {student.name}
+                              </button>
                             </span>
 
                             {myCompanyProjects.length === 0 ? (
-                              <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
+                              <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700">
                                 Опубликуйте проект для расчета совместимости
                               </span>
                             ) : matchResult ? (
                               <SemanticMatchBadge score={matchResult.matchScore} size="sm" />
                             ) : (
-                              <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
+                              <span className="px-3 py-1 text-[11px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700">
                                 Опубликуйте проект для расчета совместимости
                               </span>
                             )}
@@ -1069,7 +1104,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                               {matchResult.missingSkills.map((sk) => (
                                 <span
                                   key={sk}
-                                  className="px-1.5 py-0.2 bg-paper-muted dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-ink dark:text-stone-300 rounded-2xs"
+                                  className="px-1.5 py-0.2 bg-paper-muted dark:bg-stone-800 border border-paper-border dark:border-stone-700 text-ink dark:text-stone-300"
                                 >
                                   +{sk}
                                 </span>
@@ -1095,20 +1130,18 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
 
                       {/* Правый блок действий */}
                       <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto pt-2 md:pt-0">
-                        {onViewStudent && (
-                          <button
-                            type="button"
-                            onClick={() => onViewStudent(studentId)}
-                            className="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard shadow-xs"
-                          >
-                            <span>Резюме</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleViewStudentNav(studentId)}
+                          className="btn-editorial px-4 py-2 text-xs font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
+                        >
+                          <span>Резюме</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => onContactCandidate(student.name)}
-                          className="px-4 py-2 text-xs font-mono uppercase tracking-wider bg-oxblood hover:bg-oxblood-hover text-white transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                          className="btn-editorial px-4 py-2 text-xs font-mono uppercase tracking-wider bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition flex items-center gap-1.5 cursor-pointer border border-ink dark:border-paper-light"
                         >
                           <Send className="w-3.5 h-3.5" />
                           <span>Пригласить</span>
@@ -1186,11 +1219,11 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                     className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-paper-muted/30 dark:hover:bg-paper-dark/60 transition"
                   >
                     <div className="flex items-start gap-4">
-                      {onViewStudent && c.studentId ? (
+                      {c.studentId ? (
                         <button
                           type="button"
-                          onClick={() => onViewStudent(c.studentId!)}
-                          className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer shadow-xs group overflow-hidden"
+                          onClick={() => handleViewStudentNav(c.studentId!)}
+                          className="w-12 h-12 border-2 border-ink dark:border-stone-400 bg-paper-muted dark:bg-paper-dark flex items-center justify-center text-ink dark:text-ink-light shrink-0 font-serif font-bold text-base hover:border-oxblood dark:hover:border-oxblood-light transition cursor-pointer group overflow-hidden"
                           title={`Открыть резюме: ${c.name}`}
                         >
                           {c.avatarUrl ? (
@@ -1222,10 +1255,10 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-3">
                           <span className="editorial-serif text-2xl font-semibold text-ink dark:text-ink-light">
-                            {onViewStudent && c.studentId ? (
+                            {c.studentId ? (
                               <button
                                 type="button"
-                                onClick={() => onViewStudent(c.studentId!)}
+                                onClick={() => handleViewStudentNav(c.studentId!)}
                                 className="hover:text-oxblood dark:hover:text-oxblood-light hover:underline cursor-pointer transition-colors text-left"
                               >
                                 {c.name}
@@ -1289,10 +1322,10 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
-                      {onOpenChat && c.applicationId && (
+                      {c.applicationId && (
                         <button
                           type="button"
-                          onClick={() => onOpenChat(`chat-${c.applicationId}`)}
+                          onClick={() => handleOpenChatNav(`chat-${c.applicationId}`)}
                           className="px-3.5 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood dark:hover:border-oxblood-light text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />

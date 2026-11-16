@@ -3,52 +3,98 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* ═══════════════════════════════════════════════════════════════
+     TYPOGRAPHY — Three-Tier Editorial System
+     ═══════════════════════════════════════════════════════════════ */
+  --font-display: "Playfair Display", "Cormorant Garamond", Georgia, serif;
   --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Golos Text", "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-paper-light: #F6F3EC;
-  --color-paper-card: #FBF9F5;
-  --color-paper-muted: #EBE5D8;
+  /* ═══════════════════════════════════════════════════════════════
+     PALETTE — Paper & Archival Ink
+     ═══════════════════════════════════════════════════════════════ */
+  /* Warm Newsprint surfaces */
+  --color-paper-light: #F5F2EB;
+  --color-paper-card: #FAF8F4;
+  --color-paper-muted: #EAE5D9;
   --color-paper-border: #D5CCB8;
-  --color-paper-dark: #141311;
+  --color-paper-dark: #141413;
   --color-paper-darkCard: #1C1A17;
   --color-paper-darkBorder: #332F29;
 
-  --color-ink: #181615;
-  --color-ink-muted: #5C564F;
+  /* Deep Printer's Ink */
+  --color-ink: #141413;
+  --color-ink-muted: #57534E;
   --color-ink-light: #EAE4DC;
 
-  --color-oxblood: #6E1E26;
-  --color-oxblood-hover: #53151B;
-  --color-oxblood-light: #A8424D;
+  /* Meta text (Muted Ash) */
+  --color-meta: #8A847C;
 
+  /* Hairline borders */
+  --color-hairline: rgba(20, 20, 19, 0.16);
+  --color-rule: #141413;
+
+  /* Editorial Vermilion / Stamp Red */
+  --color-oxblood: #C8372D;
+  --color-oxblood-hover: #A52D24;
+  --color-oxblood-light: #D4564D;
+
+  /* Hunter and Brass for semantic accents */
   --color-hunter: #1F3A2E;
   --color-hunter-light: #2D5241;
-
   --color-brass: #9E7B42;
+
+  /* ═══════════════════════════════════════════════════════════════
+     ANIMATION TIMING — Typographic Easing
+     ═══════════════════════════════════════════════════════════════ */
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 0.2s;
+  --duration-normal: 0.35s;
+  --duration-slow: 0.65s;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   BASE TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════ */
 body {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Golos Text', 'Inter', sans-serif;
   letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-h1,
-h2,
-h3,
+h1, h2, h3,
 .editorial-serif {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
 }
 
-/* Нативная поддержка плавного перехода View Transitions */
+.editorial-display {
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.editorial-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW TRANSITION SUPPORT — Circular Reveal
+   ═══════════════════════════════════════════════════════════════ */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.65s;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  z-index: 9999;
 }
 
-/* Высокопроизводительный шелковистый переход цветов основных плоскостей */
 html,
 body {
   transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
@@ -72,31 +118,224 @@ section,
               color 0.65s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Эффект двойной газетной линейки */
+/* ═══════════════════════════════════════════════════════════════
+   NEWSPAPER RULES & DIVIDERS
+   ═══════════════════════════════════════════════════════════════ */
 .double-rule-b {
-  border-bottom: 3px double #D5CCB8;
+  border-bottom: 3px double #141413;
 }
-
 .dark .double-rule-b {
   border-bottom: 3px double #332F29;
 }
 
 .double-rule-t {
-  border-top: 3px double #D5CCB8;
+  border-top: 3px double #141413;
 }
-
 .dark .double-rule-t {
   border-top: 3px double #332F29;
 }
 
+/* Thick editorial rule */
+.editorial-rule {
+  border-top: 3px solid #141413;
+}
+.dark .editorial-rule {
+  border-top: 3px solid #332F29;
+}
+
+/* Hairline rule */
+.hairline-rule {
+  border-top: 1px solid rgba(20, 20, 19, 0.16);
+}
+.dark .hairline-rule {
+  border-top: 1px solid #332F29;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAPER GRAIN TEXTURE — Subtle newsprint feel
+   ═══════════════════════════════════════════════════════════════ */
+.paper-grain::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  mix-blend-mode: multiply;
+}
+
+.dark .paper-grain::after {
+  opacity: 0.04;
+  mix-blend-mode: soft-light;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDITORIAL BUTTONS — Ink-Fill Hover
+   ═══════════════════════════════════════════════════════════════ */
+.btn-editorial {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.btn-editorial::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #141413;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+
+.btn-editorial:hover::before {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.btn-editorial:hover {
+  color: #F5F2EB;
+}
+
+.dark .btn-editorial::before {
+  background: #EAE4DC;
+}
+.dark .btn-editorial:hover {
+  color: #141413;
+}
+
+/* Primary filled button */
+.btn-primary {
+  background: #C8372D;
+  color: #F5F2EB;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover {
+  background: #A52D24;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDITORIAL LINK UNDERLINES — Slide animation
+   ═══════════════════════════════════════════════════════════════ */
+.link-editorial {
+  position: relative;
+  text-decoration: none;
+}
+
+.link-editorial::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-editorial:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDITORIAL TAGS / STAMPS — Monochrome typographic labels
+   ═══════════════════════════════════════════════════════════════ */
+.stamp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #141413;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dark .stamp-tag {
+  border-color: #EAE4DC;
+}
+
+/* Inverted stamp (filled) */
+.stamp-tag-filled {
+  background: #141413;
+  color: #F5F2EB;
+  border-color: #141413;
+}
+.dark .stamp-tag-filled {
+  background: #EAE4DC;
+  color: #141413;
+  border-color: #EAE4DC;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDITORIAL INPUTS — Underline/blank style
+   ═══════════════════════════════════════════════════════════════ */
+.input-editorial {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #141413;
+  border-radius: 0;
+  padding: 0.5rem 0;
+  font-family: 'Golos Text', sans-serif;
+  outline: none;
+  transition: border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.input-editorial:focus {
+  border-bottom-color: #C8372D;
+}
+.dark .input-editorial {
+  border-bottom-color: #EAE4DC;
+  color: #EAE4DC;
+}
+.dark .input-editorial:focus {
+  border-bottom-color: #D4564D;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   NEWSPAPER GRID — Collapsed borders
+   ═══════════════════════════════════════════════════════════════ */
+.newspaper-grid {
+  display: grid;
+  gap: 0;
+}
+
+.newspaper-grid > * {
+  border: 0.5px solid rgba(20, 20, 19, 0.16);
+}
+
+.dark .newspaper-grid > * {
+  border-color: #332F29;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
 .fade-in {
-  animation: fadeIn 0.25s ease-out;
+  animation: fadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(3px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -104,15 +343,66 @@ section,
   }
 }
 
-/* Атмосферный эффект рассвета (Dawn) — мягкий золотисто-розовый утренний свет */
+/* Staggered reveal for grid children */
+.stagger-reveal > * {
+  animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-reveal > *:nth-child(1) { animation-delay: 0s; }
+.stagger-reveal > *:nth-child(2) { animation-delay: 0.05s; }
+.stagger-reveal > *:nth-child(3) { animation-delay: 0.1s; }
+.stagger-reveal > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger-reveal > *:nth-child(5) { animation-delay: 0.2s; }
+.stagger-reveal > *:nth-child(6) { animation-delay: 0.25s; }
+.stagger-reveal > *:nth-child(7) { animation-delay: 0.3s; }
+.stagger-reveal > *:nth-child(8) { animation-delay: 0.35s; }
+.stagger-reveal > *:nth-child(9) { animation-delay: 0.4s; }
+
+/* Grid-draw: line reveal for borders */
+@keyframes gridLineRevealH {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes gridLineRevealV {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.grid-line-h {
+  transform-origin: left;
+  animation: gridLineRevealH 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.grid-line-v {
+  transform-origin: top;
+  animation: gridLineRevealV 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDITORIAL PAGE TURN / TAB SWITCHING
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes editorialPageEnter {
+  0% {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.editorial-page-turn {
+  animation: editorialPageEnter 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* Dawn/Sunset atmospheric overlays */
 .dawn-overlay {
-  background: radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.32) 0%, rgba(249, 115, 22, 0.18) 35%, rgba(168, 66, 77, 0.1) 60%, transparent 80%),
+  background: radial-gradient(circle at 85% 15%, rgba(251, 191, 36, 0.32) 0%, rgba(249, 115, 22, 0.18) 35%, rgba(200, 55, 45, 0.1) 60%, transparent 80%),
               linear-gradient(to top, rgba(254, 240, 138, 0.22) 0%, rgba(254, 215, 170, 0.15) 50%, transparent 100%);
   animation: smoothAtmosphere 750ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
   will-change: opacity, transform;
 }
 
-/* Атмосферный эффект заката (Sunset) — глубокие сумеречные янтарно-багряные тона */
 .sunset-overlay {
   background: radial-gradient(circle at 85% 15%, rgba(245, 158, 11, 0.28) 0%, rgba(185, 28, 28, 0.22) 35%, rgba(30, 27, 75, 0.25) 65%, transparent 85%),
               linear-gradient(to bottom, rgba(15, 23, 42, 0.35) 0%, rgba(110, 30, 38, 0.2) 50%, transparent 100%);
@@ -121,46 +411,22 @@ section,
 }
 
 @keyframes smoothAtmosphere {
-  0% {
-    opacity: 0;
-    transform: scale(0.99);
-  }
-  35% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.01);
-  }
+  0% { opacity: 0; transform: scale(0.99); }
+  35% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.01); }
 }
 
-/* ============================================================
-   Плавный переход между экраном авторизации и основным экраном
-   ============================================================ */
-
-/* Вход на экран: элемент появляется снизу */
+/* ═══════════════════════════════════════════════════════════════
+   AUTH SCREEN TRANSITIONS
+   ═══════════════════════════════════════════════════════════════ */
 @keyframes screenEnter {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
 }
 
-/* Выход с экрана: элемент уходит вверх и становится прозрачным */
 @keyframes screenExit {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-14px);
-  }
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-14px); }
 }
 
 .screen-enter {
@@ -172,88 +438,52 @@ section,
   pointer-events: none;
 }
 
-/* ============================================================
-   Анимация горизонтальной прокрутки при переключении окон/вкладок
-   (Каталог проектов / Мои заявки и ВКР / Мой профиль и ИИ)
-   (Панель компании / Профиль компании / Каталог проектов)
-   ============================================================ */
-
+/* ═══════════════════════════════════════════════════════════════
+   TAB SLIDE TRANSITIONS
+   ═══════════════════════════════════════════════════════════════ */
 .tabs-viewport {
   position: relative;
   width: 100%;
   overflow-x: clip;
 }
 
-/* Переход вперед (вправо): старая вкладка уезжает влево, новая въезжает справа */
 @keyframes tabSlideOutToLeft {
-  0% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-100%);
-    opacity: 0.1;
-  }
+  0% { transform: translateX(0%); opacity: 1; }
+  100% { transform: translateX(-100%); opacity: 0.1; }
 }
-
 @keyframes tabSlideInFromRight {
-  0% {
-    transform: translateX(100%);
-    opacity: 0.1;
-  }
-  100% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
+  0% { transform: translateX(100%); opacity: 0.1; }
+  100% { transform: translateX(0%); opacity: 1; }
 }
-
-/* Переход назад (влево): старая вкладка уезжает вправо, новая въезжает слева */
 @keyframes tabSlideOutToRight {
-  0% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0.1;
-  }
+  0% { transform: translateX(0%); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0.1; }
 }
-
 @keyframes tabSlideInFromLeft {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0.1;
-  }
-  100% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
+  0% { transform: translateX(-100%); opacity: 0.1; }
+  100% { transform: translateX(0%); opacity: 1; }
 }
 
 .tab-slide-out-left {
   animation: tabSlideOutToLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity;
 }
-
 .tab-slide-in-right {
   animation: tabSlideInFromRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity;
 }
-
 .tab-slide-out-right {
   animation: tabSlideOutToRight 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity;
 }
-
 .tab-slide-in-left {
   animation: tabSlideInFromLeft 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity;
 }
 
-/* ============================================================
-   Увеличенные отступы и комфортные размеры табов и ячеек
-   ============================================================ */
-
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION TAB SIZES
+   ═══════════════════════════════════════════════════════════════ */
 .nav-tab-button {
   min-height: 44px;
   min-width: 140px;
@@ -264,4 +494,15 @@ section,
 .subtab-button {
   min-height: 44px;
   padding: 10px 18px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCESSIBILITY: Reduced Motion
+   ═══════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

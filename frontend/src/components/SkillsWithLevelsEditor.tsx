@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronDown } from 'lucide-react';
 import type { SkillItem, SkillLevel } from '../types';
 import { SKILL_LEVEL_NAMES } from '../types';
 
@@ -82,7 +82,7 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
 
       {/* Список добавленных навыков с селектором уровня */}
       {skills.length > 0 ? (
-        <div className="space-y-1.5 max-h-52 overflow-y-auto p-2 border border-paper-border dark:border-paper-darkBorder bg-paper-light/50 dark:bg-paper-dark/60 rounded-xs">
+        <div className="space-y-1.5 max-h-52 overflow-y-auto p-2 border border-paper-border dark:border-paper-darkBorder bg-paper-light/50 dark:bg-paper-dark/60">
           {skills.map((skill) => (
             <div
               key={skill.name}
@@ -95,19 +95,27 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
               <div className="flex items-center gap-1.5 shrink-0">
                 {(['BASIC', 'INTERMEDIATE', 'ADVANCED'] as SkillLevel[]).map((lvl) => {
                   const isActive = skill.level === lvl;
+                  const getActiveColor = () => {
+                    switch (lvl) {
+                      case 'ADVANCED':
+                        return 'bg-emerald-100 text-emerald-950 border-emerald-600 dark:bg-emerald-950/90 dark:text-emerald-300 dark:border-emerald-500 font-bold';
+                      case 'INTERMEDIATE':
+                        return 'bg-sky-100 text-sky-950 border-sky-600 dark:bg-sky-950/90 dark:text-sky-300 dark:border-sky-500 font-bold';
+                      case 'BASIC':
+                      default:
+                        return 'bg-amber-100 text-amber-950 border-amber-600 dark:bg-amber-950/90 dark:text-amber-300 dark:border-amber-500 font-bold';
+                    }
+                  };
+
                   return (
                     <button
                       key={lvl}
                       type="button"
                       onClick={() => handleLevelChange(skill.name, lvl)}
-                      className={`px-2.5 py-1 text-[10px] font-mono font-medium uppercase tracking-wider transition-colors cursor-pointer border rounded-xs ${
+                      className={`px-2.5 py-1 text-[10px] font-mono font-medium uppercase tracking-wider transition-colors cursor-pointer border ${
                         isActive
-                          ? lvl === 'ADVANCED'
-                            ? 'bg-emerald-700 text-white border-emerald-800 dark:bg-emerald-600'
-                            : lvl === 'INTERMEDIATE'
-                            ? 'bg-sky-700 text-white border-sky-800 dark:bg-sky-600'
-                            : 'bg-amber-700 text-white border-amber-800 dark:bg-amber-600'
-                          : 'bg-paper-light dark:bg-stone-900 text-ink-muted dark:text-stone-300 border-paper-border dark:border-stone-700 hover:border-ink dark:hover:border-stone-400'
+                          ? getActiveColor()
+                          : 'bg-paper-light dark:bg-paper-dark text-ink-muted dark:text-stone-300 border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400'
                       }`}
                     >
                       {SKILL_LEVEL_NAMES[lvl]}
@@ -170,16 +178,17 @@ export const SkillsWithLevelsEditor: React.FC<SkillsWithLevelsEditorProps> = ({
           />
         </div>
 
-        <div className="sm:col-span-3">
+        <div className="sm:col-span-3 relative">
           <select
             value={newSkillLevel}
             onChange={(e) => setNewSkillLevel(e.target.value as SkillLevel)}
-            className="w-full h-10 px-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
+            className="appearance-none w-full h-10 pl-3 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
           >
             <option value="BASIC">Базовый</option>
             <option value="INTERMEDIATE">Уверенный</option>
             <option value="ADVANCED">Продвинутый</option>
           </select>
+          <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
         </div>
 
         <div className="sm:col-span-3">

@@ -10,6 +10,7 @@ interface CreateProjectModalProps {
   onCreate: (newProject: Omit<Project, 'id' | 'index' | 'match' | 'applied'>) => void;
   initialCompany?: string;
   initialDepartment?: string;
+  isPage?: boolean;
 }
 
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
@@ -18,6 +19,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onCreate,
   initialCompany = 'Софт Инжиниринг',
   initialDepartment = 'Департамент веб-разработки',
+  isPage = false,
 }) => {
   const [title, setTitle] = useState('');
   const company = initialCompany;
@@ -57,15 +59,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     onClose();
   };
 
-  return createPortal(
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
-      onClick={onClose}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-2xl mx-auto' : 'max-w-xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] overflow-hidden`}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
         {/* Зафиксированная шапка модального окна */}
         <div className="shrink-0 flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder px-5 sm:px-7 py-3.5 bg-paper-card dark:bg-paper-darkCard">
           <div>
@@ -217,13 +215,25 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood transition cursor-pointer shadow-xs"
+              className="btn-editorial px-5 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition cursor-pointer border border-ink dark:border-paper-light"
             >
               Создать проект
             </button>
           </div>
         </form>
       </div>
+  );
+
+  if (isPage) {
+    return <div className="py-2">{modalContent}</div>;
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
+      onClick={onClose}
+    >
+      {modalContent}
     </div>,
     document.body
   );

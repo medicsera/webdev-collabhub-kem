@@ -12,6 +12,7 @@ interface EditStudentProfileModalProps {
   onClose: () => void;
   profile: StudentProfile;
   onSave: (updatedProfile: StudentProfile) => void;
+  isPage?: boolean;
 }
 
 export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = ({
@@ -19,6 +20,7 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
   onClose,
   profile,
   onSave,
+  isPage = false,
 }) => {
   const [name, setName] = useState(profile.name);
   const [firstName, setFirstName] = useState(profile.firstName || profile.name.split(' ')[1] || '');
@@ -83,15 +85,11 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
     onClose();
   };
 
-  return createPortal(
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-6"
-      onClick={onClose}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-3xl mx-auto' : 'max-w-3xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-hidden`}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-3xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] my-auto overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
         {/* Зафиксированная шапка модального окна */}
         <div className="shrink-0 flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder px-6 sm:px-8 py-4 bg-paper-card dark:bg-paper-darkCard">
           <div>
@@ -384,7 +382,7 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
           </div>
 
           {/* Зафиксированный подвал с кнопками */}
-          <div className="shrink-0 flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard shadow-inner">
+          <div className="shrink-0 flex items-center justify-end gap-3 px-6 sm:px-8 py-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard">
             <button
               type="button"
               onClick={onClose}
@@ -394,13 +392,25 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
             </button>
             <button
               type="submit"
-              className="px-7 py-2.5 text-xs font-mono uppercase tracking-wider bg-oxblood hover:bg-oxblood-hover text-white transition cursor-pointer shadow-xs font-bold"
+              className="btn-editorial px-7 py-2.5 text-xs font-mono uppercase tracking-wider bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition cursor-pointer font-bold border border-ink dark:border-paper-light"
             >
               Сохранить профиль
             </button>
           </div>
         </form>
       </div>
+  );
+
+  if (isPage) {
+    return <div className="py-2">{modalContent}</div>;
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-6"
+      onClick={onClose}
+    >
+      {modalContent}
     </div>,
     document.body
   );

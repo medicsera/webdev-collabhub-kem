@@ -40,7 +40,7 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-xl w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка модального окна */}
@@ -88,7 +88,7 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-oxblood hover:bg-oxblood-hover text-white transition cursor-pointer shadow-xs"
+              className="btn-editorial px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition cursor-pointer border border-ink dark:border-paper-light"
             >
               Сохранить навыки
             </button>

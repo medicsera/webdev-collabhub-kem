@@ -1,15 +1,16 @@
 import React from 'react';
-import { Sun, Moon, User, LogOut } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Sun, Moon, User } from 'lucide-react';
 import type { Role, TabId, AppNotification } from '../types';
 import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface HeaderProps {
   currentRole: Role;
   setRole?: (role: Role) => void;
-  currentTab: TabId;
-  switchTab: (tab: TabId) => void;
+  currentTab?: TabId;
+  switchTab?: (tab: TabId) => void;
   isDark: boolean;
-  toggleTheme: () => void;
+  toggleTheme: (event?: React.MouseEvent | { clientX: number; clientY: number }) => void;
   notifications?: AppNotification[];
   onMarkNotificationAsRead?: (id: string) => void;
   onMarkAllNotificationsAsRead?: () => void;
@@ -25,179 +26,189 @@ export const Header: React.FC<HeaderProps> = ({
   notifications = [],
   onMarkNotificationAsRead = () => {},
   onMarkAllNotificationsAsRead = () => {},
-  onLogout,
 }) => {
-  const studentTabs: { id: TabId; label: string }[] = [
-    { id: 'catalog', label: 'Каталог проектов' },
-    { id: 'my-projects', label: 'Мои заявки и ВКР' },
-    { id: 'chats', label: 'Чаты' },
-    { id: 'profile', label: 'Мой профиль и ИИ' },
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const studentTabs: { id: TabId; label: string; path: string }[] = [
+    { id: 'catalog', label: 'Каталог проектов', path: '/catalog' },
+    { id: 'my-projects', label: 'Мои заявки', path: '/my-projects' },
+    { id: 'chats', label: 'Чаты', path: '/chats' },
   ];
 
-  const hrTabs: { id: TabId; label: string }[] = [
-    { id: 'hr-dashboard', label: 'Панель компании' },
-    { id: 'company-profile', label: 'Профиль компании' },
-    { id: 'chats', label: 'Чаты' },
-    { id: 'students-catalog', label: 'Каталог студентов' },
+  const hrTabs: { id: TabId; label: string; path: string }[] = [
+    { id: 'hr-dashboard', label: 'Панель управления', path: '/hr/dashboard' },
+    { id: 'students-catalog', label: 'База студентов', path: '/students' },
+    { id: 'chats', label: 'Чаты', path: '/chats' },
   ];
 
   const activeTabs = currentRole === 'student' ? studentTabs : hrTabs;
 
+  const handleTabClick = (t: { id: TabId; path: string }) => {
+    navigate(t.path);
+    if (switchTab) {
+      switchTab(t.id);
+    }
+  };
+
+  const isTabActive = (t: { id: TabId; path: string }): boolean => {
+    if (currentTab) {
+      return currentTab === t.id;
+    }
+    if (t.path === '/catalog') {
+      return currentPath === '/catalog' || currentPath === '/' || currentPath.startsWith('/projects');
+    }
+    if (t.path === '/hr/dashboard') {
+      return currentPath.startsWith('/hr');
+    }
+    if (t.path === '/students') {
+      return currentPath.startsWith('/students') || currentPath.startsWith('/resumes');
+    }
+    if (t.path === '/company/profile') {
+      return currentPath.startsWith('/company');
+    }
+    return currentPath.startsWith(t.path);
+  };
+
+  const handleLogoClick = () => {
+    const homePath = currentRole === 'student' ? '/catalog' : '/hr/dashboard';
+    navigate(homePath);
+    if (switchTab) {
+      switchTab(currentRole === 'student' ? 'catalog' : 'hr-dashboard');
+    }
+  };
+
+  const handleProfileClick = () => {
+    const profilePath = currentRole === 'student' ? '/profile' : '/company/profile';
+    navigate(profilePath);
+    if (switchTab) {
+      switchTab(currentRole === 'student' ? 'profile' : 'company-profile');
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-30 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-sm double-rule-b transition-colors duration-300">
+    <header className="sticky top-0 z-30 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-md double-rule-b transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Основная полоса заголовка */}
-        <div className="py-5 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-paper-border dark:border-paper-darkBorder">
-          {/* Левый блок: академический бейдж */}
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-oxblood dark:text-oxblood-light bg-paper-card dark:bg-paper-darkCard">
-              {currentRole === 'student' ? 'Студенческий доступ' : 'Индустриальный партнер'}
-            </span>
+        <div className="h-14 sm:h-16 flex items-center justify-between gap-3 sm:gap-6">
+          {/* Левый блок: Логотип и академический статус */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div
+              onClick={handleLogoClick}
+              className="cursor-pointer group select-none flex items-baseline gap-2"
+              title="На главную страницу"
+            >
+              <span className="editorial-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink-light group-hover:opacity-85 transition">
+                COLLAB<span className="italic font-normal">HUB</span>
+              </span>
+              <span className="hidden xl:inline text-[9px] font-mono uppercase tracking-[0.2em] text-meta">
+                №01 • 2026
+              </span>
+            </div>
+
+            <div className="hidden lg:flex items-center pl-3 border-l border-paper-border dark:border-paper-darkBorder">
+              <span className="text-[9px] font-mono uppercase tracking-[0.15em] px-2 py-0.5 border border-paper-border dark:border-paper-darkBorder text-oxblood dark:text-oxblood-light bg-paper-card dark:bg-paper-darkCard">
+                {currentRole === 'student' ? 'Студент' : 'Партнер'}
+              </span>
+            </div>
           </div>
 
-          {/* Центральный логотип */}
-          <div
-            onClick={() => switchTab('catalog')}
-            className="cursor-pointer text-center group select-none"
+          {/* Центр: Компактный рубрикатор (Навигационные вкладки) */}
+          <nav
+            id="main-nav"
+            className="flex items-center gap-1 sm:gap-3 md:gap-5 overflow-x-auto h-full scrollbar-none font-sans"
           >
-            <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-oxblood dark:text-oxblood-light mb-0.5 transition-colors">
-              Academic &amp; Industrial Registry
-            </div>
-            <div className="editorial-serif text-3xl sm:text-4xl font-bold tracking-tight text-ink dark:text-ink-light group-hover:opacity-80 transition">
-              THE COLLAB<span className="italic font-normal">HUB</span>
-            </div>
-          </div>
+            {activeTabs.map((t) => {
+              const isActive = isTabActive(t);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => handleTabClick(t)}
+                  className={`h-full px-2 sm:px-3.5 inline-flex items-center justify-center transition-colors whitespace-nowrap cursor-pointer select-none border-b-2 text-xs sm:text-[13px] md:text-sm font-medium ${
+                    isActive
+                      ? 'border-oxblood dark:border-oxblood-light text-oxblood dark:text-oxblood-light font-semibold'
+                      : 'border-transparent text-stone-700 hover:text-ink dark:text-stone-200 dark:hover:text-white'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </nav>
 
-          {/* Правый блок: Уведомления, Переключение темы и Профиль */}
-          <div className="flex items-center gap-3 sm:gap-4 self-end md:self-center">
-            {/* Уведомления платформы (notifications: FRIEND_REQUEST, FRIEND_ACCEPTED и др.) */}
+          {/* Правый блок: Уведомления, Переключатель темы (Circular Reveal) и Профиль */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Уведомления */}
             <NotificationsDropdown
               notifications={notifications}
               onMarkAsRead={onMarkNotificationAsRead}
               onMarkAllAsRead={onMarkAllNotificationsAsRead}
             />
 
+            {/* Переключатель темы со встроенным Circular Reveal */}
             <button
               id="theme-toggle-btn"
               type="button"
-              onClick={toggleTheme}
-              title={isDark ? 'Переключить тему (Рассвет)' : 'Переключить тему (Закат)'}
-              className="w-[98px] h-[34px] shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all duration-300 flex items-center justify-center gap-1.5 text-xs font-mono uppercase select-none relative overflow-hidden group shadow-xs cursor-pointer"
+              onClick={(e) => toggleTheme(e)}
+              title={isDark ? 'Переключить на светлую бумагу' : 'Переключить на темную печать'}
+              className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all flex items-center justify-center cursor-pointer select-none"
             >
-              {/* Солнце и Луна с плавным восходом / закатом */}
               <div className="relative w-3.5 h-3.5 overflow-hidden shrink-0 flex items-center justify-center">
                 <Sun
-                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-300 ease-out ${
                     isDark
                       ? 'translate-y-4 opacity-0 rotate-90 scale-50'
                       : 'translate-y-0 opacity-100 rotate-0 scale-100'
                   }`}
                 />
                 <Moon
-                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-500 ease-out ${
+                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-300 ease-out ${
                     isDark
                       ? 'translate-y-0 opacity-100 rotate-0 scale-100'
                       : '-translate-y-4 opacity-0 -rotate-90 scale-50'
                   }`}
                 />
               </div>
-
-              {/* Текстовая метка */}
-              <div className="w-[50px] h-3.5 relative overflow-hidden shrink-0 flex items-center">
-                <span
-                  id="theme-label-light"
-                  className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
-                    isDark ? 'translate-y-3.5 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
-                  }`}
-                >
-                  Светлая
-                </span>
-                <span
-                  id="theme-label-dark"
-                  className={`absolute inset-0 text-[10px] tracking-wider transition-all duration-500 ease-out flex items-center ${
-                    isDark ? 'translate-y-0 opacity-100' : '-translate-y-3.5 opacity-0 pointer-events-none'
-                  }`}
-                >
-                  Темная
-                </span>
-              </div>
             </button>
 
-            {/* Плашка профиля */}
+            {/* Карточка профиля (вместо кнопки Logout в шапке) */}
             <div
-              onClick={() => switchTab(currentRole === 'student' ? 'profile' : 'company-profile')}
-              className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group select-none pl-3 sm:pl-4 border-l border-paper-border dark:border-paper-darkBorder"
-              title="Перейти в профиль"
+              onClick={handleProfileClick}
+              className={`flex items-center gap-2 sm:gap-2.5 cursor-pointer group select-none pl-2 sm:pl-3 border-l border-paper-border dark:border-paper-darkBorder ${
+                currentPath.startsWith(currentRole === 'student' ? '/profile' : '/company')
+                  ? 'text-oxblood dark:text-oxblood-light font-medium'
+                  : ''
+              }`}
+              title="Перейти в личный профиль"
             >
               <div
                 id="user-avatar"
-                className="w-9 h-9 border border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard flex items-center justify-center text-ink dark:text-ink-light transition-colors group-hover:border-oxblood dark:group-hover:border-oxblood-light"
+                className={`w-8 h-8 sm:w-8.5 sm:h-8.5 border flex items-center justify-center transition-colors ${
+                  currentPath.startsWith(currentRole === 'student' ? '/profile' : '/company')
+                    ? 'border-oxblood dark:border-oxblood-light bg-oxblood/10 text-oxblood dark:text-oxblood-light'
+                    : 'border-ink dark:border-ink-light bg-paper-muted dark:bg-paper-darkCard text-ink dark:text-ink-light group-hover:border-oxblood dark:group-hover:border-oxblood-light'
+                }`}
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4" />
               </div>
-              <div className="hidden sm:block text-left">
+              <div className="hidden md:block text-left">
                 <div
                   id="user-name"
-                  className="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors"
+                  className="text-xs font-semibold tracking-wide uppercase group-hover:text-oxblood dark:group-hover:text-oxblood-light transition-colors leading-tight"
                 >
                   {currentRole === 'student' ? 'Сергиенко А.' : 'Валерия (HR)'}
                 </div>
                 <div
                   id="user-sub"
-                  className="text-[10px] font-mono text-ink-muted dark:text-stone-400"
+                  className="text-[9px] font-mono text-ink-muted dark:text-stone-300 leading-tight"
                 >
-                  {currentRole === 'student'
-                    ? 'ФИТ-231 • IV курс'
-                    : 'Софт Инжиниринг'}
+                  {currentRole === 'student' ? 'ФИТ-231' : 'Софт Инжиниринг'}
                 </div>
               </div>
             </div>
-
-            {/* Крайняя правая кнопка: Выйти (Logout) */}
-            {onLogout && (
-              <div className="pl-2 sm:pl-3 border-l border-paper-border dark:border-paper-darkBorder">
-                <button
-                  id="header-logout-btn"
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onLogout();
-                  }}
-                  title="Выйти из аккаунта"
-                  className="px-2.5 sm:px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:border-oxblood dark:hover:text-white text-ink dark:text-ink-light text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Выйти</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
-
-        {/* Рубрикатор (Навигация) */}
-        <nav
-          id="main-nav"
-          className="flex items-center justify-center gap-3 sm:gap-6 py-2.5 overflow-x-auto text-xs uppercase tracking-[0.15em] font-medium"
-        >
-          {activeTabs.map((t) => {
-            const isActive = currentTab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => switchTab(t.id)}
-                className={`nav-tab-button min-h-[44px] min-w-[140px] px-5 py-2.5 inline-flex items-center justify-center rounded-xs transition-all whitespace-nowrap cursor-pointer select-none ${
-                  isActive
-                    ? 'text-oxblood dark:text-oxblood-light font-bold bg-oxblood/10 dark:bg-oxblood/20 border-2 border-oxblood shadow-2xs'
-                    : 'text-ink-muted hover:text-ink hover:bg-paper-muted/50 dark:hover:text-white dark:hover:bg-paper-darkCard border border-transparent'
-                }`}
-                style={{ padding: '10px 20px', minHeight: '44px' }}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </nav>
       </div>
     </header>
   );

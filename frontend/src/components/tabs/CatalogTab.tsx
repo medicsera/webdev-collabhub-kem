@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Plus } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, Plus, RotateCcw, ChevronDown } from 'lucide-react';
 import type { Project, Role, ProjectFormat } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
@@ -7,8 +8,8 @@ import { SemanticMatchBadge } from '../SemanticMatchBadge';
 interface CatalogTabProps {
   projects: Project[];
   currentRole: Role;
-  onSelectProject: (project: Project) => void;
-  onOpenCreateModal: () => void;
+  onSelectProject?: (project: Project) => void;
+  onOpenCreateModal?: () => void;
   onViewCompany?: (companyId: number, companyName: string) => void;
 }
 
@@ -19,9 +20,35 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
   onOpenCreateModal,
   onViewCompany,
 }) => {
-  const [search, setSearch] = useState('');
-  const [selectedFormat, setSelectedFormat] = useState<ProjectFormat>('all');
-  const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const search = searchParams.get('q') || '';
+  const selectedFormat = (searchParams.get('format') as ProjectFormat) || 'all';
+  const selectedCompany = searchParams.get('company') || 'all';
+
+  const updateFilters = (updates: { q?: string; format?: string; company?: string }) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (updates.q !== undefined) {
+        if (updates.q) next.set('q', updates.q);
+        else next.delete('q');
+      }
+      if (updates.format !== undefined) {
+        if (updates.format && updates.format !== 'all') next.set('format', updates.format);
+        else next.delete('format');
+      }
+      if (updates.company !== undefined) {
+        if (updates.company && updates.company !== 'all') next.set('company', updates.company);
+        else next.delete('company');
+      }
+      return next;
+    }, { replace: true });
+  };
+
+  const handleResetFilters = () => {
+    setSearchParams({}, { replace: true });
+  };
 
   const companies = useMemo(() => {
     const set = new Set<string>();
@@ -48,24 +75,40 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
     });
   }, [projects, search, selectedFormat, selectedCompany]);
 
+  const handleCreateClick = () => {
+    if (onOpenCreateModal) {
+      onOpenCreateModal();
+    } else {
+      navigate('/hr/projects/create');
+    }
+  };
+
+  const handleCompanyClick = (companyId: number, companyName: string) => {
+    if (onViewCompany) {
+      onViewCompany(companyId, companyName);
+    } else {
+      navigate(`/companies/${companyId}`);
+    }
+  };
+
   return (
-    <section id="tab-catalog" className="fade-in space-y-8">
+    <section id="tab-catalog" className="space-y-6 sm:space-y-8">
       {/* Передовица (Hero) */}
-      <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-10 relative transition-colors duration-300">
+      <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-9 relative transition-colors duration-300">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          <div className="lg:col-span-8 space-y-4 lg:border-r lg:border-paper-border dark:lg:border-paper-darkBorder lg:pr-8">
+          <div className="lg:col-span-8 space-y-3.5 lg:border-r lg:border-paper-border dark:lg:border-paper-darkBorder lg:pr-8">
             <div className="flex items-center gap-3 text-[11px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
               <span>Каталог тем ВКР и стажировок</span>
               <span>—</span>
-              <span>ИТ-компании Кузбасса</span>
+              <span>ИТ-индустрия региона</span>
             </div>
-            <h1 className="text-3xl sm:text-5xl font-normal leading-[1.12] tracking-tight text-ink dark:text-ink-light">
+            <h1 className="text-3xl sm:text-5xl font-normal leading-[1.1] tracking-tight text-ink dark:text-ink-light">
               Выберите реальную задачу для своего{' '}
               <span className="italic font-semibold">диплома или стажировки</span>.
             </h1>
             <p className="text-ink-muted dark:text-stone-300 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
               Верифицированные темы от ведущих технологических компаний региона. Интеллектуальный
-              семантический подбор на основе вашего стека технологий и уровня владения.
+              семантический подбор на основе вашего стека технологий и уровня компетенций.
             </p>
           </div>
 
@@ -83,12 +126,12 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
             {currentRole === 'hr' && (
               <div
                 id="hero-hr-action"
-                className="pt-4 border-t border-paper-border dark:border-paper-darkBorder fade-in"
+                className="pt-4 border-t border-paper-border dark:border-paper-darkBorder"
               >
                 <button
                   type="button"
-                  onClick={onOpenCreateModal}
-                  className="w-full py-3 px-5 bg-oxblood hover:bg-oxblood-hover text-paper-light text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  onClick={handleCreateClick}
+                  className="btn-editorial w-full py-3 px-5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer border border-ink dark:border-paper-light"
                 >
                   <Plus className="w-4 h-4" /> Опубликовать новый проект
                 </button>
@@ -99,55 +142,71 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
       </div>
 
       {/* Фильтры и поиск */}
-      <div className="border-y border-paper-border dark:border-paper-darkBorder py-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between transition-colors duration-300">
+      <div className="border-y border-paper-border dark:border-paper-darkBorder py-3.5 flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between transition-colors duration-300">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-ink-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             id="search-input"
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => updateFilters({ q: e.target.value })}
             placeholder="Поиск по названию, компании или стеку (React, FastAPI, PostgreSQL)..."
-            className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light placeholder:text-ink-muted/70 text-ink dark:text-ink-light"
+            className="w-full pl-9 pr-4 py-2 text-sm bg-transparent border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-ink dark:focus:border-ink-light placeholder:text-ink-muted/70 text-ink dark:text-ink-light font-mono text-xs"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <select
-            id="filter-type"
-            value={selectedFormat}
-            onChange={(e) => setSelectedFormat(e.target.value as ProjectFormat)}
-            className="text-xs font-mono uppercase tracking-wider px-3 py-2.5 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light cursor-pointer"
-          >
-            <option value="all">Все форматы</option>
-            <option value="ВКР / Диплом">ВКР / Диплом</option>
-            <option value="Стажировка">Стажировка</option>
-            <option value="Курсовой проект">Курсовой проект</option>
-          </select>
-          <select
-            id="filter-company"
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            className="text-xs font-mono uppercase tracking-wider px-3 py-2.5 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder focus:outline-none text-ink dark:text-ink-light cursor-pointer"
-          >
-            <option value="all">Все компании</option>
-            {companies.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="relative inline-flex items-center">
+            <select
+              id="filter-type"
+              value={selectedFormat}
+              onChange={(e) => updateFilters({ format: e.target.value })}
+              className="appearance-none text-xs font-mono uppercase tracking-wider pl-3.5 pr-9 py-2 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+            >
+              <option value="all">Все форматы</option>
+              <option value="ВКР / Диплом">ВКР / Диплом</option>
+              <option value="Стажировка">Стажировка</option>
+              <option value="Курсовой проект">Курсовой проект</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-ink-muted dark:text-stone-400" />
+          </div>
+
+          <div className="relative inline-flex items-center">
+            <select
+              id="filter-company"
+              value={selectedCompany}
+              onChange={(e) => updateFilters({ company: e.target.value })}
+              className="appearance-none text-xs font-mono uppercase tracking-wider pl-3.5 pr-9 py-2 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+            >
+              <option value="all">Все компании</option>
+              {companies.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-ink-muted dark:text-stone-400" />
+          </div>
         </div>
       </div>
 
       {/* Сетка проектов */}
       {filteredProjects.length === 0 ? (
-        <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-2">
+        <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-3">
           <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
             По заданным фильтрам проекты не найдены
           </p>
           <p className="text-xs font-mono text-ink-muted uppercase tracking-wider">
             Попробуйте изменить поисковый запрос или сбросить фильтры
           </p>
+          <div>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="btn-editorial mt-2 px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center gap-1.5 border border-ink dark:border-paper-light"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Сбросить фильтры
+            </button>
+          </div>
         </div>
       ) : (
         <div
@@ -163,33 +222,33 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
             return (
               <article
                 key={p.id}
-                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-oxblood/60 transition-colors shadow-2xs rounded-xs"
+                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-ink dark:hover:border-paper-light transition-colors relative"
               >
-                <div className="space-y-4">
-                  {/* Заголовок карточки с выделенным семантическим матчем (Requirement 3) */}
+                <div className="space-y-4 relative z-10">
+                  {/* Заголовок карточки с выделенным семантическим матчем */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-border dark:border-paper-darkBorder pb-2.5 text-[11px] font-mono">
                     <div className="flex items-center gap-2">
                       <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
                         {p.index}
                       </span>
                       <span className="text-paper-border dark:text-paper-darkBorder">•</span>
-                      {onViewCompany && p.companyId ? (
+                      {p.companyId ? (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onViewCompany(p.companyId!, p.company);
+                            handleCompanyClick(p.companyId!, p.company);
                           }}
-                          className="flex items-center gap-1.5 font-medium text-oxblood dark:text-oxblood-light hover:underline cursor-pointer group"
+                          className="flex items-center gap-1.5 font-medium text-ink dark:text-ink-light hover:text-oxblood dark:hover:text-oxblood-light transition cursor-pointer group"
                           title={`Посмотреть профиль компании «${p.company}»`}
                         >
-                          <span className="w-4 h-4 border border-oxblood/40 dark:border-oxblood-light/40 group-hover:border-oxblood dark:group-hover:border-oxblood-light flex items-center justify-center text-[9px] font-bold bg-paper-muted dark:bg-paper-dark">
+                          <span className="w-4 h-4 border border-paper-border dark:border-paper-darkBorder group-hover:border-oxblood flex items-center justify-center text-[9px] font-bold bg-paper-muted dark:bg-paper-dark">
                             {p.company.slice(0, 1)}
                           </span>
                           <span className="uppercase tracking-widest">{p.company}</span>
                         </button>
                       ) : (
-                        <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
+                        <span className="uppercase tracking-widest text-ink dark:text-ink-light font-medium">
                           {p.company}
                         </span>
                       )}
@@ -210,8 +269,8 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                   </p>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-paper-border dark:border-paper-darkBorder space-y-4">
-                  {/* Требуемые навыки и уровни владения (Requirement 2) */}
+                <div className="pt-6 mt-6 border-t border-paper-border dark:border-paper-darkBorder space-y-4 relative z-10">
+                  {/* Требуемые навыки и уровни владения */}
                   <div>
                     <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 mb-2">
                       Требуемый стек и уровень:
@@ -235,14 +294,14 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                       </strong>
                     </div>
                     {p.applied ? (
-                      <span className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light">
-                        Заявка отправлена
+                      <span className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light font-semibold">
+                        Заявка подана
                       </span>
                     ) : (
                       <button
                         type="button"
-                        onClick={() => onSelectProject(p)}
-                        className="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light hover:bg-ink hover:text-paper-light dark:hover:bg-ink-light dark:hover:text-paper-dark transition cursor-pointer"
+                        onClick={() => (onSelectProject ? onSelectProject(p) : undefined)}
+                        className="btn-editorial px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light transition cursor-pointer"
                       >
                         Подробнее →
                       </button>

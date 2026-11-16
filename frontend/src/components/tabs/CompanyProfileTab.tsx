@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   ExternalLink,
@@ -28,6 +29,24 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
   onNavigateToDashboard,
   onLogout,
 }) => {
+  const navigate = useNavigate();
+
+  const handleEditCompany = () => {
+    if (onOpenEditModal) {
+      onOpenEditModal();
+    } else {
+      navigate('/company/profile/edit');
+    }
+  };
+
+  const handleDashboardNav = () => {
+    if (onNavigateToDashboard) {
+      onNavigateToDashboard();
+    } else {
+      navigate('/hr/dashboard');
+    }
+  };
+
   return (
     <section id="tab-company-profile" className="fade-in space-y-8">
       {/* Шапка раздела */}
@@ -44,8 +63,8 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
           {onNavigateToDashboard && (
             <button
               type="button"
-              onClick={onNavigateToDashboard}
-              className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard shadow-xs"
+              onClick={handleDashboardNav}
+              className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
             >
               <Briefcase className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
               <span>Панель проектов</span>
@@ -53,8 +72,8 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
           )}
           <button
             type="button"
-            onClick={onOpenEditModal}
-            className="px-4 py-2 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 cursor-pointer shadow-xs"
+            onClick={handleEditCompany}
+            className="btn-editorial px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 cursor-pointer border border-ink dark:border-paper-light"
           >
             <Edit className="w-3.5 h-3.5" /> Редактировать профиль компании
           </button>
@@ -258,7 +277,7 @@ export const CompanyProfileTab: React.FC<CompanyProfileTabProps> = ({
             id="company-logout-btn"
             type="button"
             onClick={onLogout}
-            className="w-full sm:w-auto px-5 py-2.5 border border-oxblood/40 hover:border-oxblood bg-paper-card dark:bg-paper-darkCard text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            className="w-full sm:w-auto px-5 py-2.5 border border-oxblood/60 hover:border-oxblood bg-paper-card dark:bg-paper-darkCard text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Выйти из профиля компании</span>
