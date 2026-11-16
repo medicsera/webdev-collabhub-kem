@@ -49,6 +49,8 @@ class AnalyzeRequest(BaseModel):
     project_title: str
     project_description: str
     project_requirements: List[str]
+    student_bio: Optional[str] = Field(default=None, description="Био для контекста summary")
+    match_score: Optional[float] = Field(default=None, description="Оценка MiniLM 0-100")
 
 
 class AnalyzeResponse(BaseModel):
@@ -193,6 +195,8 @@ async def analyze_gaps(request: AnalyzeRequest):
             project_title=request.project_title,
             project_description=request.project_description,
             project_requirements=request.project_requirements,
+            student_bio=request.student_bio,
+            match_score=request.match_score,
         )
         return AnalyzeResponse(**result)
     except Exception as e:
