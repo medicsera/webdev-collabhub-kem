@@ -46,7 +46,12 @@ import {
   INITIAL_CHATS,
   INITIAL_NOTIFICATIONS,
 } from './data/mockData';
-import { getCompanyProfileApi, getStudentProfileApi } from './api';
+import {
+  getCompanyProfileApi,
+  getStudentProfileApi,
+  updateStudentBioApi,
+  recalculateStudentProfileApi,
+} from './api';
 import { orderConnectionPair } from './utils/dbValidation';
 
 export const App: React.FC = () => {
@@ -81,7 +86,23 @@ export const App: React.FC = () => {
 
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [candidates, setCandidates] = useState<Candidate[]>(INITIAL_CANDIDATES);
-  const [studentProfile, setStudentProfile] = useState<StudentProfile>(INITIAL_STUDENT_PROFILE);
+  const [studentProfile, setStudentProfile] = useState<StudentProfile>(() => {
+    // Восстанавливаем bio / ИИ-рекомендации из localStorage (переживают F5)
+    if (typeof window === 'undefined') return INITIAL_STUDENT_PROFILE;
+    try {
+      const bio = localStorage.getItem('collabhub:student-bio');
+      const aiRaw = localStorage.getItem('collabhub:student-ai');
+      const ai = aiRaw ? (JSON.parse(aiRaw) as { aiMatch?: number; aiFeedback?: string }) : {};
+      return {
+        ...INITIAL_STUDENT_PROFILE,
+        ...(bio ? { bio } : {}),
+        ...(ai.aiMatch !== undefined ? { aiMatch: ai.aiMatch } : {}),
+        ...(ai.aiFeedback ? { aiFeedback: ai.aiFeedback } : {}),
+      };
+    } catch {
+      return INITIAL_STUDENT_PROFILE;
+    }
+  });
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile>(INITIAL_COMPANY_PROFILE);
 
   // Стейты новой схемы БД (student_connections, applications, chats, messages, notifications)
@@ -646,18 +667,63 @@ export const App: React.FC = () => {
     showToast(`Сообщение отправлено студенту «${candidateName}»`);
   };
 
-  const handleRecalculateBio = () => {
+  // Сохранение bio в backend (debounced) — чтобы описание опыта переживало F5
+  const bioSaveTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleUpdateBio = (bio: string) => {
+    setStudentProfile((prev) => ({ ...prev, bio }));
+    if (bioSaveTimerRef.current) clearTimeout(bioSaveTimerRef.current);
+    bioSaveTimerRef.current = setTimeout(() => {
+      const id = studentProfile.id;
+      if (id !== undefined && id !== null) {
+        void updateStudentBioApi(id, bio);
+      }
+      // Локальный фолбэк для mock-профиля без UUID в БД
+      try {
+        localStorage.setItem('collabhub:student-bio', bio);
+      } catch {
+        /* ignore */
+      }
+    }, 600);
+  };
+
+  // Реальный пересчёт: backend → ai-service (match + GigaChat analyze + embed)
+  const handleRecalculateBio = async () => {
     setIsRecalculating(true);
-    setTimeout(() => {
-      setIsRecalculating(false);
+    try {
+      const id = studentProfile.id ?? 1;
+      const result = await recalculateStudentProfileApi(id, {
+        bio: studentProfile.bio,
+        skills: studentProfile.skills.map((s) => ({
+          name: s.name,
+          proficiency_level: s.level,
+        })),
+      });
       setStudentProfile((prev) => ({
         ...prev,
-        aiMatch: 97,
-        aiFeedback:
-          'Анализ обновленного профиля: Векторный энкодер MiniLM-L12-v2 и GigaChat выявили высокую согласованность стека с задачами проектирования архитектуры, распределенных баз данных и веб-платформ. Рекомендуем обратить внимание на новые темы от Софт Инжиниринг и Goodline.',
+        bio: result.bio ?? prev.bio,
+        aiMatch: Math.round(result.aiMatch),
+        aiFeedback: result.aiFeedback,
       }));
-      showToast('Векторный профиль компетенций успешно пересчитан!');
-    }, 1100);
+      try {
+        localStorage.setItem('collabhub:student-bio', result.bio ?? studentProfile.bio);
+        localStorage.setItem('collabhub:student-ai', JSON.stringify({
+          aiMatch: Math.round(result.aiMatch),
+          aiFeedback: result.aiFeedback,
+        }));
+      } catch {
+        /* ignore */
+      }
+      showToast(
+        result.embeddingSaved
+          ? 'Профиль пересчитан: match + GigaChat + вектор сохранён'
+          : 'Профиль пересчитан через ai-service',
+      );
+    } catch (err: unknown) {
+      console.error('[recalculate] failed:', err);
+      showToast('AI-сервис недоступен — попробуйте позже');
+    } finally {
+      setIsRecalculating(false);
+    }
   };
 
   // Загрузка публичного профиля компании
@@ -770,6 +836,7 @@ export const App: React.FC = () => {
           <CatalogTab
             projects={projects}
             currentRole={currentRole}
+            studentProfile={studentProfile}
             onSelectProject={handleSelectProject}
             onOpenCreateModal={() => setIsCreateModalOpen(true)}
             onViewCompany={handleViewCompany}
@@ -781,6 +848,7 @@ export const App: React.FC = () => {
             projects={projects}
             applications={applications}
             currentStudentId={currentStudentId}
+            studentProfile={studentProfile}
             onOpenChat={handleOpenChat}
             onViewCompany={handleViewCompany}
             onNavigateToCatalog={() => handleSwitchTab('catalog')}
@@ -829,11 +897,10 @@ export const App: React.FC = () => {
         return (
           <ProfileTab
             profile={studentProfile}
+            projects={projects}
             connections={connections}
             allStudents={MOCK_STUDENTS}
-            onUpdateBio={(bio) =>
-              setStudentProfile((prev) => ({ ...prev, bio }))
-            }
+            onUpdateBio={handleUpdateBio}
             onRecalculate={handleRecalculateBio}
             isRecalculating={isRecalculating}
             onOpenEditProfileModal={() => setIsEditStudentModalOpen(true)}
@@ -863,6 +930,7 @@ export const App: React.FC = () => {
           <PublicCompanyProfileTab
             company={publicCompany}
             projects={projects}
+            studentProfile={studentProfile}
             isLoading={isCompanyLoading}
             error={companyError}
             onBack={handleBackFromPublicProfile}
@@ -873,6 +941,7 @@ export const App: React.FC = () => {
         return (
           <PublicStudentProfileTab
             student={publicStudent}
+            projects={projects}
             isLoading={isStudentLoading}
             error={studentError}
             onBack={handleBackFromPublicProfile}
