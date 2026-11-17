@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Building2 } from 'lucide-react';
 import type { CompanyProfile } from '../../types';
 import { AvatarUploader } from '../AvatarUploader';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface EditCompanyModalProps {
   isOpen: boolean;
@@ -50,6 +51,8 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
       setAvatarUrl(company.avatarUrl);
     }
   }, [isOpen, company]);
+
+  useBodyScrollLock(isOpen && !isPage);
 
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;

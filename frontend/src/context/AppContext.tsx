@@ -82,6 +82,10 @@ interface AppContextType {
   setSelectedProjectForModal: (project: Project | null) => void;
   isEditSkillsModalOpen: boolean;
   setIsEditSkillsModalOpen: (open: boolean) => void;
+  isEditStudentProfileModalOpen: boolean;
+  setIsEditStudentProfileModalOpen: (open: boolean) => void;
+  isEditCompanyModalOpen: boolean;
+  setIsEditCompanyModalOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -120,6 +124,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Состояния для модальных окон
   const [selectedProjectForModal, setSelectedProjectForModal] = useState<Project | null>(null);
   const [isEditSkillsModalOpen, setIsEditSkillsModalOpen] = useState(false);
+  const [isEditStudentProfileModalOpen, setIsEditStudentProfileModalOpen] = useState(false);
+  const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
 
   // Управление темой оформления
   useEffect(() => {
@@ -705,6 +711,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setSelectedProjectForModal,
     isEditSkillsModalOpen,
     setIsEditSkillsModalOpen,
+    isEditStudentProfileModalOpen,
+    setIsEditStudentProfileModalOpen,
+    isEditCompanyModalOpen,
+    setIsEditCompanyModalOpen,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

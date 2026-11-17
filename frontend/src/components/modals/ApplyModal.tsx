@@ -6,6 +6,7 @@ import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { formatYearDisplay } from '../../utils/dbValidation';
 import { canStudentApplyToProject, canAddMemberToProjectApplication } from '../../utils/dbValidation';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export interface ApplyModalSubmitData {
   projectId: number;
@@ -36,6 +37,8 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const [coverLetter, setCoverLetter] = useState('');
   const [isTeam, setIsTeam] = useState(false);
   const [selectedFriendIds, setSelectedFriendIds] = useState<number[]>([]);
+
+  useBodyScrollLock(Boolean(project));
 
   if (!project) return null;
   if (typeof document === 'undefined') return null;

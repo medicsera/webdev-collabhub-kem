@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppProvider, useApp } from './context/AppContext';
 import { AppLayout } from './components/AppLayout';
@@ -143,13 +143,13 @@ const ChatsPageWrapper: React.FC = () => {
 };
 
 const ProfilePageWrapper: React.FC = () => {
-  const navigate = useNavigate();
   const {
     studentProfile,
     connections,
     recalculateBio,
     isRecalculating,
     setIsEditSkillsModalOpen,
+    setIsEditStudentProfileModalOpen,
     sendFriendRequest,
     acceptFriendRequest,
     rejectFriendRequest,
@@ -166,7 +166,7 @@ const ProfilePageWrapper: React.FC = () => {
       onUpdateBio={(bio) => updateStudentProfile({ ...studentProfile, bio })}
       onRecalculate={recalculateBio}
       isRecalculating={isRecalculating}
-      onOpenEditProfileModal={() => navigate('/profile/edit')}
+      onOpenEditProfileModal={() => setIsEditStudentProfileModalOpen(true)}
       onOpenEditSkillsModal={() => setIsEditSkillsModalOpen(true)}
       onSendFriendRequest={sendFriendRequest}
       onAcceptFriendRequest={acceptFriendRequest}
@@ -178,12 +178,11 @@ const ProfilePageWrapper: React.FC = () => {
 };
 
 const CompanyProfilePageWrapper: React.FC = () => {
-  const navigate = useNavigate();
-  const { companyProfile, logout } = useApp();
+  const { companyProfile, logout, setIsEditCompanyModalOpen } = useApp();
   return (
     <CompanyProfileTab
       company={companyProfile}
-      onOpenEditModal={() => navigate('/company/profile/edit')}
+      onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
       onLogout={logout}
     />
   );

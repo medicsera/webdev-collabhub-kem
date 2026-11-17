@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { Project, ProjectStatus, SkillItem } from '../../types';
 import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface CreateProjectModalProps {
   isOpen: boolean;
@@ -33,6 +34,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     { name: 'TypeScript', level: 'INTERMEDIATE' },
     { name: 'FastAPI', level: 'BASIC' },
   ]);
+
+  useBodyScrollLock(isOpen && !isPage);
 
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Send, MessageSquare, Check, CheckCheck, Crown, Users } from 'lucide-react';
 import type { Chat, ProjectApplication, Project, Role } from '../../types';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface ApplicationChatModalProps {
   isOpen: boolean;
@@ -34,6 +35,8 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isOpen, chat?.messages]);
+
+  useBodyScrollLock(isOpen && Boolean(chat));
 
   if (!isOpen || !chat) return null;
   if (typeof document === 'undefined') return null;
@@ -201,23 +204,23 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
         {/* Форма отправки сообщения */}
         <form
           onSubmit={handleSend}
-          className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-end gap-2"
+          className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-stretch gap-2.5"
         >
-          <div className="flex-1 relative">
+          <div className="flex-1 relative flex">
             <textarea
               rows={2}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`Написать сообщение от имени ${currentUserName}... (Enter для отправки)`}
-              className="w-full p-2.5 text-xs sm:text-sm bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light placeholder:text-ink-muted/60 resize-none max-h-24"
+              className="block w-full p-2.5 text-xs sm:text-sm bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light placeholder:text-ink-muted/60 resize-none max-h-24 leading-normal"
             />
           </div>
 
           <button
             type="submit"
             disabled={!text.trim()}
-            className="btn-editorial h-10 px-4 bg-ink text-paper-light dark:bg-paper-light dark:text-ink disabled:opacity-40 disabled:cursor-not-allowed text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shrink-0 border border-ink dark:border-paper-light"
+            className="btn-editorial px-5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink disabled:opacity-40 disabled:cursor-not-allowed text-xs font-mono uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 border border-ink dark:border-paper-light"
           >
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Отправить</span>

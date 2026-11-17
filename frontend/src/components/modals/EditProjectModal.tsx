@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import type { Project, ProjectStatus, SkillItem } from '../../types';
 import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface EditProjectModalProps {
   project: Project | null;
@@ -44,6 +45,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
       setRequiredSkills(skills);
     }
   }, [project]);
+
+  useBodyScrollLock(isOpen && Boolean(project) && !isPage);
 
   if (!isOpen || !project) return null;
   if (typeof document === 'undefined') return null;

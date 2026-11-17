@@ -5,6 +5,8 @@ import { Footer } from './Footer';
 import { Toast } from './Toast';
 import { ApplyModal } from './modals/ApplyModal';
 import { EditSkillsModal } from './modals/EditSkillsModal';
+import { EditStudentProfileModal } from './modals/EditStudentProfileModal';
+import { EditCompanyModal } from './modals/EditCompanyModal';
 import { useApp } from '../context/AppContext';
 
 export const AppLayout: React.FC = () => {
@@ -30,6 +32,13 @@ export const AppLayout: React.FC = () => {
     isEditSkillsModalOpen,
     setIsEditSkillsModalOpen,
     updateStudentSkills,
+    isEditStudentProfileModalOpen,
+    setIsEditStudentProfileModalOpen,
+    isEditCompanyModalOpen,
+    setIsEditCompanyModalOpen,
+    updateStudentProfile,
+    companyProfile,
+    updateCompanyProfile,
   } = useApp();
 
   // Автоматический сброс прокрутки к верху страницы при любой смене URL-маршрута
@@ -69,7 +78,7 @@ export const AppLayout: React.FC = () => {
 
       {/* Основной контент страницы с тактильной журнальной анимацией перелистывания полосы */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div key={`${location.pathname}${location.search}`} className="editorial-page-turn w-full">
+        <div key={location.pathname} className="editorial-page-turn w-full">
           <Outlet />
         </div>
       </main>
@@ -94,6 +103,28 @@ export const AppLayout: React.FC = () => {
         onClose={() => setIsEditSkillsModalOpen(false)}
         skills={studentProfile.skills}
         onSave={updateStudentSkills}
+      />
+
+      {/* Модальное окно редактирования профиля студента */}
+      <EditStudentProfileModal
+        isOpen={isEditStudentProfileModalOpen}
+        onClose={() => setIsEditStudentProfileModalOpen(false)}
+        profile={studentProfile}
+        onSave={(updated) => {
+          updateStudentProfile(updated);
+          setIsEditStudentProfileModalOpen(false);
+        }}
+      />
+
+      {/* Модальное окно редактирования профиля компании */}
+      <EditCompanyModal
+        isOpen={isEditCompanyModalOpen}
+        onClose={() => setIsEditCompanyModalOpen(false)}
+        company={companyProfile}
+        onSave={(updated) => {
+          updateCompanyProfile(updated);
+          setIsEditCompanyModalOpen(false);
+        }}
       />
 
       {/* Всплывающее уведомление платформы */}

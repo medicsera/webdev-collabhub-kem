@@ -6,6 +6,7 @@ import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
 import { AvatarUploader } from '../AvatarUploader';
 import { YearStepper } from '../YearStepper';
 import { parseYearToNumber } from '../../utils/dbValidation';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface EditStudentProfileModalProps {
   isOpen: boolean;
@@ -57,6 +58,8 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
     }
   }, [isOpen, profile]);
 
+  useBodyScrollLock(isOpen && !isPage);
+
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
 
@@ -87,7 +90,7 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
 
   const modalContent = (
     <div
-      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-3xl mx-auto' : 'max-w-3xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-hidden`}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-4xl sm:max-w-5xl mx-auto' : 'max-w-4xl sm:max-w-5xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl`}
       onClick={(e) => e.stopPropagation()}
     >
         {/* Зафиксированная шапка модального окна */}

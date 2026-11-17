@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Plus, RotateCcw, ChevronDown } from 'lucide-react';
+import { Search, Plus, RotateCcw, ChevronDown, Check } from 'lucide-react';
 import type { Project, Role, ProjectFormat } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
@@ -189,65 +189,66 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
         </div>
       </div>
 
-      {/* Сетка проектов */}
-      {filteredProjects.length === 0 ? (
-        <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-3">
-          <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
-            По заданным фильтрам проекты не найдены
-          </p>
-          <p className="text-xs font-mono text-ink-muted uppercase tracking-wider">
-            Попробуйте изменить поисковый запрос или сбросить фильтры
-          </p>
-          <div>
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="btn-editorial mt-2 px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center gap-1.5 border border-ink dark:border-paper-light"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Сбросить фильтры
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div
-          id="projects-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {filteredProjects.map((p) => {
-            const skillsToDisplay =
-              p.requiredSkills && p.requiredSkills.length > 0
-                ? p.requiredSkills
-                : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
-
-            return (
-              <article
-                key={p.id}
-                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-ink dark:hover:border-paper-light transition-colors relative"
+      {/* Сетка проектов (динамически обновляемый модуль div) */}
+      <div id="catalog-projects-container" className="transition-opacity duration-200">
+        {filteredProjects.length === 0 ? (
+          <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-3">
+            <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
+              По заданным фильтрам проекты не найдены
+            </p>
+            <p className="text-xs font-mono text-ink-muted uppercase tracking-wider">
+              Попробуйте изменить поисковый запрос или сбросить фильтры
+            </p>
+            <div>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="btn-editorial mt-2 px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center gap-1.5 border border-ink dark:border-paper-light"
               >
-                <div className="space-y-4 relative z-10">
-                  {/* Заголовок карточки с выделенным семантическим матчем */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-border dark:border-paper-darkBorder pb-2.5 text-[11px] font-mono">
-                    <div className="flex items-center gap-2">
-                      <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
-                        {p.index}
-                      </span>
-                      <span className="text-paper-border dark:text-paper-darkBorder">•</span>
-                      {p.companyId ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCompanyClick(p.companyId!, p.company);
-                          }}
-                          className="flex items-center gap-1.5 font-medium text-ink dark:text-ink-light hover:text-oxblood dark:hover:text-oxblood-light transition cursor-pointer group"
-                          title={`Посмотреть профиль компании «${p.company}»`}
-                        >
-                          <span className="w-4 h-4 border border-paper-border dark:border-paper-darkBorder group-hover:border-oxblood flex items-center justify-center text-[9px] font-bold bg-paper-muted dark:bg-paper-dark">
-                            {p.company.slice(0, 1)}
-                          </span>
-                          <span className="uppercase tracking-widest">{p.company}</span>
-                        </button>
-                      ) : (
+                <RotateCcw className="w-3.5 h-3.5" /> Сбросить фильтры
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            id="projects-grid"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {filteredProjects.map((p) => {
+              const skillsToDisplay =
+                p.requiredSkills && p.requiredSkills.length > 0
+                  ? p.requiredSkills
+                  : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
+
+              return (
+                <article
+                  key={p.id}
+                  className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-ink dark:hover:border-paper-light transition-colors relative"
+                >
+                  <div className="space-y-4 relative z-10">
+                    {/* Заголовок карточки с выделенным семантическим матчем */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-border dark:border-paper-darkBorder pb-2.5 text-[11px] font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="uppercase tracking-widest text-oxblood dark:text-oxblood-light font-medium">
+                          {p.index}
+                        </span>
+                        <span className="text-paper-border dark:text-paper-darkBorder">•</span>
+                        {p.companyId ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCompanyClick(p.companyId!, p.company);
+                            }}
+                            className="flex items-center gap-1.5 font-medium text-ink dark:text-ink-light hover:text-oxblood dark:hover:text-oxblood-light transition cursor-pointer group"
+                            title={`Посмотреть профиль компании «${p.company}»`}
+                          >
+                            <span className="w-4 h-4 border border-paper-border dark:border-paper-darkBorder group-hover:border-oxblood flex items-center justify-center text-[9px] font-bold bg-paper-muted dark:bg-paper-dark">
+                              {p.company.slice(0, 1)}
+                            </span>
+                            <span className="uppercase tracking-widest">{p.company}</span>
+                          </button>
+                        ) : (
                         <span className="uppercase tracking-widest text-ink dark:text-ink-light font-medium">
                           {p.company}
                         </span>
@@ -294,14 +295,21 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                       </strong>
                     </div>
                     {p.applied ? (
-                      <span className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light font-semibold">
-                        Заявка подана
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => (onSelectProject ? onSelectProject(p) : undefined)}
+                        className="btn-editorial px-3 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-hunter text-paper-light font-semibold border border-hunter hover:bg-hunter/90 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                        title="Посмотреть подробное описание проекта и статус поданной заявки"
+                      >
+                        <Check className="w-3 h-3" />
+                        <span>Заявка подана</span>
+                        <span className="opacity-75 text-[9px]">→</span>
+                      </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => (onSelectProject ? onSelectProject(p) : undefined)}
-                        className="btn-editorial px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light transition cursor-pointer"
+                        className="btn-editorial px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light hover:bg-ink hover:text-paper-light dark:hover:bg-paper-light dark:hover:text-ink transition cursor-pointer"
                       >
                         Подробнее →
                       </button>
@@ -313,6 +321,7 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
           })}
         </div>
       )}
+      </div>
     </section>
   );
 };

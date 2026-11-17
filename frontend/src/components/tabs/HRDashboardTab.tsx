@@ -1322,16 +1322,20 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
-                      {c.applicationId && (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenChatNav(`chat-${c.applicationId}`)}
-                          className="px-3.5 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood dark:hover:border-oxblood-light text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Чат</span>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const resolvedChatId = c.applicationId
+                            ? (c.applicationId.startsWith('chat-') ? c.applicationId : `chat-${c.applicationId}`)
+                            : `chat-${c.id}`;
+                          handleOpenChatNav(resolvedChatId);
+                        }}
+                        className="px-3.5 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood dark:hover:border-oxblood-light text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
+                        title="Открыть чат по отклику"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Чат</span>
+                      </button>
 
                       <button
                         type="button"
