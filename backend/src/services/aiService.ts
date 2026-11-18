@@ -88,7 +88,7 @@ export class AiService {
         projectTitle: string,
         projectDescription: string,
         projectRequirements: string[],
-        extra?: { studentBio?: string; matchScore?: number },
+        extra?: { studentBio?: string | undefined; matchScore?: number | undefined },
     ): Promise<{
         summary: string
         matching_skills: string[]

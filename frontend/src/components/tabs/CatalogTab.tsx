@@ -1,9 +1,6 @@
 import React, { useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Plus, RotateCcw, ChevronDown, Check } from 'lucide-react';
-import type { Project, Role, ProjectFormat } from '../../types';
-import React, { useState, useMemo } from 'react';
-import { Search, Plus } from 'lucide-react';
 import type { Project, Role, ProjectFormat, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
@@ -16,8 +13,6 @@ interface CatalogTabProps {
   onOpenCreateModal?: () => void;
   /** Текущий студент — для векторного матча «я ↔ проект» */
   studentProfile?: StudentProfile;
-  onSelectProject: (project: Project) => void;
-  onOpenCreateModal: () => void;
   onViewCompany?: (companyId: number, companyName: string) => void;
 }
 
@@ -220,18 +215,6 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                 type="button"
                 onClick={handleResetFilters}
                 className="btn-editorial mt-2 px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center gap-1.5 border border-ink dark:border-paper-light"
-            // Приоритет: векторный счёт ai-service, иначе локальная эвристика проекта
-            const aiScore =
-              studentForMatch.length > 0 && studentProfile
-                ? getScore(studentProfile, p)
-                : undefined;
-            const matchScore = aiScore ?? p.match;
-            const aiPowered = aiScore !== undefined;
-
-            return (
-              <article
-                key={p.id}
-                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-oxblood/60 transition-colors shadow-2xs rounded-xs"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Сбросить фильтры
               </button>
@@ -247,6 +230,14 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                 p.requiredSkills && p.requiredSkills.length > 0
                   ? p.requiredSkills
                   : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
+
+              // Приоритет: векторный счёт ai-service, иначе локальная эвристика проекта
+              const aiScore =
+                studentForMatch.length > 0 && studentProfile
+                  ? getScore(studentProfile, p)
+                  : undefined;
+              const matchScore = aiScore ?? p.match;
+              const aiPowered = aiScore !== undefined;
 
               return (
                 <article
