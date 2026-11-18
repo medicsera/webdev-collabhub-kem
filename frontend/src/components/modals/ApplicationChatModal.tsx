@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Send, MessageSquare, Check, CheckCheck, Crown, Users } from 'lucide-react';
 import type { Chat, ProjectApplication, Project, Role } from '../../types';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface ApplicationChatModalProps {
   isOpen: boolean;
@@ -34,6 +35,8 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [isOpen, chat?.messages]);
+
+  useBodyScrollLock(isOpen && Boolean(chat));
 
   if (!isOpen || !chat) return null;
   if (typeof document === 'undefined') return null;
@@ -73,7 +76,7 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 rounded-xs max-w-2xl w-full shadow-2xl fade-in flex flex-col h-[660px] max-h-[calc(100vh-2.5rem)] min-h-0 my-auto overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-2xl w-full fade-in flex flex-col h-[660px] max-h-[calc(100vh-2.5rem)] min-h-0 my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка чата */}
@@ -162,10 +165,10 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
                   </div>
 
                   <div
-                    className={`max-w-[85%] sm:max-w-[75%] p-3.5 text-xs sm:text-sm leading-relaxed ${
+                    className={`max-w-[85%] sm:max-w-[75%] p-3.5 text-xs sm:text-sm leading-relaxed border ${
                       isMyMessage
-                        ? 'bg-ink text-paper-light dark:bg-stone-200 dark:text-stone-900 shadow-xs'
-                        : 'bg-paper-card dark:bg-stone-800 text-ink dark:text-ink-light border border-paper-border dark:border-stone-700 shadow-xs'
+                        ? 'bg-ink text-paper-light border-ink dark:bg-paper-light dark:text-ink dark:border-paper-light'
+                        : 'bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light border-paper-border dark:border-paper-darkBorder'
                     }`}
                   >
                     <p className="whitespace-pre-wrap break-words">{msg.content}</p>
@@ -201,23 +204,23 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
         {/* Форма отправки сообщения */}
         <form
           onSubmit={handleSend}
-          className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-end gap-2"
+          className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-stretch gap-2.5"
         >
-          <div className="flex-1 relative">
+          <div className="flex-1 relative flex">
             <textarea
               rows={2}
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`Написать сообщение от имени ${currentUserName}... (Enter для отправки)`}
-              className="w-full p-2.5 text-xs sm:text-sm bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light placeholder:text-ink-muted/60 resize-none max-h-24"
+              className="block w-full p-2.5 text-xs sm:text-sm bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light placeholder:text-ink-muted/60 resize-none max-h-24 leading-normal"
             />
           </div>
 
           <button
             type="submit"
             disabled={!text.trim()}
-            className="h-10 px-4 bg-oxblood hover:bg-oxblood-hover disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+            className="btn-editorial px-5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink disabled:opacity-40 disabled:cursor-not-allowed text-xs font-mono uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 border border-ink dark:border-paper-light"
           >
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Отправить</span>

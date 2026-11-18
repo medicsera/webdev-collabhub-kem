@@ -158,61 +158,66 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
           </p>
         </div>
 
-        {/* Навигация по подвкладкам */}
-        <div className="flex flex-wrap gap-2 self-start sm:self-center bg-paper-light dark:bg-paper-dark p-1.5 border border-paper-border dark:border-paper-darkBorder rounded-xs">
+        {/* Навигация по подвкладкам: сетка 2 на 2 с четким hairline-разделением */}
+        <div className="grid grid-cols-2 border border-paper-border dark:border-paper-darkBorder bg-paper-border dark:bg-paper-darkBorder gap-px self-start sm:self-auto shrink-0 w-full sm:w-auto overflow-hidden">
+          {/* Ячейка 1: Напарники */}
           <button
             type="button"
             onClick={() => setActiveSubTab('friends')}
-            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition-colors inline-flex items-center justify-center sm:justify-start gap-2 cursor-pointer ${
               activeSubTab === 'friends'
-                ? 'bg-oxblood text-white font-semibold shadow-2xs'
-                : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                ? 'bg-ink text-paper-light dark:bg-paper-light dark:text-ink font-bold'
+                : 'bg-paper-card dark:bg-paper-darkCard text-ink-muted hover:text-ink dark:text-stone-400 dark:hover:text-white hover:bg-paper-light dark:hover:bg-paper-dark'
             }`}
           >
-            <UserCheck className="w-3.5 h-3.5" />
+            <UserCheck className="w-3.5 h-3.5 shrink-0" />
             <span>Напарники ({friendsList.length})</span>
           </button>
 
+          {/* Ячейка 2: Входящие */}
           <button
             type="button"
             onClick={() => setActiveSubTab('incoming')}
-            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer relative rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition-colors inline-flex items-center justify-center sm:justify-start gap-2 cursor-pointer relative ${
               activeSubTab === 'incoming'
-                ? 'bg-oxblood text-white font-semibold shadow-2xs'
-                : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                ? 'bg-ink text-paper-light dark:bg-paper-light dark:text-ink font-bold'
+                : 'bg-paper-card dark:bg-paper-darkCard text-ink-muted hover:text-ink dark:text-stone-400 dark:hover:text-white hover:bg-paper-light dark:hover:bg-paper-dark'
             }`}
           >
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-3.5 h-3.5 shrink-0" />
             <span>Входящие</span>
             {incomingRequests.length > 0 && (
-              <span className="w-4 h-4 rounded-full bg-hunter text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="w-4 h-4 rounded-full bg-oxblood text-white text-[9px] font-bold inline-flex items-center justify-center ml-1 shrink-0">
                 {incomingRequests.length}
               </span>
             )}
           </button>
 
+          {/* Ячейка 3: Исходящие */}
           <button
             type="button"
             onClick={() => setActiveSubTab('outgoing')}
-            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition-colors inline-flex items-center justify-center sm:justify-start gap-2 cursor-pointer ${
               activeSubTab === 'outgoing'
-                ? 'bg-oxblood text-white font-semibold shadow-2xs'
-                : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                ? 'bg-ink text-paper-light dark:bg-paper-light dark:text-ink font-bold'
+                : 'bg-paper-card dark:bg-paper-darkCard text-ink-muted hover:text-ink dark:text-stone-400 dark:hover:text-white hover:bg-paper-light dark:hover:bg-paper-dark'
             }`}
           >
+            <Send className="w-3.5 h-3.5 shrink-0" />
             <span>Исходящие ({outgoingRequests.length})</span>
           </button>
 
+          {/* Ячейка 4: Найти студента */}
           <button
             type="button"
             onClick={() => setActiveSubTab('search')}
-            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition inline-flex items-center gap-1.5 cursor-pointer rounded-xs ${
+            className={`min-h-[42px] px-4 py-2.5 text-xs font-mono uppercase tracking-wider transition-colors inline-flex items-center justify-center sm:justify-start gap-2 cursor-pointer ${
               activeSubTab === 'search'
-                ? 'bg-oxblood text-white font-semibold shadow-2xs'
-                : 'text-ink-muted hover:text-ink dark:hover:text-white'
+                ? 'bg-ink text-paper-light dark:bg-paper-light dark:text-ink font-bold'
+                : 'bg-paper-card dark:bg-paper-darkCard text-ink-muted hover:text-ink dark:text-stone-400 dark:hover:text-white hover:bg-paper-light dark:hover:bg-paper-dark'
             }`}
           >
-            <UserPlus className="w-3.5 h-3.5" />
+            <UserPlus className="w-3.5 h-3.5 shrink-0" />
             <span>Найти студента</span>
           </button>
         </div>
@@ -325,9 +330,10 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
                     <button
                       type="button"
                       onClick={() => onViewStudent(senderId)}
-                      className="px-2.5 py-1.5 text-xs font-mono uppercase tracking-wider border border-paper-border hover:border-ink transition text-ink dark:text-ink-light cursor-pointer"
+                      className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-oxblood text-oxblood dark:text-oxblood-light transition flex items-center gap-1 cursor-pointer shrink-0"
+                      title="Просмотреть портфолио и резюме"
                     >
-                      Анкета
+                      <ExternalLink className="w-3 h-3" /> Профиль
                     </button>
                   )}
                   <button
@@ -340,7 +346,7 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
                   <button
                     type="button"
                     onClick={() => onAcceptFriendRequest(connection.id)}
-                    className="px-4 py-1.5 text-xs font-mono uppercase tracking-wider bg-hunter hover:bg-emerald-700 text-white transition cursor-pointer flex items-center gap-1 shadow-xs"
+                    className="btn-editorial px-4 py-1.5 text-xs font-mono uppercase tracking-wider bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition cursor-pointer flex items-center gap-1 border border-ink dark:border-paper-light"
                   >
                     <Check className="w-3.5 h-3.5" /> Принять
                   </button>
@@ -390,9 +396,10 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
                     <button
                       type="button"
                       onClick={() => onViewStudent(targetId)}
-                      className="px-2.5 py-1.5 text-xs font-mono uppercase tracking-wider border border-paper-border hover:border-ink transition text-ink dark:text-ink-light cursor-pointer"
+                      className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-oxblood text-oxblood dark:text-oxblood-light transition flex items-center gap-1 cursor-pointer shrink-0"
+                      title="Просмотреть портфолио и резюме"
                     >
-                      Профиль
+                      <ExternalLink className="w-3 h-3" /> Профиль
                     </button>
                   )}
                   <button
@@ -461,10 +468,10 @@ export const StudentConnectionsSection: React.FC<StudentConnectionsSectionProps>
                       <button
                         type="button"
                         onClick={() => onViewStudent(studId)}
-                        className="p-1 text-ink-muted hover:text-ink dark:hover:text-white transition cursor-pointer shrink-0"
-                        title="Открыть профиль"
+                        className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider border border-paper-border dark:border-paper-darkBorder hover:border-oxblood text-oxblood dark:text-oxblood-light transition flex items-center gap-1 cursor-pointer shrink-0"
+                        title="Просмотреть портфолио и резюме"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-3 h-3" /> Профиль
                       </button>
                     )}
                   </div>

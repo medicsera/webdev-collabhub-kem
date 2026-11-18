@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Header } from './components/Header';
-import { Footer } from './components/Footer';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AppProvider, useApp } from './context/AppContext';
+import { AppLayout } from './components/AppLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { RoleGuard } from './components/RoleGuard';
+import { AuthScreen } from './components/AuthScreen';
 import { Toast } from './components/Toast';
-import { ApplyModal, type ApplyModalSubmitData } from './components/modals/ApplyModal';
-import { CreateProjectModal } from './components/modals/CreateProjectModal';
-import { EditProjectModal } from './components/modals/EditProjectModal';
-import { EditStudentProfileModal } from './components/modals/EditStudentProfileModal';
-import { EditSkillsModal } from './components/modals/EditSkillsModal';
-import { EditCompanyModal } from './components/modals/EditCompanyModal';
-import { ApplicationChatModal } from './components/modals/ApplicationChatModal';
+
+// Компоненты страниц / вкладок
 import { CatalogTab } from './components/tabs/CatalogTab';
 import { MyProjectsTab } from './components/tabs/MyProjectsTab';
 import { HRDashboardTab } from './components/tabs/HRDashboardTab';
+import { StudentsCatalogTab } from './components/tabs/StudentsCatalogTab';
 import { ChatsPage } from './components/ChatsPage';
 import { ProfileTab } from './components/tabs/ProfileTab';
 import { CompanyProfileTab } from './components/tabs/CompanyProfileTab';
@@ -962,154 +963,206 @@ export const App: React.FC = () => {
     return applications.find((a) => a.id === activeChat.applicationId) || null;
   }, [applications, activeChat]);
 
-  const activeChatProject = useMemo(() => {
-    if (!activeChat) return null;
-    return projects.find((p) => p.id === activeChat.projectId) || null;
-  }, [projects, activeChat]);
+// Экран авторизации с защитой от повторного входа
+const AuthScreenWrapper: React.FC = () => {
+  const { isLoggedIn, currentRole, login, isDark, toggleTheme, themeTransition, toastMessage } = useApp();
 
-  if (!isLoggedIn) {
-    return (
-      <>
-        <div className={isExiting ? 'screen-exit' : 'screen-enter'}>
-          <AuthScreen
-            onLogin={handleLogin}
-            isDark={isDark}
-            toggleTheme={toggleTheme}
-            themeTransition={themeTransition}
-          />
-        </div>
-        <Toast message={toastMessage} />
-      </>
-    );
+  if (isLoggedIn) {
+    return <Navigate to={currentRole === 'student' ? '/catalog' : '/hr/dashboard'} replace />;
   }
 
   return (
-    <div className={`bg-paper-light text-ink dark:bg-paper-dark dark:text-ink-light min-h-screen transition-colors duration-300 flex flex-col selection:bg-oxblood selection:text-white ${isExiting ? 'screen-exit' : 'screen-enter'}`}>
-      {/* Шапка и навигация */}
-      <Header
-        currentRole={currentRole}
-        setRole={handleSetRole}
-        currentTab={currentTab}
-        switchTab={handleSwitchTab}
+    <>
+      <AuthScreen
+        onLogin={login}
         isDark={isDark}
         toggleTheme={toggleTheme}
-        notifications={notifications}
-        onMarkNotificationAsRead={handleMarkNotificationAsRead}
-        onMarkAllNotificationsAsRead={handleMarkAllNotificationsAsRead}
-        onLogout={handleLogout}
+        themeTransition={themeTransition}
       />
-
-      {/* Основной контент с горизонтальной анимацией переключения окон */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="tabs-viewport">
-          {exitingTab && (
-            <div
-              key={`exit-${exitingTab}`}
-              className={`absolute inset-x-0 top-0 pointer-events-none ${
-                tabDirection === 'forward' ? 'tab-slide-out-left' : 'tab-slide-out-right'
-              }`}
-            >
-              {renderTabContent(exitingTab)}
-            </div>
-          )}
-
-          <div
-            key={`enter-${currentTab}`}
-            className={`w-full ${
-              isTabTransitioning
-                ? tabDirection === 'forward'
-                  ? 'tab-slide-in-right'
-                  : 'tab-slide-in-left'
-                : ''
-            }`}
-          >
-            {renderTabContent(currentTab)}
-          </div>
-        </div>
-      </main>
-
-      {/* Подвал с академической сводкой */}
-      <Footer />
-
-      {/* Модальное окно: Подача заявки (Задача 4: командный/индивидуальный отклик) */}
-      <ApplyModal
-        project={selectedProjectForModal}
-        currentStudent={studentProfile}
-        friends={myAcceptedFriends}
-        applications={applications}
-        onClose={handleCloseApplyModal}
-        onSubmit={handleSubmitApplication}
-        onViewCompany={handleViewCompany}
-      />
-
-      {/* Модальное окно: Чат по отклику (Задача 5: chats + messages, открывается только вне страницы 'chats') */}
-      <ApplicationChatModal
-        isOpen={Boolean(activeChat) && currentTab !== 'chats'}
-        onClose={handleCloseChat}
-        chat={activeChat}
-        application={activeChatApplication}
-        project={activeChatProject}
-        currentRole={currentRole}
-        currentUserId={currentRole === 'student' ? currentStudentId : 'hr-user'}
-        currentUserName={currentRole === 'student' ? studentProfile.name : companyProfile.contactPerson}
-        onSendMessage={handleSendMessage}
-      />
-
-      {/* Модальное окно: Создание проекта (HR) */}
-      <CreateProjectModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateProject}
-        initialCompany={companyProfile.name}
-        initialDepartment={companyProfile.department}
-      />
-
-      {/* Модальное окно: Редактирование проекта (HR) */}
-      <EditProjectModal
-        project={projectToEdit}
-        isOpen={Boolean(projectToEdit)}
-        onClose={() => setProjectToEdit(null)}
-        onUpdate={handleUpdateProject}
-        onDelete={handleDeleteProject}
-      />
-
-      {/* Модальное окно: Редактирование профиля студента и навыков */}
-      <EditStudentProfileModal
-        isOpen={isEditStudentModalOpen}
-        onClose={() => setIsEditStudentModalOpen(false)}
-        profile={studentProfile}
-        onSave={handleUpdateStudentProfile}
-      />
-
-      {/* Модальное окно: Редактирование только стека навыков (+ Изменить) */}
-      <EditSkillsModal
-        isOpen={isEditSkillsModalOpen}
-        onClose={() => setIsEditSkillsModalOpen(false)}
-        skills={studentProfile.skills}
-        onSave={handleUpdateStudentSkills}
-      />
-
-      {/* Модальное окно: Редактирование информации о компании */}
-      <EditCompanyModal
-        isOpen={isEditCompanyModalOpen}
-        onClose={() => setIsEditCompanyModalOpen(false)}
-        company={companyProfile}
-        onSave={handleUpdateCompanyProfile}
-      />
-
-      {/* Всплывающее уведомление */}
       <Toast message={toastMessage} />
+    </>
+  );
+};
 
-      {/* Атмосферный эффект рассвета и заката при переключении темы */}
-      {themeTransition && (
-        <div
-          className={`fixed inset-0 pointer-events-none z-50 ${
-            themeTransition === 'dawn' ? 'dawn-overlay' : 'sunset-overlay'
-          }`}
-          aria-hidden="true"
-        />
-      )}
-    </div>
+// Обёртки компонентов страниц с подключением к контексту
+const CatalogPageWrapper: React.FC = () => {
+  const { projects, currentRole, setSelectedProjectForModal } = useApp();
+  return (
+    <CatalogTab
+      projects={projects}
+      currentRole={currentRole}
+      onSelectProject={setSelectedProjectForModal}
+    />
+  );
+};
+
+const MyProjectsPageWrapper: React.FC = () => {
+  const { projects, applications, studentProfile } = useApp();
+  return (
+    <MyProjectsTab
+      projects={projects}
+      applications={applications}
+      currentStudentId={studentProfile.id || 1}
+    />
+  );
+};
+
+const HRDashboardPageWrapper: React.FC = () => {
+  const {
+    candidates,
+    projects,
+    companyProfile,
+    approveCandidate,
+    contactCandidate,
+    deleteProject,
+    updateProjectStatus,
+  } = useApp();
+
+  return (
+    <HRDashboardTab
+      candidates={candidates}
+      allStudents={MOCK_STUDENTS}
+      projects={projects}
+      companyName={companyProfile.name}
+      onApproveCandidate={approveCandidate}
+      onContactCandidate={contactCandidate}
+      onDeleteProject={deleteProject}
+      onUpdateProjectStatus={updateProjectStatus}
+    />
+  );
+};
+
+const StudentsCatalogPageWrapper: React.FC = () => {
+  const { projects, companyProfile, showToast } = useApp();
+  return (
+    <StudentsCatalogTab
+      students={MOCK_STUDENTS}
+      projects={projects}
+      companyName={companyProfile.name}
+      onContactStudent={(student) => {
+        showToast(`Приглашение отправлено студенту «${student.name}»`);
+      }}
+    />
+  );
+};
+
+const ChatsPageWrapper: React.FC = () => {
+  const { chatId } = useParams<{ chatId?: string }>();
+  const { chats, applications, currentRole, studentProfile, companyProfile, sendMessage } = useApp();
+
+  return (
+    <ChatsPage
+      chats={chats}
+      applications={applications}
+      currentRole={currentRole}
+      currentUserId={currentRole === 'student' ? (studentProfile.id || 1) : 'hr-user'}
+      currentUserName={currentRole === 'student' ? studentProfile.name : `${companyProfile.name} (HR)`}
+      activeChatId={chatId}
+      onSendMessage={sendMessage}
+    />
+  );
+};
+
+const ProfilePageWrapper: React.FC = () => {
+  const {
+    studentProfile,
+    connections,
+    recalculateBio,
+    isRecalculating,
+    setIsEditSkillsModalOpen,
+    setIsEditStudentProfileModalOpen,
+    sendFriendRequest,
+    acceptFriendRequest,
+    rejectFriendRequest,
+    cancelFriendRequest,
+    logout,
+    updateStudentProfile,
+  } = useApp();
+
+  return (
+    <ProfileTab
+      profile={studentProfile}
+      connections={connections}
+      allStudents={MOCK_STUDENTS}
+      onUpdateBio={(bio) => updateStudentProfile({ ...studentProfile, bio })}
+      onRecalculate={recalculateBio}
+      isRecalculating={isRecalculating}
+      onOpenEditProfileModal={() => setIsEditStudentProfileModalOpen(true)}
+      onOpenEditSkillsModal={() => setIsEditSkillsModalOpen(true)}
+      onSendFriendRequest={sendFriendRequest}
+      onAcceptFriendRequest={acceptFriendRequest}
+      onRejectFriendRequest={rejectFriendRequest}
+      onCancelFriendRequest={cancelFriendRequest}
+      onLogout={logout}
+    />
+  );
+};
+
+const CompanyProfilePageWrapper: React.FC = () => {
+  const { companyProfile, logout, setIsEditCompanyModalOpen } = useApp();
+  return (
+    <CompanyProfileTab
+      company={companyProfile}
+      onOpenEditModal={() => setIsEditCompanyModalOpen(true)}
+      onLogout={logout}
+    />
+  );
+};
+
+export const AppRoutes: React.FC = () => {
+  return (
+    <Routes>
+      {/* Публичный экран входа */}
+      <Route path="/login" element={<AuthScreenWrapper />} />
+
+      {/* Защищенные маршруты авторизованных пользователей */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AppLayout />}>
+          {/* Корневой умный редирект на дашборд роли */}
+          <Route path="/" element={<HomeRedirect />} />
+
+          {/* Рабочий цикл Студента (RoleGuard: student) */}
+          <Route element={<RoleGuard allowedRoles={['student']} />}>
+            <Route path="/catalog" element={<CatalogPageWrapper />} />
+            <Route path="/my-projects" element={<MyProjectsPageWrapper />} />
+            <Route path="/profile" element={<ProfilePageWrapper />} />
+            <Route path="/profile/edit" element={<EditStudentProfilePage />} />
+          </Route>
+
+          {/* Рабочий цикл Организации / HR (RoleGuard: hr) */}
+          <Route element={<RoleGuard allowedRoles={['hr']} />}>
+            <Route path="/hr/dashboard" element={<HRDashboardPageWrapper />} />
+            <Route path="/hr/projects/create" element={<CreateProjectPage />} />
+            <Route path="/hr/projects/:id/edit" element={<EditProjectPage />} />
+            <Route path="/students" element={<StudentsCatalogPageWrapper />} />
+            <Route path="/company/profile" element={<CompanyProfilePageWrapper />} />
+            <Route path="/company/profile/edit" element={<EditCompanyPage />} />
+          </Route>
+
+          {/* Общие коммуникации и просмотр публичных визиток */}
+          <Route path="/chats" element={<ChatsPageWrapper />} />
+          <Route path="/chats/:chatId" element={<ChatsPageWrapper />} />
+          <Route path="/companies/:id" element={<CompanyProfilePage />} />
+          <Route path="/students/:id" element={<StudentProfilePage />} />
+          <Route path="/resumes/:id" element={<StudentProfilePage />} />
+
+          {/* Несуществующие пути */}
+          <Route path="*" element={<HomeRedirect />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppProvider>
+          <AppRoutes />
+        </AppProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 

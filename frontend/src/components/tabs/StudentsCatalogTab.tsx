@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   GraduationCap,
@@ -11,6 +12,7 @@ import {
   CheckCircle2,
   AlertCircle,
   FileText,
+  ChevronDown,
 } from 'lucide-react';
 import type { StudentProfile, Project } from '../../types';
 import { SkillBadge } from '../SkillBadge';
@@ -37,6 +39,15 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
   onViewStudent,
   onContactStudent,
 }) => {
+  const navigate = useNavigate();
+
+  const handleViewStudent = (studentId: number) => {
+    if (onViewStudent) {
+      onViewStudent(studentId);
+    } else {
+      navigate(`/students/${studentId}`);
+    }
+  };
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
@@ -273,26 +284,29 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
             >
               Проект для подбора:
             </label>
-            <select
-              id="students-project-filter"
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              disabled={!hasCompanyProjects}
-              className="w-full h-10 px-3 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light disabled:opacity-50"
-            >
-              {hasCompanyProjects ? (
-                <>
-                  <option value="all">★ Все проекты (лучшее совпадение)</option>
-                  {companyProjects.map((proj) => (
-                    <option key={proj.id} value={String(proj.id)}>
-                      {proj.title}
-                    </option>
-                  ))}
-                </>
-              ) : (
-                <option value="all">Нет опубликованных проектов компании</option>
-              )}
-            </select>
+            <div className="relative w-full">
+              <select
+                id="students-project-filter"
+                value={selectedProjectId}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                disabled={!hasCompanyProjects}
+                className="appearance-none w-full h-10 pl-3.5 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light disabled:opacity-50 cursor-pointer"
+              >
+                {hasCompanyProjects ? (
+                  <>
+                    <option value="all">★ Все проекты (лучшее совпадение)</option>
+                    {companyProjects.map((proj) => (
+                      <option key={proj.id} value={String(proj.id)}>
+                        {proj.title}
+                      </option>
+                    ))}
+                  </>
+                ) : (
+                  <option value="all">Нет опубликованных проектов компании</option>
+                )}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+            </div>
           </div>
         </div>
 
@@ -306,19 +320,22 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
             >
               Статус соискателя
             </label>
-            <select
-              id="students-status-filter"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full h-9 px-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
-            >
-              <option value="all">Все статусы</option>
-              {availableStatuses.map((st) => (
-                <option key={st} value={st}>
-                  {st}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full">
+              <select
+                id="students-status-filter"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="appearance-none w-full h-9 pl-3 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+              >
+                <option value="all">Все статусы</option>
+                {availableStatuses.map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+            </div>
           </div>
 
           {/* Курс */}
@@ -329,20 +346,23 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
             >
               Курс обучения
             </label>
-            <select
-              id="students-year-filter"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full h-9 px-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
-            >
-              <option value="all">Все курсы (1–6)</option>
-              <option value="1">1 курс</option>
-              <option value="2">2 курс</option>
-              <option value="3">3 курс</option>
-              <option value="4">4 курс</option>
-              <option value="5">5 курс</option>
-              <option value="6">6 курс</option>
-            </select>
+            <div className="relative w-full">
+              <select
+                id="students-year-filter"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="appearance-none w-full h-9 pl-3 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+              >
+                <option value="all">Все курсы (1–6)</option>
+                <option value="1">1 курс</option>
+                <option value="2">2 курс</option>
+                <option value="3">3 курс</option>
+                <option value="4">4 курс</option>
+                <option value="5">5 курс</option>
+                <option value="6">6 курс</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+            </div>
           </div>
 
           {/* Минимальный процент совпадения */}
@@ -353,17 +373,20 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
             >
               Мин. совпадение
             </label>
-            <select
-              id="students-match-filter"
-              value={minMatch}
-              onChange={(e) => setMinMatch(Number(e.target.value))}
-              className="w-full h-9 px-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
-            >
-              <option value="0">Любое (от 50%)</option>
-              <option value="75">От 75%</option>
-              <option value="85">От 85%</option>
-              <option value="90">От 90% (Высокое)</option>
-            </select>
+            <div className="relative w-full">
+              <select
+                id="students-match-filter"
+                value={minMatch}
+                onChange={(e) => setMinMatch(Number(e.target.value))}
+                className="appearance-none w-full h-9 pl-3 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+              >
+                <option value="0">Любое (от 50%)</option>
+                <option value="75">От 75%</option>
+                <option value="85">От 85%</option>
+                <option value="90">От 90% (Высокое)</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+            </div>
           </div>
 
           {/* Сортировка */}
@@ -374,16 +397,19 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
             >
               Сортировка
             </label>
-            <select
-              id="students-sort-filter"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'match' | 'year' | 'name')}
-              className="w-full h-9 px-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light"
-            >
-              <option value="match">По совпадению (ИИ)</option>
-              <option value="year">По курсу (старшие)</option>
-              <option value="name">По алфавиту (ФИО)</option>
-            </select>
+            <div className="relative w-full">
+              <select
+                id="students-sort-filter"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'match' | 'year' | 'name')}
+                className="appearance-none w-full h-9 pl-3 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
+              >
+                <option value="match">По совпадению (ИИ)</option>
+                <option value="year">По курсу (старшие)</option>
+                <option value="name">По алфавиту (ФИО)</option>
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+            </div>
           </div>
 
           {/* Сброс фильтров */}
@@ -429,7 +455,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
             return (
               <div
                 key={student.id}
-                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 sm:p-6 flex flex-col justify-between hover:border-oxblood/60 transition-colors shadow-2xs space-y-4"
+                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5 sm:p-6 flex flex-col justify-between hover:border-ink dark:hover:border-paper-light transition-colors space-y-4"
               >
                 {/* Верхняя часть карточки */}
                 <div className="space-y-3.5">
@@ -451,7 +477,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                       <div className="min-w-0">
                         <button
                           type="button"
-                          onClick={() => onViewStudent && student.id && onViewStudent(student.id)}
+                          onClick={() => student.id && handleViewStudent(student.id)}
                           className="text-left font-serif font-bold text-lg text-ink dark:text-ink-light hover:text-oxblood dark:hover:text-oxblood-light transition cursor-pointer leading-snug line-clamp-1"
                         >
                           {student.name}
@@ -496,7 +522,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                           pending={semanticStatus === 'loading'}
                         />
                       ) : (
-                        <span className="px-2.5 py-1 text-[10px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700 rounded-xs">
+                        <span className="px-2.5 py-1 text-[10px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700">
                           Опубликуйте проект
                         </span>
                       )}
@@ -612,7 +638,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                 <div className="pt-3 border-t border-paper-border dark:border-paper-darkBorder flex items-center justify-between gap-3 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => onViewStudent && student.id && onViewStudent(student.id)}
+                    onClick={() => student.id && handleViewStudent(student.id)}
                     className="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-ink hover:text-oxblood dark:text-ink-light dark:hover:text-oxblood-light transition cursor-pointer font-semibold"
                   >
                     <FileText className="w-3.5 h-3.5" />
@@ -623,7 +649,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                   <button
                     type="button"
                     onClick={() => onContactStudent && onContactStudent(student)}
-                    className="h-9 px-4 text-xs font-mono uppercase tracking-wider bg-oxblood hover:bg-oxblood-hover text-white transition flex items-center gap-1.5 cursor-pointer shadow-2xs font-semibold"
+                    className="btn-editorial h-9 px-4 text-xs font-mono uppercase tracking-wider bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition flex items-center gap-1.5 cursor-pointer font-semibold border border-ink dark:border-paper-light"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>Пригласить на практику</span>

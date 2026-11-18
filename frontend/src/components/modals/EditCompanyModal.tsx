@@ -3,12 +3,14 @@ import { createPortal } from 'react-dom';
 import { X, Building2 } from 'lucide-react';
 import type { CompanyProfile } from '../../types';
 import { AvatarUploader } from '../AvatarUploader';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface EditCompanyModalProps {
   isOpen: boolean;
   onClose: () => void;
   company: CompanyProfile;
   onSave: (updatedCompany: CompanyProfile) => void;
+  isPage?: boolean;
 }
 
 export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
@@ -16,6 +18,7 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
   onClose,
   company,
   onSave,
+  isPage = false,
 }) => {
   const [name, setName] = useState(company.name);
   const [department, setDepartment] = useState(company.department);
@@ -49,6 +52,8 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
     }
   }, [isOpen, company]);
 
+  useBodyScrollLock(isOpen && !isPage);
+
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
 
@@ -79,15 +84,11 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
     onClose();
   };
 
-  return createPortal(
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
-      onClick={onClose}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-2xl mx-auto' : 'max-w-xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] overflow-hidden`}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
         {/* Зафиксированная шапка модального окна */}
         <div className="shrink-0 flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder px-5 sm:px-7 py-3.5 bg-paper-card dark:bg-paper-darkCard">
           <div>
@@ -311,13 +312,25 @@ export const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-oxblood hover:bg-oxblood-hover text-white transition cursor-pointer shadow-xs"
+              className="btn-editorial px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition cursor-pointer border border-ink dark:border-paper-light"
             >
               Сохранить информацию
             </button>
           </div>
         </form>
       </div>
+  );
+
+  if (isPage) {
+    return <div className="py-2">{modalContent}</div>;
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
+      onClick={onClose}
+    >
+      {modalContent}
     </div>,
     document.body
   );

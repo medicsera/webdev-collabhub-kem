@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Trash2 } from 'lucide-react';
 import type { Project, ProjectStatus, SkillItem } from '../../types';
 import { SkillsWithLevelsEditor } from '../SkillsWithLevelsEditor';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 interface EditProjectModalProps {
   project: Project | null;
@@ -10,6 +11,7 @@ interface EditProjectModalProps {
   onClose: () => void;
   onUpdate: (updatedProject: Project) => void;
   onDelete?: (projectId: number) => void;
+  isPage?: boolean;
 }
 
 export const EditProjectModal: React.FC<EditProjectModalProps> = ({
@@ -18,6 +20,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
   onClose,
   onUpdate,
   onDelete,
+  isPage = false,
 }) => {
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('');
@@ -43,6 +46,8 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
     }
   }, [project]);
 
+  useBodyScrollLock(isOpen && Boolean(project) && !isPage);
+
   if (!isOpen || !project) return null;
   if (typeof document === 'undefined') return null;
 
@@ -65,15 +70,11 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
     onClose();
   };
 
-  return createPortal(
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
-      onClick={onClose}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-2xl mx-auto' : 'max-w-xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] overflow-hidden`}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
         {/* Зафиксированная шапка модального окна */}
         <div className="shrink-0 flex items-center justify-between border-b border-paper-border dark:border-paper-darkBorder px-5 sm:px-7 py-3.5 bg-paper-card dark:bg-paper-darkCard">
           <div>
@@ -242,7 +243,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood transition cursor-pointer shadow-xs"
+                className="btn-editorial px-5 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-paper-light dark:text-ink transition cursor-pointer border border-ink dark:border-paper-light"
               >
                 Сохранить изменения
               </button>
@@ -250,6 +251,18 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
           </div>
         </form>
       </div>
+  );
+
+  if (isPage) {
+    return <div className="py-2">{modalContent}</div>;
+  }
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
+      onClick={onClose}
+    >
+      {modalContent}
     </div>,
     document.body
   );

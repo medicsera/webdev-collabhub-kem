@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   MessageSquare,
   Send,
@@ -9,6 +10,7 @@ import {
   Search,
   Building2,
   GraduationCap,
+  ArrowLeft,
 } from 'lucide-react';
 import type { Chat, ProjectApplication, Role } from '../types';
 
@@ -33,9 +35,10 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
   onSelectChat,
   onSendMessage,
 }) => {
-  const [selectedId, setSelectedId] = useState<string>(
-    activeChatId || (chats.length > 0 ? chats[0].id : '')
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTargetId = searchParams.get('chatId') || activeChatId || '';
+
+  const [selectedId, setSelectedId] = useState<string>(initialTargetId);
   const [searchQuery, setSearchQuery] = useState('');
   const [text, setText] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -48,12 +51,11 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
   }, []);
 
   useEffect(() => {
-    if (activeChatId) {
-      setSelectedId(activeChatId);
-    }
-  }, [activeChatId]);
+    const target = searchParams.get('chatId') || activeChatId || '';
+    setSelectedId(target);
+  }, [searchParams, activeChatId]);
 
-  const activeChat = chats.find((c) => c.id === selectedId) || chats[0];
+  const activeChat = selectedId ? (chats.find((c) => c.id === selectedId) || null) : null;
   const relatedApplication = applications.find((a) => a.chatId === activeChat?.id || `chat-${a.id}` === activeChat?.id);
 
   // Скроллим строго внутренний контейнер сообщений чата, не затрагивая страницу браузера
@@ -73,9 +75,30 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
     );
   });
 
+  const isMessageFromMe = (msg: { senderId: number | string; senderRole: string }) => {
+    if (currentUserId && String(msg.senderId) === String(currentUserId)) return true;
+    if (msg.senderRole === currentRole) return true;
+    return false;
+  };
+
   const handleSelect = (id: string) => {
     setSelectedId(id);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('chatId', id);
+      return next;
+    }, { replace: true });
     if (onSelectChat) onSelectChat(id);
+  };
+
+  const handleBackToList = () => {
+    setSelectedId('');
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('chatId');
+      return next;
+    }, { replace: true });
+    if (onSelectChat) onSelectChat('');
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -113,9 +136,9 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
         ЕДИНЫЙ РОДИТЕЛЬСКИЙ КОНТЕЙНЕР ФИКСИРОВАННОЙ ВЫСОТЫ
         (height: calc(100vh - 220px), display: flex, overflow: hidden, border, border-radius)
       */}
-      <div className="h-[calc(100vh-220px)] min-h-[560px] max-h-[850px] flex overflow-hidden border border-paper-border dark:border-paper-darkBorder rounded-xs bg-paper-card dark:bg-paper-darkCard shadow-sm">
+      <div className="h-[calc(100vh-220px)] min-h-[560px] max-h-[850px] flex overflow-hidden border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard">
         {/* ЛЕВАЯ КОЛОНКА: САЙДБАР СО СПИСКОМ ДИАЛОГОВ */}
-        <aside className="w-72 sm:w-80 md:w-96 border-r border-paper-border dark:border-paper-darkBorder flex flex-col shrink-0 bg-paper-card dark:bg-paper-darkCard">
+        <aside className={`${activeChat ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 border-r border-paper-border dark:border-paper-darkBorder flex-col shrink-0 bg-paper-card dark:bg-paper-darkCard`}>
           {/* Поиск по диалогам */}
           <div className="p-3 border-b border-paper-border dark:border-paper-darkBorder bg-paper-light/50 dark:bg-paper-dark/50">
             <div className="relative">
@@ -141,6 +164,7 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                 const isSelected = activeChat && activeChat.id === c.id;
                 const lastMsg = c.messages[c.messages.length - 1];
                 const otherPartyName = currentRole === 'student' ? c.companyName : (c.studentName || 'Студент');
+                const isLastFromMe = lastMsg ? isMessageFromMe(lastMsg) : false;
 
                 return (
                   <button
@@ -153,7 +177,7 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                         : 'hover:bg-paper-muted/30 dark:hover:bg-stone-900'
                     }`}
                   >
-                    <div className="w-9 h-9 shrink-0 rounded-xs border border-paper-border dark:border-stone-700 bg-paper-light dark:bg-stone-800 flex items-center justify-center text-oxblood dark:text-oxblood-light font-bold text-xs">
+                    <div className="w-9 h-9 shrink-0 border border-paper-border dark:border-stone-700 bg-paper-light dark:stone-800 flex items-center justify-center text-oxblood dark:text-oxblood-light font-bold text-xs">
                       {currentRole === 'student' ? (
                         <Building2 className="w-4 h-4" />
                       ) : (
@@ -167,7 +191,7 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                           {otherPartyName}
                         </span>
                         {lastMsg && (
-                          <span className="text-[10px] font-mono text-ink-muted shrink-0">
+                          <span className="text-[10px] font-mono text-ink-muted dark:text-stone-400 shrink-0">
                             {new Date(lastMsg.createdAt).toLocaleTimeString('ru-RU', {
                               hour: '2-digit',
                               minute: '2-digit',
@@ -180,8 +204,32 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                         {c.projectTitle}
                       </div>
 
-                      <div className="text-xs text-ink-muted dark:text-stone-400 truncate line-clamp-1">
-                        {lastMsg ? lastMsg.content : 'Нет сообщений'}
+                      <div className="text-xs truncate">
+                        {lastMsg ? (
+                          <div className="flex items-center gap-1.5 truncate">
+                            {isLastFromMe ? (
+                              <>
+                                <span className="font-semibold text-oxblood dark:text-oxblood-light shrink-0">Вы:</span>
+                                <span className="text-stone-600 dark:text-stone-300 truncate">{lastMsg.content}</span>
+                                <span className="ml-auto shrink-0 pl-1 flex items-center">
+                                  {lastMsg.isRead ? (
+                                    <span title="Прочитано">
+                                      <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                    </span>
+                                  ) : (
+                                    <span title="Отправлено">
+                                      <Check className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
+                                    </span>
+                                  )}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-stone-600 dark:text-stone-300 truncate">{lastMsg.content}</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-stone-400 italic">Нет сообщений</span>
+                        )}
                       </div>
                     </div>
                   </button>
@@ -192,10 +240,10 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
         </aside>
 
         {/* 
-          ПРАВАЯ КОЛОНКА (АКТИВНЫЙ ЧАТ):
+          ПРАВАЯ КОЛОНКА (АКТИВНЫЙ ЧАТ ИЛИ EMPTY STATE):
           display: flex; flex-direction: column; height: 100%; min-height: 0;
         */}
-        <div className="flex-1 flex flex-col h-full min-h-0 bg-paper-light/30 dark:bg-paper-dark/60">
+        <div className={`${activeChat ? 'flex' : 'hidden md:flex'} flex-1 flex-col h-full min-h-0 bg-paper-light/30 dark:bg-paper-dark/60`}>
           {activeChat ? (
             <>
               {/* 
@@ -203,33 +251,44 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                 зафиксирована сверху (flex-shrink: 0)
               */}
               <div className="shrink-0 p-3.5 sm:p-4 border-b border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-start justify-between gap-3">
-                <div className="min-w-0 space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-ink dark:text-ink-light">
-                      {currentRole === 'student' ? activeChat.companyName : (activeChat.studentName || 'Студент')}
-                    </span>
-                    <span className="text-paper-border">•</span>
-                    <span className="text-[11px] font-mono text-oxblood dark:text-oxblood-light truncate">
-                      {activeChat.projectTitle}
-                    </span>
-                  </div>
-
-                  {relatedApplication?.members && relatedApplication.members.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-[10px] font-mono text-ink-muted dark:text-stone-400 flex-wrap">
-                      <Users className="w-3 h-3 text-oxblood dark:text-oxblood-light" />
-                      <span>Команда ({relatedApplication.members.length}):</span>
-                      {relatedApplication.members.map((m) => (
-                        <span
-                          key={String(m.studentId)}
-                          className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-paper-light dark:bg-stone-800 border border-paper-border dark:border-stone-700"
-                        >
-                          {m.role === 'LEAD' ? <Crown className="w-2.5 h-2.5 text-brass" /> : null}
-                          <span>{m.studentName}</span>
-                          <span className="font-bold text-[9px]">[{m.role}]</span>
-                        </span>
-                      ))}
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <button
+                    type="button"
+                    onClick={handleBackToList}
+                    className="md:hidden mt-0.5 p-1 -ml-1 text-ink-muted hover:text-ink dark:text-stone-400 dark:hover:text-stone-200 transition-colors flex items-center gap-1"
+                    title="Назад к списку чатов"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-[11px] font-mono uppercase tracking-wider">Назад</span>
+                  </button>
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-bold text-ink dark:text-ink-light">
+                        {currentRole === 'student' ? activeChat.companyName : (activeChat.studentName || 'Студент')}
+                      </span>
+                      <span className="text-paper-border">•</span>
+                      <span className="text-[11px] font-mono text-oxblood dark:text-oxblood-light truncate">
+                        {activeChat.projectTitle}
+                      </span>
                     </div>
-                  )}
+
+                    {relatedApplication?.members && relatedApplication.members.length > 0 && (
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-ink-muted dark:text-stone-400 flex-wrap">
+                        <Users className="w-3 h-3 text-oxblood dark:text-oxblood-light" />
+                        <span>Команда ({relatedApplication.members.length}):</span>
+                        {relatedApplication.members.map((m) => (
+                          <span
+                            key={String(m.studentId)}
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-paper-light dark:bg-stone-800 border border-paper-border dark:border-stone-700"
+                          >
+                            {m.role === 'LEAD' ? <Crown className="w-2.5 h-2.5 text-brass" /> : null}
+                            <span>{m.studentName}</span>
+                            <span className="font-bold text-[9px]">[{m.role}]</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -253,9 +312,7 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                   </div>
                 ) : (
                   activeChat.messages.map((msg) => {
-                    const isMy = currentUserId
-                      ? String(msg.senderId) === String(currentUserId)
-                      : msg.senderRole === currentRole;
+                    const isMy = isMessageFromMe(msg);
 
                     return (
                       <div
@@ -263,8 +320,8 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                         className={`flex flex-col ${isMy ? 'items-end' : 'items-start'}`}
                       >
                         <div className="flex items-center gap-1.5 mb-1 px-1 text-[10px] font-mono text-ink-muted dark:text-stone-400">
-                          <span className="font-semibold text-ink dark:text-stone-300">
-                            {msg.senderName}
+                          <span className={`font-semibold ${isMy ? 'text-oxblood dark:text-oxblood-light' : 'text-ink dark:text-stone-300'}`}>
+                            {isMy ? 'Вы' : msg.senderName}
                           </span>
                           <span>•</span>
                           <span className="uppercase text-[9px] text-oxblood dark:text-oxblood-light">
@@ -273,16 +330,16 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                         </div>
 
                         <div
-                          className={`max-w-[85%] sm:max-w-[70%] p-3 text-xs sm:text-sm leading-relaxed rounded-xs ${
+                          className={`max-w-[85%] sm:max-w-[70%] p-3.5 text-xs sm:text-sm leading-relaxed border shadow-2xs ${
                             isMy
-                              ? 'bg-ink text-paper-light dark:bg-stone-200 dark:text-stone-900 shadow-2xs'
-                              : 'bg-paper-card dark:bg-stone-800 text-ink dark:text-ink-light border border-paper-border dark:border-stone-700 shadow-2xs'
+                              ? 'bg-[#EDE5D8] dark:bg-[#27231E] text-ink dark:text-[#F5F2EB] border-[#CCC2AF] dark:border-[#423C34]'
+                              : 'bg-paper-card dark:bg-[#181715] text-ink dark:text-ink-light border-paper-border dark:border-paper-darkBorder'
                           }`}
                         >
                           <p className="whitespace-pre-wrap break-words">{msg.content}</p>
                           <div
-                            className={`flex items-center justify-end gap-1 mt-1 text-[9px] font-mono ${
-                              isMy ? 'text-paper-light/60 dark:text-stone-600' : 'text-stone-400'
+                            className={`flex items-center justify-end gap-1.5 mt-1.5 text-[10px] font-mono ${
+                              isMy ? 'text-stone-600 dark:text-stone-400' : 'text-stone-500 dark:text-stone-400'
                             }`}
                           >
                             <span>
@@ -292,11 +349,11 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                               })}
                             </span>
                             {isMy && (
-                              <span>
+                              <span className="flex items-center" title={msg.isRead ? 'Прочитано' : 'Отправлено'}>
                                 {msg.isRead ? (
-                                  <CheckCheck className="w-3 h-3 text-hunter dark:text-emerald-500" />
+                                  <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                 ) : (
-                                  <Check className="w-3 h-3" />
+                                  <Check className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                                 )}
                               </span>
                             )}
@@ -314,23 +371,23 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
               */}
               <form
                 onSubmit={handleSend}
-                className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-end gap-2"
+                className="shrink-0 mt-auto p-3 sm:p-4 border-t border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard flex items-stretch gap-2.5"
               >
-                <div className="flex-1 relative">
+                <div className="flex-1 relative flex">
                   <textarea
                     rows={2}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={`Написать сообщение от имени ${currentUserName}... (Enter для отправки)`}
-                    className="w-full p-2.5 text-xs sm:text-sm bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light placeholder:text-ink-muted/60 resize-none max-h-24 rounded-xs"
+                    className="block w-full p-2.5 text-xs sm:text-sm bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light placeholder:text-ink-muted/60 resize-none max-h-24 leading-normal"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={!text.trim()}
-                  className="h-10 px-4 bg-oxblood hover:bg-oxblood-hover disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs rounded-xs"
+                  className="btn-editorial px-5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink disabled:opacity-40 disabled:cursor-not-allowed text-xs font-mono uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0 border border-ink dark:border-paper-light"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">Отправить</span>
@@ -338,8 +395,16 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-8 text-center text-ink-muted font-mono text-sm">
-              Выберите диалог из списка слева для начала общения
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+              <div className="w-14 h-14 bg-paper-light dark:bg-stone-800 border border-paper-border dark:border-stone-700 flex items-center justify-center text-oxblood dark:text-oxblood-light mb-4">
+                <MessageSquare className="w-7 h-7" />
+              </div>
+              <h3 className="text-base font-semibold text-ink dark:text-ink-light mb-1">
+                Диалог не выбран
+              </h3>
+              <p className="text-xs font-mono text-ink-muted dark:text-stone-400 max-w-sm">
+                Выберите нужный чат из списка слева, чтобы начать общение
+              </p>
             </div>
           )}
         </div>

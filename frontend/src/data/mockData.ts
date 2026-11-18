@@ -614,6 +614,7 @@ export const INITIAL_CANDIDATES: Candidate[] = [
       { name: 'Docker', level: 'BASIC' },
     ],
     status: 'На рассмотрении',
+    applicationId: 'app-2',
     isTeam: false,
     coverLetter: 'Здравствуйте! Хочу реализовать этот проект в качестве ВКР.',
   },

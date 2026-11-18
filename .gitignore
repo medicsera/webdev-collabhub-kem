@@ -68,3 +68,7 @@ mongo_data/
 Thumbs.db
 
 docs/
+
+# Agent skills cache
+.agents/
+skills-lock.json

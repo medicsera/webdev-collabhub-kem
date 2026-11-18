@@ -6,6 +6,7 @@ import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { formatYearDisplay } from '../../utils/dbValidation';
 import { canStudentApplyToProject, canAddMemberToProjectApplication } from '../../utils/dbValidation';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 export interface ApplyModalSubmitData {
@@ -38,6 +39,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const [isTeam, setIsTeam] = useState(false);
   const [selectedFriendIds, setSelectedFriendIds] = useState<number[]>([]);
 
+  useBodyScrollLock(Boolean(project));
   // Векторный матч «текущий студент ↔ этот проект»
   const matchSubject = useMemo(() => [currentStudent], [currentStudent]);
   const matchList = useMemo(() => (project ? [project] : []), [project]);
@@ -92,7 +94,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-stone-600 max-w-xl w-full shadow-2xl fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-xl w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header — зафиксирован */}
@@ -342,7 +344,7 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
             <button
               type="submit"
               disabled={alreadyAppliedByMe}
-              className="px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-oxblood hover:bg-oxblood-hover disabled:opacity-40 disabled:cursor-not-allowed text-paper-light transition cursor-pointer shadow-xs flex items-center gap-1.5"
+              className="btn-editorial px-6 py-2.5 text-xs font-mono uppercase tracking-widest bg-ink text-paper-light dark:bg-paper-light dark:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer flex items-center gap-1.5 border border-ink dark:border-paper-light"
             >
               <UserCheck className="w-3.5 h-3.5" />
               <span>{isTeam ? 'Отправить командную заявку' : 'Отправить заявку'}</span>

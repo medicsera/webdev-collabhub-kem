@@ -28,14 +28,14 @@ export const SkillBadge: React.FC<SkillBadgeProps> = ({
       case 'ADVANCED':
         return {
           badge:
-            'bg-emerald-100 text-emerald-950 border-emerald-500/80 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-500 shadow-2xs',
+            'bg-emerald-100/90 text-emerald-950 border-emerald-500/80 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-600 font-medium',
           dot: 'bg-emerald-600 dark:bg-emerald-400',
           text: 'Продвинутый',
         };
       case 'INTERMEDIATE':
         return {
           badge:
-            'bg-sky-100 text-sky-950 border-sky-500/80 dark:bg-sky-950/80 dark:text-sky-300 dark:border-sky-500 shadow-2xs',
+            'bg-sky-100/90 text-sky-950 border-sky-500/80 dark:bg-sky-950/80 dark:text-sky-300 dark:border-sky-600 font-medium',
           dot: 'bg-sky-600 dark:bg-sky-400',
           text: 'Уверенный',
         };
@@ -43,7 +43,7 @@ export const SkillBadge: React.FC<SkillBadgeProps> = ({
       default:
         return {
           badge:
-            'bg-amber-100 text-amber-950 border-amber-500/80 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-500 shadow-2xs',
+            'bg-amber-100/90 text-amber-950 border-amber-500/80 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-600 font-medium',
           dot: 'bg-amber-600 dark:bg-amber-400',
           text: 'Базовый',
         };
@@ -53,23 +53,23 @@ export const SkillBadge: React.FC<SkillBadgeProps> = ({
   const levelInfo = getLevelStyle(level);
 
   const sizeClasses = {
-    sm: 'px-2.5 py-1 text-xs font-mono',
-    md: 'px-3.5 py-1.5 text-xs sm:text-sm font-mono',
-    lg: 'px-4 py-2 text-sm sm:text-base font-mono',
+    sm: 'px-2 py-0.5 text-xs font-mono',
+    md: 'px-3 py-1 text-xs sm:text-sm font-mono',
+    lg: 'px-3.5 py-1.5 text-sm font-mono',
   }[size];
 
   return (
     <span
-      className={`inline-flex items-center gap-2 border font-medium whitespace-nowrap shrink-0 bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light shadow-2xs hover:border-ink/40 dark:hover:border-stone-500 transition-colors ${sizeClasses} ${className}`}
+      className={`inline-flex items-center gap-2 border border-paper-border dark:border-paper-darkBorder font-medium whitespace-nowrap shrink-0 bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink/60 dark:hover:border-paper-darkBorder transition-colors ${sizeClasses} ${className}`}
     >
-      <span className="font-semibold">{name}</span>
+      <span className="font-semibold tracking-tight">{name}</span>
 
       {showLevel && level && (
         <span
-          className={`inline-flex items-center gap-1 px-1.5 py-0.2 text-[10px] uppercase tracking-wider font-semibold border rounded-xs ${levelInfo.badge}`}
+          className={`inline-flex items-center gap-1 px-1.5 py-0.2 text-[9px] uppercase tracking-wider font-mono border ${levelInfo.badge}`}
           title={`Уровень владения: ${SKILL_LEVEL_NAMES[level]}`}
         >
-          <span className={`w-1.5 h-1.5 rounded-full ${levelInfo.dot}`} />
+          <span className={`w-1.5 h-1.5 shrink-0 rounded-full ${levelInfo.dot}`} />
           <span>{levelInfo.text}</span>
         </span>
       )}
@@ -81,7 +81,7 @@ export const SkillBadge: React.FC<SkillBadgeProps> = ({
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-1 text-ink-muted hover:text-oxblood dark:hover:text-oxblood-light transition-colors text-xs font-bold leading-none"
+          className="ml-0.5 text-ink-muted hover:text-oxblood dark:hover:text-oxblood-light transition-colors text-xs font-bold leading-none cursor-pointer"
           title="Удалить навык"
         >
           ×

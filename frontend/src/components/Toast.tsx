@@ -11,10 +11,10 @@ export const Toast: React.FC<ToastProps> = ({ message }) => {
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-6 right-6 z-50 bg-ink text-paper-light dark:bg-paper-card dark:text-ink-light px-5 py-3.5 border-2 border-brass shadow-xl text-xs font-mono uppercase tracking-wider flex items-center gap-3 fade-in"
+      className="fixed bottom-6 right-6 z-50 bg-ink text-paper-light dark:bg-paper-darkCard dark:text-ink-light px-5 py-3 border border-oxblood text-xs font-mono uppercase tracking-wider flex items-center gap-3 fade-in select-none"
     >
-      <span className="w-2 h-2 bg-brass inline-block shrink-0 animate-pulse" />
-      <span>{message}</span>
+      <span className="w-2 h-2 bg-oxblood inline-block shrink-0" />
+      <span className="leading-tight">{message}</span>
     </div>
   );
 };

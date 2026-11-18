@@ -1,3 +1,5 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import React, { useState, useMemo } from 'react';
 import {
   RotateCw,
@@ -53,8 +55,24 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   onViewStudent,
   onLogout,
 }) => {
+  const navigate = useNavigate();
   const [bioInput, setBioInput] = useState(profile.bio);
 
+  const handleEditProfile = () => {
+    if (onOpenEditProfileModal) {
+      onOpenEditProfileModal();
+    } else {
+      navigate('/profile/edit');
+    }
+  };
+
+  const handleViewStudentNav = (studentId: number) => {
+    if (onViewStudent) {
+      onViewStudent(studentId);
+    } else {
+      navigate(`/students/${studentId}`);
+    }
+  };
   // Векторный анализ: лучший матч профиля среди проектов (MiniLM embeddings)
   const { bestScore, status: semanticStatus } = useSemanticMatches(
     useMemo(() => [profile], [profile]),
@@ -81,13 +99,15 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             Академический профиль и подбор проектов (AI)
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={onOpenEditProfileModal}
-          className="px-4 py-2 bg-ink text-paper-light dark:bg-ink-light dark:text-paper-dark hover:bg-oxblood dark:hover:bg-oxblood text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 self-start sm:self-auto cursor-pointer shadow-xs"
-        >
-          <Edit className="w-3.5 h-3.5" /> Редактировать профиль и навыки
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={handleEditProfile}
+            className="btn-editorial px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-widest transition flex items-center gap-2 cursor-pointer border border-ink dark:border-paper-light"
+          >
+            <Edit className="w-3.5 h-3.5" /> Редактировать профиль и навыки
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -335,7 +355,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
         onAcceptFriendRequest={onAcceptFriendRequest}
         onRejectFriendRequest={onRejectFriendRequest}
         onCancelFriendRequest={onCancelFriendRequest}
-        onViewStudent={onViewStudent}
+        onViewStudent={handleViewStudentNav}
       />
 
       {/* Нижняя панель: кнопка выхода из профиля */}
@@ -348,7 +368,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
             id="profile-logout-btn"
             type="button"
             onClick={onLogout}
-            className="w-full sm:w-auto px-5 py-2.5 border border-oxblood/40 hover:border-oxblood bg-paper-card dark:bg-paper-darkCard text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+            className="w-full sm:w-auto px-5 py-2.5 border border-oxblood/60 hover:border-oxblood bg-paper-card dark:bg-paper-darkCard text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-widest transition flex items-center justify-center gap-2 cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Выйти из профиля студента</span>

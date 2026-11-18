@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Users, Crown, FileText, CheckCircle2, Clock, FolderGit2 } from 'lucide-react';
 import type { Project, ProjectApplication, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
@@ -27,6 +28,31 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
   onViewCompany,
   onNavigateToCatalog,
 }) => {
+  const navigate = useNavigate();
+
+  const handleOpenChat = (chatId: string) => {
+    if (onOpenChat) {
+      onOpenChat(chatId);
+    } else {
+      navigate(`/chats?chatId=${encodeURIComponent(chatId)}`);
+    }
+  };
+
+  const handleViewCompany = (companyId: number, companyName: string) => {
+    if (onViewCompany) {
+      onViewCompany(companyId, companyName);
+    } else {
+      navigate(`/companies/${companyId}`);
+    }
+  };
+
+  const handleCatalogNav = () => {
+    if (onNavigateToCatalog) {
+      onNavigateToCatalog();
+    } else {
+      navigate('/catalog');
+    }
+  };
   // Список поданных заявок, где текущий студент является LEAD или MEMBER (application_members)
   const myApplications = useMemo(() => {
     return applications.filter((app) =>
@@ -248,12 +274,12 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
                     <div className="flex flex-wrap items-center gap-2">
                       <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-oxblood dark:text-oxblood-light">
                         <span>{project.index} •</span>
-                        {onViewCompany && project.companyId ? (
+                        {project.companyId ? (
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              onViewCompany(project.companyId!, project.company);
+                              handleViewCompany(project.companyId!, project.company);
                             }}
                             className="flex items-center gap-1 hover:underline cursor-pointer group"
                             title={`Посмотреть профиль компании «${project.company}»`}
@@ -358,16 +384,14 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
                     </div>
 
                     {/* Задача 5: Кнопка чата с работодателем */}
-                    {onOpenChat && (
-                      <button
-                        type="button"
-                        onClick={() => onOpenChat(app.chatId || `chat-${app.id}`)}
-                        className="px-4 py-2 bg-ink text-paper-light dark:bg-stone-200 dark:text-stone-900 hover:bg-oxblood dark:hover:bg-oxblood dark:hover:text-white text-xs font-mono uppercase tracking-wider transition flex items-center gap-2 cursor-pointer shadow-xs shrink-0"
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Чат с работодателем</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenChat(app.chatId || `chat-${app.id}`)}
+                      className="btn-editorial px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition flex items-center gap-2 cursor-pointer border border-ink dark:border-paper-light shrink-0"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Чат с работодателем</span>
+                    </button>
                   </div>
                 </div>
               );
@@ -377,8 +401,8 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
               icon={FolderGit2}
               title="У вас пока нет отправленных заявок"
               description="Выберите проект или задачу ВКР от индустриальных партнеров КемГУ и отправьте свой первый отклик."
-              actionText={onNavigateToCatalog ? "Перейти в каталог проектов" : undefined}
-              onAction={onNavigateToCatalog}
+              actionText="Перейти в каталог проектов"
+              onAction={handleCatalogNav}
             />
           )}
         </div>

@@ -56,7 +56,7 @@ export const YearStepper: React.FC<YearStepperProps> = ({
           onClick={handleDecrement}
           disabled={currentNum <= min}
           aria-label="Уменьшить курс на 1"
-          className="w-10 h-full bg-paper-muted dark:bg-stone-800 border-r border-paper-border dark:border-paper-darkBorder hover:bg-oxblood hover:text-white dark:hover:bg-oxblood disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer text-ink dark:text-ink-light shrink-0"
+          className="w-10 h-full bg-paper-muted dark:bg-paper-darkCard border-r border-paper-border dark:border-paper-darkBorder hover:bg-ink hover:text-paper-light dark:hover:bg-paper-light dark:hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer text-ink dark:text-ink-light shrink-0"
         >
           <Minus className="w-3.5 h-3.5" />
         </button>
@@ -79,7 +79,7 @@ export const YearStepper: React.FC<YearStepperProps> = ({
           onClick={handleIncrement}
           disabled={currentNum >= max}
           aria-label="Увеличить курс на 1"
-          className="w-10 h-full bg-paper-muted dark:bg-stone-800 border-l border-paper-border dark:border-paper-darkBorder hover:bg-oxblood hover:text-white dark:hover:bg-oxblood disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer text-ink dark:text-ink-light shrink-0"
+          className="w-10 h-full bg-paper-muted dark:bg-paper-darkCard border-l border-paper-border dark:border-paper-darkBorder hover:bg-ink hover:text-paper-light dark:hover:bg-paper-light dark:hover:text-ink disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer text-ink dark:text-ink-light shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
         </button>
