@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   User,
   ArrowLeft,
@@ -9,13 +9,16 @@ import {
   AlertCircle,
   Sparkles,
 } from 'lucide-react';
-import type { StudentProfile } from '../../types';
+import type { StudentProfile, Project } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { formatYearDisplay } from '../../utils/dbValidation';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface PublicStudentProfileTabProps {
   student: StudentProfile | null;
+  /** Проекты для векторного матча профиля с задачами компаний */
+  projects?: Project[];
   isLoading: boolean;
   error: string | null;
   onBack: () => void;
@@ -23,10 +26,18 @@ interface PublicStudentProfileTabProps {
 
 export const PublicStudentProfileTab: React.FC<PublicStudentProfileTabProps> = ({
   student,
+  projects = [],
   isLoading,
   error,
   onBack,
 }) => {
+  // Векторный анализ до условий рендера — хуки нельзя вызывать условно
+  const matchSubject = useMemo(() => (student ? [student] : []), [student]);
+  const { bestScore, status: semanticStatus } = useSemanticMatches(matchSubject, projects);
+  const aiBest = student ? bestScore(student, projects) : undefined;
+  const matchScore = aiBest?.score ?? student?.aiMatch ?? 0;
+  const aiPowered = aiBest !== undefined;
+
   // Состояние загрузки
   if (isLoading) {
     return (
@@ -96,7 +107,13 @@ export const PublicStudentProfileTab: React.FC<PublicStudentProfileTabProps> = (
           </h2>
         </div>
         {/* Семантический матч */}
-        <SemanticMatchBadge score={student.aiMatch} size="md" label="Общий матч профиля" />
+        <SemanticMatchBadge
+          score={matchScore}
+          size="md"
+          label="Общий матч профиля"
+          aiPowered={aiPowered}
+          pending={projects.length > 0 && semanticStatus === 'loading' && !aiPowered}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -232,7 +249,13 @@ export const PublicStudentProfileTab: React.FC<PublicStudentProfileTabProps> = (
                 <span className="text-oxblood dark:text-oxblood-light">
                   Анализ навыков и рекомендации:
                 </span>
-                <SemanticMatchBadge score={student.aiMatch} size="sm" />
+                <SemanticMatchBadge
+                  score={matchScore}
+                  size="sm"
+                  aiPowered={aiPowered}
+                  pending={projects.length > 0 && semanticStatus === 'loading' && !aiPowered}
+                  label={aiBest ? `Матч «${aiBest.project.title.slice(0, 24)}…»` : 'Семантический матч'}
+                />
               </div>
               <p className="editorial-serif italic text-lg leading-relaxed text-ink dark:text-stone-200">
                 «{student.aiFeedback}»

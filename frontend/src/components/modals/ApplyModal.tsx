@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Users, UserCheck, AlertTriangle, Crown, Check } from 'lucide-react';
 import type { Project, StudentProfile, ProjectApplication } from '../../types';
@@ -7,6 +7,7 @@ import { SemanticMatchBadge } from '../SemanticMatchBadge';
 import { formatYearDisplay } from '../../utils/dbValidation';
 import { canStudentApplyToProject, canAddMemberToProjectApplication } from '../../utils/dbValidation';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 export interface ApplyModalSubmitData {
   projectId: number;
@@ -39,9 +40,17 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const [selectedFriendIds, setSelectedFriendIds] = useState<number[]>([]);
 
   useBodyScrollLock(Boolean(project));
+  // Векторный матч «текущий студент ↔ этот проект»
+  const matchSubject = useMemo(() => [currentStudent], [currentStudent]);
+  const matchList = useMemo(() => (project ? [project] : []), [project]);
+  const { getScore, status: semanticStatus } = useSemanticMatches(matchSubject, matchList);
 
   if (!project) return null;
   if (typeof document === 'undefined') return null;
+
+  const aiScore = getScore(currentStudent, project);
+  const matchScore = aiScore ?? project.match;
+  const aiPowered = aiScore !== undefined;
 
   const currentStudentId = Number(currentStudent.id || 1);
 
@@ -117,7 +126,12 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                 )}
                 <span>• {project.type}</span>
               </span>
-              <SemanticMatchBadge score={project.match} size="sm" />
+              <SemanticMatchBadge
+                score={matchScore}
+                size="sm"
+                aiPowered={aiPowered}
+                pending={semanticStatus === 'loading' && !aiPowered}
+              />
             </div>
             <h3
               id="modal-title"

@@ -7,7 +7,7 @@ from app.core.config import settings
 
 
 class CompetenceEncoder:
-    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L12-v2"):
+    def __init__(self, model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"):
         # Если в settings задано имя модели, берем его, иначе дефолт MiniLM-L12-v2
         self.model_name = getattr(settings, "EMBEDDING_MODEL_NAME", model_name)
         self.model = SentenceTransformer(self.model_name)

@@ -2,20 +2,29 @@ import React, { useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Plus, RotateCcw, ChevronDown, Check } from 'lucide-react';
 import type { Project, Role, ProjectFormat } from '../../types';
+import React, { useState, useMemo } from 'react';
+import { Search, Plus } from 'lucide-react';
+import type { Project, Role, ProjectFormat, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface CatalogTabProps {
   projects: Project[];
   currentRole: Role;
   onSelectProject?: (project: Project) => void;
   onOpenCreateModal?: () => void;
+  /** Текущий студент — для векторного матча «я ↔ проект» */
+  studentProfile?: StudentProfile;
+  onSelectProject: (project: Project) => void;
+  onOpenCreateModal: () => void;
   onViewCompany?: (companyId: number, companyName: string) => void;
 }
 
 export const CatalogTab: React.FC<CatalogTabProps> = ({
   projects,
   currentRole,
+  studentProfile,
   onSelectProject,
   onOpenCreateModal,
   onViewCompany,
@@ -49,6 +58,13 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
   const handleResetFilters = () => {
     setSearchParams({}, { replace: true });
   };
+
+  // Векторный матч текущего студента с каждым проектом (MiniLM embeddings)
+  const studentForMatch = useMemo(
+    () => (currentRole === 'student' && studentProfile ? [studentProfile] : []),
+    [currentRole, studentProfile],
+  );
+  const { getScore, status: semanticStatus } = useSemanticMatches(studentForMatch, projects);
 
   const companies = useMemo(() => {
     const set = new Set<string>();
@@ -204,6 +220,18 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                 type="button"
                 onClick={handleResetFilters}
                 className="btn-editorial mt-2 px-4 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition-colors cursor-pointer inline-flex items-center gap-1.5 border border-ink dark:border-paper-light"
+            // Приоритет: векторный счёт ai-service, иначе локальная эвристика проекта
+            const aiScore =
+              studentForMatch.length > 0 && studentProfile
+                ? getScore(studentProfile, p)
+                : undefined;
+            const matchScore = aiScore ?? p.match;
+            const aiPowered = aiScore !== undefined;
+
+            return (
+              <article
+                key={p.id}
+                className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between hover:border-oxblood/60 transition-colors shadow-2xs rounded-xs"
               >
                 <RotateCcw className="w-3.5 h-3.5" /> Сбросить фильтры
               </button>
@@ -254,7 +282,12 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                         </span>
                       )}
                     </div>
-                    <SemanticMatchBadge score={p.match} size="sm" />
+                    <SemanticMatchBadge
+                      score={matchScore}
+                      size="sm"
+                      aiPowered={aiPowered}
+                      pending={studentForMatch.length > 0 && semanticStatus === 'loading' && !aiPowered}
+                    />
                   </div>
 
                   <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">

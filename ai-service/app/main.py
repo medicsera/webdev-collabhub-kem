@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,11 +28,13 @@ app.add_middleware(
 
 
 class MatchRequest(BaseModel):
-    student_skills: List[str] = Field(
-        ..., description="Список навыков и технологий студента"
+    # Строки либо объекты {name, proficiency_level} — encoder взвешивает уровни
+    student_skills: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Список навыков студента: строки или {name, proficiency_level}"
     )
-    project_requirements: List[str] = Field(
-        ..., description="Требуемые компетенции проекта"
+    # Строки либо объекты {name, importance_level} — encoder взвешивает критичность
+    project_requirements: List[Union[str, Dict[str, Any]]] = Field(
+        ..., description="Требования проекта: строки или {name, importance_level}"
     )
 
 
@@ -47,6 +49,8 @@ class AnalyzeRequest(BaseModel):
     project_title: str
     project_description: str
     project_requirements: List[str]
+    student_bio: Optional[str] = Field(default=None, description="Био для контекста summary")
+    match_score: Optional[float] = Field(default=None, description="Оценка MiniLM 0-100")
 
 
 class AnalyzeResponse(BaseModel):
@@ -191,6 +195,8 @@ async def analyze_gaps(request: AnalyzeRequest):
             project_title=request.project_title,
             project_description=request.project_description,
             project_requirements=request.project_requirements,
+            student_bio=request.student_bio,
+            match_score=request.match_score,
         )
         return AnalyzeResponse(**result)
     except Exception as e:

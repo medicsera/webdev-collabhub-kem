@@ -131,6 +131,95 @@ export async function getProjectMatchesApi(projectId: number): Promise<Candidate
   return [];
 }
 
+export interface SemanticMatchPair {
+  key: string;
+  studentSkills: { name: string; proficiency_level?: string }[];
+  projectRequirements: string[];
+}
+
+/**
+ * Семантический матч через эмбеддинги ai-service (MiniLM-L12-v2).
+ * Принимает батч пар «студент ↔ проект», возвращает счёт по каждой паре (0-100).
+ * При недоступности AI-сервиса кидает ошибку — вызывающий остаётся на локальной эвристике.
+ */
+export async function postSemanticMatchApi(pairs: SemanticMatchPair[]): Promise<Record<string, number>> {
+  const res = await fetch(`${API_BASE_URL}/semantic-match`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ pairs }),
+  });
+  if (!res.ok) {
+    throw new Error(`semantic-match failed: ${res.status}`);
+  }
+  const data = (await res.json()) as { results?: { key: string; matchScore: number }[] };
+  const scores: Record<string, number> = {};
+  for (const r of data.results ?? []) {
+    scores[r.key] = Math.round(r.matchScore);
+  }
+  return scores;
+}
+
+/** Сохранить bio студента (PATCH /api/v1/students/:id) */
+export async function updateStudentBioApi(
+  id: number | string,
+  bio: string,
+): Promise<{ id: string; bio: string } | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/students/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ bio }),
+    });
+    if (res.ok) {
+      return (await res.json()) as { id: string; bio: string };
+    }
+  } catch (err) {
+    console.warn('[API notice] updateStudentBio failed', err);
+  }
+  return null;
+}
+
+export interface RecalculateResult {
+  bio: string | null;
+  aiMatch: number;
+  aiFeedback: string;
+  bestProject?: { id: string; title: string };
+  embeddingSaved?: boolean;
+  persisted?: boolean;
+}
+
+/**
+ * Пересчёт ИИ-рекомендаций: bio + навыки → backend → ai-service
+ * (match лучших проектов + GigaChat analyze + embed).
+ */
+export async function recalculateStudentProfileApi(
+  id: number | string,
+  payload: {
+    bio: string;
+    skills: { name: string; proficiency_level?: string }[];
+  },
+): Promise<RecalculateResult> {
+  const res = await fetch(`${API_BASE_URL}/students/${id}/recalculate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`recalculate failed: ${res.status} ${text}`);
+  }
+  return (await res.json()) as RecalculateResult;
+}
+
 /**
  * Изменение статуса проекта (DRAFT / ACTIVE / CLOSED / ARCHIVED)
  * Поддерживает эндпоинты:

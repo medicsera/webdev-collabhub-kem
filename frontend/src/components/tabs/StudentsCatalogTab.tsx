@@ -22,6 +22,7 @@ import {
   calculateStudentProjectMatch,
   getBestProjectMatchForStudent,
 } from '../../utils/dbValidation';
+import { useSemanticMatches } from '../../hooks/useSemanticMatches';
 
 interface StudentsCatalogTabProps {
   students: StudentProfile[];
@@ -63,6 +64,13 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
 
   const hasCompanyProjects = companyProjects.length > 0;
 
+  // ИИ-счёт через эмбеддинги ai-service (батч «студенты × проекты»)
+  const {
+    getScore,
+    bestScore,
+    status: semanticStatus,
+  } = useSemanticMatches(students, companyProjects);
+
   // Выбранный проект для расчета соответствия (если выбран конкретный)
   const targetProject = useMemo(() => {
     if (selectedProjectId === 'all') return null;
@@ -79,6 +87,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
           matchedSkills: [],
           missingSkills: [],
           matchedProjectTitle: '',
+          aiPowered: false,
         };
       }
 
@@ -89,12 +98,22 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
         matchResult = getBestProjectMatchForStudent(student, companyProjects);
       }
 
-      const matchScore = matchResult ? matchResult.matchScore : 0;
+      // Приоритет: счёт из эмбеддингов ai-service, иначе локальная эвристика
+      const aiBest = targetProject
+        ? (() => {
+            const score = getScore(student, targetProject);
+            return score !== undefined ? { score, project: targetProject } : undefined;
+          })()
+        : bestScore(student, companyProjects);
+
+      const matchScore = aiBest ? aiBest.score : matchResult ? matchResult.matchScore : 0;
       const matchedSkills = matchResult ? matchResult.matchedSkills : [];
       const missingSkills = matchResult ? matchResult.missingSkills : [];
-      const matchedProjectTitle = matchResult
-        ? matchResult.projectTitle
-        : (companyProjects[0]?.title || '');
+      const matchedProjectTitle = aiBest
+        ? aiBest.project.title
+        : matchResult
+          ? matchResult.projectTitle
+          : (companyProjects[0]?.title || '');
 
       return {
         student,
@@ -102,9 +121,10 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
         matchedSkills,
         missingSkills,
         matchedProjectTitle,
+        aiPowered: aiBest !== undefined,
       };
     });
-  }, [students, targetProject, companyProjects, hasCompanyProjects]);
+  }, [students, targetProject, companyProjects, hasCompanyProjects, getScore, bestScore]);
 
   // Фильтрация и сортировка студентов
   const filteredStudents = useMemo(() => {
@@ -422,7 +442,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
       {/* Список карточек студентов */}
       {filteredStudents.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredStudents.map(({ student, matchScore, matchedSkills, missingSkills, matchedProjectTitle }) => {
+          {filteredStudents.map(({ student, matchScore, matchedSkills, missingSkills, matchedProjectTitle, aiPowered }) => {
             const initials = student.name
               .split(' ')
               .map((part) => part[0])
@@ -495,7 +515,12 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
                     {/* ИИ-Бейдж совместимости */}
                     <div className="shrink-0">
                       {hasCompanyProjects ? (
-                        <SemanticMatchBadge score={matchScore} size="sm" />
+                        <SemanticMatchBadge
+                          score={matchScore}
+                          size="sm"
+                          aiPowered={aiPowered}
+                          pending={semanticStatus === 'loading'}
+                        />
                       ) : (
                         <span className="px-2.5 py-1 text-[10px] font-mono text-ink-muted bg-paper-muted/50 dark:bg-stone-800 border border-paper-border dark:border-stone-700">
                           Опубликуйте проект

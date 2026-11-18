@@ -36,7 +36,7 @@ async function seed() {
     const [organization] = await db
         .insert(organizations)
         .values({
-            userId: companyUser.id,
+            userId: companyUser!.id,
             companyName: 'TechLab',
             industry: 'IT',
             city: 'Кемерово',
@@ -50,7 +50,7 @@ async function seed() {
     const [student] = await db
         .insert(students)
         .values({
-            userId: studentUser.id,
+            userId: studentUser!.id,
             firstName: 'Иван',
             lastName: 'Иванов',
             universityGroup: 'ФИИТ-221',
@@ -87,8 +87,8 @@ async function seed() {
     const [project] = await db
         .insert(projects)
         .values({
-            organizationId: organization.id,
-            categoryId: category.id,
+            organizationId: organization!.id,
+            categoryId: category!.id,
             title: 'Веб-сервис координации проектной деятельности',
             description:
                 'Разработка платформы для соединения студентов с ИТ-компаниями. Фронтенд на React, бэкенд на Node.js/TypeScript.',
@@ -104,35 +104,35 @@ async function seed() {
 
     // 6. Навыки студента
     await db.insert(studentSkills).values([
-        { studentId: student.id, skillId: getSkillId('React'), proficiencyLevel: 'INTERMEDIATE' },
-        { studentId: student.id, skillId: getSkillId('TypeScript'), proficiencyLevel: 'INTERMEDIATE' },
-        { studentId: student.id, skillId: getSkillId('Node.js'), proficiencyLevel: 'ADVANCED' },
-        { studentId: student.id, skillId: getSkillId('PostgreSQL'), proficiencyLevel: 'INTERMEDIATE' },
-        { studentId: student.id, skillId: getSkillId('Git'), proficiencyLevel: 'ADVANCED' },
+        { studentId: student!.id, skillId: getSkillId('React'), proficiencyLevel: 'INTERMEDIATE' },
+        { studentId: student!.id, skillId: getSkillId('TypeScript'), proficiencyLevel: 'INTERMEDIATE' },
+        { studentId: student!.id, skillId: getSkillId('Node.js'), proficiencyLevel: 'ADVANCED' },
+        { studentId: student!.id, skillId: getSkillId('PostgreSQL'), proficiencyLevel: 'INTERMEDIATE' },
+        { studentId: student!.id, skillId: getSkillId('Git'), proficiencyLevel: 'ADVANCED' },
     ]);
 
     // 7. Требования проекта
     await db.insert(projectSkills).values([
         {
-            projectId: project.id,
+            projectId: project!.id,
             skillId: getSkillId('React'),
             importanceLevel: 'CRITICAL',
             minProficiencyLevel: 'BASIC',
         },
         {
-            projectId: project.id,
+            projectId: project!.id,
             skillId: getSkillId('TypeScript'),
             importanceLevel: 'IMPORTANT',
             minProficiencyLevel: 'INTERMEDIATE',
         },
         {
-            projectId: project.id,
+            projectId: project!.id,
             skillId: getSkillId('Node.js'),
             importanceLevel: 'CRITICAL',
             minProficiencyLevel: 'INTERMEDIATE',
         },
         {
-            projectId: project.id,
+            projectId: project!.id,
             skillId: getSkillId('Docker'),
             importanceLevel: 'OPTIONAL',
             minProficiencyLevel: 'BASIC',
@@ -140,8 +140,8 @@ async function seed() {
     ]);
 
     console.log('Сидирование успешно завершено!');
-    console.log('STUDENT_ID=', student.id);
-    console.log('PROJECT_ID=', project.id);
+    console.log('STUDENT_ID=', student!.id);
+    console.log('PROJECT_ID=', project!.id);
     process.exit(0);
 }
 
