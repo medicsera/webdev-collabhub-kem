@@ -80,6 +80,8 @@ interface AppContextType {
   // Модальные окна быстрого действия
   selectedProjectForModal: Project | null;
   setSelectedProjectForModal: (project: Project | null) => void;
+  editingProject: Project | null;
+  setEditingProject: (project: Project | null) => void;
   isEditSkillsModalOpen: boolean;
   setIsEditSkillsModalOpen: (open: boolean) => void;
   isEditStudentProfileModalOpen: boolean;
@@ -123,6 +125,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Состояния для модальных окон
   const [selectedProjectForModal, setSelectedProjectForModal] = useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [isEditSkillsModalOpen, setIsEditSkillsModalOpen] = useState(false);
   const [isEditStudentProfileModalOpen, setIsEditStudentProfileModalOpen] = useState(false);
   const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
@@ -709,6 +712,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     isRecalculating,
     selectedProjectForModal,
     setSelectedProjectForModal,
+    editingProject,
+    setEditingProject,
     isEditSkillsModalOpen,
     setIsEditSkillsModalOpen,
     isEditStudentProfileModalOpen,

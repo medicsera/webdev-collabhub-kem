@@ -44,7 +44,6 @@ interface HRDashboardTabProps {
   initialSubTab?: 'projects' | 'matching' | 'applications';
   onApproveCandidate: (candidateId: string) => void;
   onContactCandidate: (candidateName: string) => void;
-  onNavigateToCompanyProfile?: () => void;
   onViewStudent?: (studentId: number) => void;
   onOpenChat?: (chatId: string) => void;
   onOpenCreateModal?: () => void;
@@ -61,7 +60,6 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   initialSubTab = 'projects',
   onApproveCandidate,
   onContactCandidate,
-  onNavigateToCompanyProfile,
   onViewStudent,
   onOpenChat,
   onOpenCreateModal,
@@ -95,8 +93,6 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   const handleEditProjectNav = (project: Project) => {
     if (onEditProject) {
       onEditProject(project);
-    } else {
-      navigate(`/hr/projects/${project.id}/edit`);
     }
   };
 
@@ -113,14 +109,6 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
       onOpenChat(chatId);
     } else {
       navigate(`/chats?chatId=${encodeURIComponent(chatId)}`);
-    }
-  };
-
-  const handleEditCompanyNav = () => {
-    if (onNavigateToCompanyProfile) {
-      onNavigateToCompanyProfile();
-    } else {
-      navigate('/company/profile/edit');
     }
   };
 
@@ -359,14 +347,6 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={handleEditCompanyNav}
-            className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-widest text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
-          >
-            <Edit className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
-            <span>Редактировать компанию</span>
-          </button>
           <button
             type="button"
             onClick={handleCreateProjectNav}

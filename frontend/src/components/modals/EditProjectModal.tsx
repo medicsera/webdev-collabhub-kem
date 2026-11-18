@@ -31,7 +31,7 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
   const [requiredSkills, setRequiredSkills] = useState<SkillItem[]>([]);
 
   useEffect(() => {
-    if (project) {
+    if (project && isOpen) {
       setTitle(project.title);
       setDepartment(project.department);
       setType(project.type);
@@ -44,7 +44,17 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({
           : project.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }));
       setRequiredSkills(skills);
     }
-  }, [project]);
+  }, [project, isOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen && !isPage) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isPage, onClose]);
 
   useBodyScrollLock(isOpen && Boolean(project) && !isPage);
 

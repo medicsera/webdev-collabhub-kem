@@ -7,6 +7,7 @@ import { ApplyModal } from './modals/ApplyModal';
 import { EditSkillsModal } from './modals/EditSkillsModal';
 import { EditStudentProfileModal } from './modals/EditStudentProfileModal';
 import { EditCompanyModal } from './modals/EditCompanyModal';
+import { EditProjectModal } from './modals/EditProjectModal';
 import { useApp } from '../context/AppContext';
 
 export const AppLayout: React.FC = () => {
@@ -39,6 +40,10 @@ export const AppLayout: React.FC = () => {
     updateStudentProfile,
     companyProfile,
     updateCompanyProfile,
+    editingProject,
+    setEditingProject,
+    updateProject,
+    deleteProject,
   } = useApp();
 
   // Автоматический сброс прокрутки к верху страницы при любой смене URL-маршрута
@@ -124,6 +129,21 @@ export const AppLayout: React.FC = () => {
         onSave={(updated) => {
           updateCompanyProfile(updated);
           setIsEditCompanyModalOpen(false);
+        }}
+      />
+
+      {/* Модальное окно редактирования проекта */}
+      <EditProjectModal
+        isOpen={Boolean(editingProject)}
+        project={editingProject}
+        onClose={() => setEditingProject(null)}
+        onUpdate={(updated) => {
+          updateProject(updated);
+          setEditingProject(null);
+        }}
+        onDelete={(projectId) => {
+          deleteProject(projectId);
+          setEditingProject(null);
         }}
       />
 

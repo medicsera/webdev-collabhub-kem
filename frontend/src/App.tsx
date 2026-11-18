@@ -1016,6 +1016,7 @@ const HRDashboardPageWrapper: React.FC = () => {
     contactCandidate,
     deleteProject,
     updateProjectStatus,
+    setEditingProject,
   } = useApp();
 
   return (
@@ -1026,6 +1027,7 @@ const HRDashboardPageWrapper: React.FC = () => {
       companyName={companyProfile.name}
       onApproveCandidate={approveCandidate}
       onContactCandidate={contactCandidate}
+      onEditProject={setEditingProject}
       onDeleteProject={deleteProject}
       onUpdateProjectStatus={updateProjectStatus}
     />
