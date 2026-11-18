@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import React, { useState, useMemo } from 'react';
 import {
   RotateCw,
   Sparkles,
@@ -57,6 +56,12 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
 }) => {
   const navigate = useNavigate();
   const [bioInput, setBioInput] = useState(profile.bio);
+
+  // Синхронизируем поле с профилем: после F5 профиль приходит из query
+  // (localStorage) асинхронно, useState отрабатывает раньше
+  useEffect(() => {
+    setBioInput(profile.bio);
+  }, [profile.bio]);
 
   const handleEditProfile = () => {
     if (onOpenEditProfileModal) {

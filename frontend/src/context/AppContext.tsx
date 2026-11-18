@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   Role,
@@ -26,6 +26,7 @@ import {
   INITIAL_NOTIFICATIONS,
 } from '../data/mockData';
 import { orderConnectionPair } from '../utils/dbValidation';
+import { updateStudentBioApi, recalculateStudentProfileApi } from '../api';
 import type { ApplyModalSubmitData } from '../components/modals/ApplyModal';
 
 interface AppContextType {
@@ -244,7 +245,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const { data: studentProfile = INITIAL_STUDENT_PROFILE } = useQuery<StudentProfile>({
     queryKey: ['studentProfile'],
-    queryFn: () => INITIAL_STUDENT_PROFILE,
+    // Восстанавливаем bio / ИИ-рекомендации из localStorage (переживают F5)
+    queryFn: () => {
+      if (typeof window === 'undefined') return INITIAL_STUDENT_PROFILE;
+      try {
+        const bio = localStorage.getItem('collabhub:student-bio');
+        const aiRaw = localStorage.getItem('collabhub:student-ai');
+        const ai = aiRaw
+          ? (JSON.parse(aiRaw) as { aiMatch?: number; aiFeedback?: string })
+          : {};
+        return {
+          ...INITIAL_STUDENT_PROFILE,
+          ...(bio ? { bio } : {}),
+          ...(ai.aiMatch !== undefined ? { aiMatch: ai.aiMatch } : {}),
+          ...(ai.aiFeedback ? { aiFeedback: ai.aiFeedback } : {}),
+        };
+      } catch {
+        return INITIAL_STUDENT_PROFILE;
+      }
+    },
     staleTime: Infinity,
   });
 
@@ -511,9 +530,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     showToast(`Статус проекта изменен: ${statusLabels[newStatus] || newStatus}`);
   };
 
+  const bioSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const updateStudentProfile = (updated: StudentProfile) => {
     queryClient.setQueryData<StudentProfile>(['studentProfile'], updated);
     queryClient.invalidateQueries({ queryKey: ['studentProfile'] });
+    // Отложенное сохранение bio на бэкенд (debounce) + локальный фолбэк
+    if (bioSaveTimerRef.current) clearTimeout(bioSaveTimerRef.current);
+    bioSaveTimerRef.current = setTimeout(() => {
+      if (updated.id !== undefined && updated.id !== null) {
+        void updateStudentBioApi(updated.id, updated.bio);
+      }
+      try {
+        localStorage.setItem('collabhub:student-bio', updated.bio);
+      } catch {
+        /* ignore */
+      }
+    }, 600);
     showToast('Профиль студента и подтвержденные навыки сохранены');
   };
 
@@ -649,23 +682,52 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     showToast('Все уведомления отмечены как прочитанные');
   };
 
-  const recalculateBio = () => {
+  // Реальный пересчёт: backend → ai-service (match + GigaChat analyze + embed)
+  const recalculateBio = async () => {
     setIsRecalculating(true);
-    setTimeout(() => {
-      setIsRecalculating(false);
+    try {
+      const current = queryClient.getQueryData<StudentProfile>(['studentProfile']) ?? INITIAL_STUDENT_PROFILE;
+      const id = current.id ?? 1;
+      const result = await recalculateStudentProfileApi(id, {
+        bio: current.bio,
+        skills: current.skills.map((s) => ({
+          name: s.name,
+          proficiency_level: s.level,
+        })),
+      });
       queryClient.setQueryData<StudentProfile>(['studentProfile'], (prev) =>
         prev
           ? {
               ...prev,
-              aiMatch: 97,
-              aiFeedback:
-                'Анализ обновленного профиля: Векторный энкодер MiniLM-L12-v2 и GigaChat выявили высокую согласованность стека с задачами проектирования архитектуры, распределенных баз данных и веб-платформ. Рекомендуем обратить внимание на новые темы от Софт Инжиниринг и Goodline.',
+              bio: result.bio ?? prev.bio,
+              aiMatch: Math.round(result.aiMatch),
+              aiFeedback: result.aiFeedback,
             }
           : INITIAL_STUDENT_PROFILE
       );
-      queryClient.invalidateQueries({ queryKey: ['studentProfile'] });
-      showToast('Векторный профиль компетенций успешно пересчитан!');
-    }, 1100);
+      try {
+        localStorage.setItem('collabhub:student-bio', result.bio ?? current.bio);
+        localStorage.setItem(
+          'collabhub:student-ai',
+          JSON.stringify({
+            aiMatch: Math.round(result.aiMatch),
+            aiFeedback: result.aiFeedback,
+          })
+        );
+      } catch {
+        /* ignore */
+      }
+      showToast(
+        result.embeddingSaved
+          ? 'Профиль пересчитан: match + GigaChat + вектор сохранён'
+          : 'Профиль пересчитан через ai-service'
+      );
+    } catch (err: unknown) {
+      console.error('[recalculate] failed:', err);
+      showToast('AI-сервис недоступен — попробуйте позже');
+    } finally {
+      setIsRecalculating(false);
+    }
   };
 
   const value = {
