@@ -1,6 +1,7 @@
 import { db } from './index.js';
 import { sql } from 'drizzle-orm';
 import { mustOne } from './mustOne.js';
+import { hashPassword } from '../services/authService.js';
 import {
     users,
     organizations,
@@ -47,6 +48,7 @@ async function seed() {
     `);
 
     console.log('Начало сидирования базы данных...');
+    const passwordHash = await hashPassword('secret_password');
 
     // === 1. Пользователи ===
     const studentUser = mustOne(
@@ -54,7 +56,7 @@ async function seed() {
             .insert(users)
             .values({
                 email: 'student@example.com',
-                passwordHash: 'hashed_password',
+                passwordHash,
                 role: 'STUDENT',
             })
             .returning(),
@@ -66,7 +68,7 @@ async function seed() {
             .insert(users)
             .values({
                 email: 'partner@example.com',
-                passwordHash: 'hashed_password',
+                passwordHash,
                 role: 'STUDENT',
             })
             .returning(),
@@ -78,7 +80,7 @@ async function seed() {
             .insert(users)
             .values({
                 email: 'hr@techcompany.ru',
-                passwordHash: 'hashed_password',
+                passwordHash,
                 role: 'COMPANY',
             })
             .returning(),
@@ -90,7 +92,7 @@ async function seed() {
             .insert(users)
             .values({
                 email: 'admin@collabhub.ru',
-                passwordHash: 'hashed_password',
+                passwordHash,
                 role: 'ADMIN',
             })
             .returning(),

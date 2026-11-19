@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { db } from './db/index.js';
 import { sql } from 'drizzle-orm';
 import applicationRoutes from './controllers/application.routes.js';
+import authRoutes from './controllers/auth.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -15,7 +16,11 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// API v1
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/application', applicationRoutes);
+// Алиас на случай старых путей
+app.use('/api/auth', authRoutes);
 
 /**
  * Health: процесс + БД + pgvector (НФР-01/02)

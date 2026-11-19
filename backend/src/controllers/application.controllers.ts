@@ -18,15 +18,26 @@ import { aiService } from '../services/aiService.js'
  * Подача отклика (соло или командой) + AI-пайплайн + сохранение эмбеддингов.
  */
 export const applyForProject = asyncHandler(async (req: Request, res: Response) => {
-    const { studentId, projectId, coverLetter, partnerIds } = req.body as {
+    const body = req.body as {
         studentId?: string
         projectId?: string
         coverLetter?: string
         partnerIds?: string[]
     }
 
+    // studentId берём из токена (НФР-06/07); body.studentId — fallback
+    let studentId = body.studentId
+    if (req.user?.userId) {
+        const own = await studentsRepo.findByUserId(req.user.userId)
+        if (own) {
+            studentId = own.id
+        }
+    }
+
+    const { projectId, coverLetter, partnerIds } = body
+
     if (!studentId || !projectId) {
-        throw AppError.badRequest('studentId и projectId обязательны')
+        throw AppError.badRequest('studentId (или auth STUDENT) и projectId обязательны')
     }
 
     const project = await projectsRepo.requireById(projectId)
