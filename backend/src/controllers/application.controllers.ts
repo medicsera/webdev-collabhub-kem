@@ -1,167 +1,160 @@
-import express, { type Request, type Response } from 'express';
-import { eq } from 'drizzle-orm';
-import { db } from '../db/index.js';
+import type { Request, Response } from 'express'
+import { withTransaction } from '../db/transaction.js'
+import { mustOne } from '../db/mustOne.js'
 import {
-    applications,
-    applicationMembers,
-    projects,
-    skills,
-    studentSkills,
-    projectSkills,
-    students,
-} from '../db/schema.js';
-import { aiService } from '../services/aiService.js';
+    applicationsRepo,
+    connectionsRepo,
+    notificationsRepo,
+    projectsRepo,
+    skillsRepo,
+    studentsRepo,
+} from '../db/repositories/index.js'
+import { AppError } from '../errors/AppError.js'
+import { asyncHandler } from '../middleware/errorHandler.js'
+import { aiService } from '../services/aiService.js'
 
-export const applyForProject = async (req: Request, res: Response) => {
+/**
+ * POST /api/application
+ * Подача отклика (соло или командой) + AI-пайплайн + сохранение эмбеддингов.
+ */
+export const applyForProject = asyncHandler(async (req: Request, res: Response) => {
+    const { studentId, projectId, coverLetter, partnerIds } = req.body as {
+        studentId?: string
+        projectId?: string
+        coverLetter?: string
+        partnerIds?: string[]
+    }
+
+    if (!studentId || !projectId) {
+        throw AppError.badRequest('studentId и projectId обязательны')
+    }
+
+    const project = await projectsRepo.requireById(projectId)
+    const student = await studentsRepo.requireById(studentId)
+
+    const studentSkillsArr = await skillsRepo.getStudentSkillNames(studentId)
+    const projectReqsArr = await skillsRepo.getProjectSkillNames(projectId)
+
+    const partners = partnerIds ?? []
+    for (const pid of partners) {
+        const ok = await connectionsRepo.arePartners(studentId, pid)
+        if (!ok) {
+            throw AppError.badRequest(`Студент ${pid} не является подтверждённым напарником`)
+        }
+    }
+
+    const existing = await applicationsRepo.findByProjectAndLead(projectId, studentId)
+    if (existing) {
+        throw AppError.conflict('Вы уже откликнулись на этот проект')
+    }
+
+    let aiMatchScore: number | null = null
+    let aiFeedback: unknown = null
+    let studentEmbedding: string | null = null
+    let projectEmbedding: string | null = null
+
     try {
-        const { studentId, projectId, coverLetter, partnerIds } = req.body as {
-            studentId: string
-            projectId: string
-            coverLetter?: string
-            partnerIds?: string[]
-        }
-
-        if (!studentId || !projectId) {
-            return res.status(400).json({ error: 'studentId и projectId обязательны' })
-        }
-
-        const [projectInfo] = await db
-            .select({
-                title: projects.title,
-                description: projects.description,
-                embedding: projects.embedding,
-            })
-            .from(projects)
-            .where(eq(projects.id, projectId))
-
-        if (!projectInfo) {
-            return res.status(404).json({ error: 'Проект не найден' })
-        }
-
-        const [studentInfo] = await db
-            .select({
-                firstName: students.firstName,
-                lastName: students.lastName,
-                bio: students.bio,
-                specialization: students.specialization,
-                embedding: students.embedding,
-            })
-            .from(students)
-            .where(eq(students.id, studentId))
-
-        if (!studentInfo) {
-            return res.status(404).json({ error: 'Студент не найден' })
-        }
-
-        const studentSkillData = await db
-            .select({ name: skills.name })
-            .from(studentSkills)
-            .innerJoin(skills, eq(studentSkills.skillId, skills.id))
-            .where(eq(studentSkills.studentId, studentId))
-
-        const studentSkillsArr = studentSkillData.map((s) => s.name)
-
-        const projectReqsData = await db
-            .select({ name: skills.name })
-            .from(projectSkills)
-            .innerJoin(skills, eq(projectSkills.skillId, skills.id))
-            .where(eq(projectSkills.projectId, projectId))
-
-        const projectReqsArr = projectReqsData.map((r) => r.name)
-
-        // ИИ-пайплайн: match score + Gap Analysis + эмбеддинги для pgvector
         const aiResult = await aiService.runPipeline(
             studentSkillsArr,
-            projectInfo.title,
-            projectInfo.description,
+            project.title,
+            project.description,
             projectReqsArr,
         )
+        aiMatchScore = aiResult.aiMatchScore
+        aiFeedback = aiResult.aiFeedback
+        studentEmbedding = aiResult.studentEmbedding
+        projectEmbedding = aiResult.projectEmbedding
+    } catch (error) {
+        console.error('AI pipeline failed, continue without score:', error)
+    }
 
-        // Фолбэк-векторизация, если pipeline не вернул эмбеддинги
-        let studentEmbedding = aiResult.studentEmbedding
-        let projectEmbedding = aiResult.projectEmbedding
+    if (!studentEmbedding) {
+        const profileText = [
+            `${student.firstName} ${student.lastName}`,
+            student.specialization ?? '',
+            student.bio ?? '',
+            studentSkillsArr.join(', '),
+        ]
+            .filter(Boolean)
+            .join('. ')
+        studentEmbedding = await aiService.embed(profileText)
+    }
 
-        if (!studentEmbedding) {
-            const profileText = [
-                `${studentInfo.firstName} ${studentInfo.lastName}`,
-                studentInfo.specialization ?? '',
-                studentInfo.bio ?? '',
-                studentSkillsArr.join(', '),
-            ]
-                .filter(Boolean)
-                .join('. ')
-            studentEmbedding = await aiService.embed(profileText)
-        }
+    if (!projectEmbedding && !project.embedding) {
+        projectEmbedding = await aiService.embed(
+            `${project.title}. ${project.description}. ${projectReqsArr.join(', ')}`,
+        )
+    }
 
-        if (!projectEmbedding && !projectInfo.embedding) {
-            projectEmbedding = await aiService.embed(
-                `${projectInfo.title}. ${projectInfo.description}. ${projectReqsArr.join(', ')}`,
-            )
-        }
+    const result = await withTransaction(async (tx) => {
+        const application = mustOne(
+            await applicationsRepo.create(
+                {
+                    projectId,
+                    studentId,
+                    isTeam: partners.length > 0,
+                    coverLetter,
+                    aiMatchScore: aiMatchScore ?? undefined,
+                    aiFeedback: (aiFeedback as Record<string, unknown>) ?? undefined,
+                    status: 'PENDING',
+                },
+                tx,
+            ),
+            'Отклик',
+        )
 
-        // Сохраняем эмбеддинги в БД (для векторного поиска)
-        if (studentEmbedding) {
-            await db
-                .update(students)
-                .set({ embedding: studentEmbedding, updatedAt: new Date() })
-                .where(eq(students.id, studentId))
-        }
-
-        const embeddingToSave = projectEmbedding ?? projectInfo.embedding
-        if (embeddingToSave && embeddingToSave !== projectInfo.embedding) {
-            await db
-                .update(projects)
-                .set({ embedding: embeddingToSave, updatedAt: new Date() })
-                .where(eq(projects.id, projectId))
-        }
-
-        const [newApplication] = await db
-            .insert(applications)
-            .values({
-                studentId,
-                projectId,
-                isTeam: Boolean(partnerIds?.length),
-                coverLetter,
-                aiMatchScore: aiResult.aiMatchScore,
-                aiFeedback: aiResult.aiFeedback as Record<string, unknown>,
-                status: 'PENDING',
-            })
-            .returning()
-
-        if (!newApplication) {
-            return res.status(500).json({ error: 'Не удалось создать отклик' })
-        }
-
-        // Состав команды: LEAD + напарники
         const members = [
             {
-                applicationId: newApplication.id,
+                applicationId: application.id,
                 studentId,
                 projectId,
                 role: 'LEAD' as const,
-                aiMatchScore: aiResult.aiMatchScore,
+                aiMatchScore,
             },
-            ...(partnerIds ?? []).map((pid) => ({
-                applicationId: newApplication.id,
+            ...partners.map((pid) => ({
+                applicationId: application.id,
                 studentId: pid,
                 projectId,
                 role: 'MEMBER' as const,
                 aiMatchScore: null,
             })),
         ]
+        await applicationsRepo.addMembers(members, tx)
 
-        await db.insert(applicationMembers).values(members)
+        if (studentEmbedding) {
+            await studentsRepo.setEmbedding(studentId, studentEmbedding, tx)
+        }
+        const embeddingToSave = projectEmbedding ?? project.embedding
+        if (embeddingToSave && embeddingToSave !== project.embedding) {
+            await projectsRepo.setEmbedding(projectId, embeddingToSave, tx)
+        }
 
-        res.status(201).json({
-            ...newApplication,
-            members,
-            embeddingsSaved: {
-                student: Boolean(studentEmbedding),
-                project: Boolean(embeddingToSave),
-            },
-        })
-    } catch (error) {
-        console.error('Ошибка при подаче заявки:', error)
-        res.status(500).json({ error: 'Не удалось обработать заявку на проект' })
-    }
-}
+        if (partners.length) {
+            const notifs = []
+            for (const pid of partners) {
+                const partner = await studentsRepo.findById(pid, tx)
+                if (partner?.userId) {
+                    notifs.push({
+                        userId: partner.userId,
+                        type: 'SYSTEM' as const,
+                        title: 'Вас добавили в командный отклик',
+                        body: `Приглашение на проект «${project.title}»`,
+                        link: `/applications/${application.id}`,
+                    })
+                }
+            }
+            await notificationsRepo.createMany(notifs, tx)
+        }
+
+        return { application, members }
+    })
+
+    res.status(201).json({
+        ...result.application,
+        members: result.members,
+        embeddingsSaved: {
+            student: Boolean(studentEmbedding),
+            project: Boolean(projectEmbedding),
+        },
+    })
+})

@@ -34,6 +34,12 @@ services:
       - ./ai-service/.env
     networks:
       - collabhub-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/v1/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   frontend:
     build:
@@ -63,14 +69,22 @@ services:
       - ./backend:/app
       - /app/node_modules
     environment:
-      - DATABASE_URL=postgres://collabhub_user:collabhub_secret@postgres:5432/collabhub_db
-      - PORT=5000
-      - AI_SERVICE_URL=http://ai-service:8001
+      # Единый источник данных — POSTGRES_*; DATABASE_URL собирается из них
+      POSTGRES_USER: ${POSTGRES_USER:-collabhub_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-collabhub_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-collabhub_db}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: postgres://${POSTGRES_USER:-collabhub_user}:${POSTGRES_PASSWORD:-collabhub_secret}@postgres:5432/${POSTGRES_DB:-collabhub_db}
+      AI_SERVICE_URL: http://ai-service:8001
+      PORT: "5000"
     networks:
       - collabhub-network
     depends_on:
       postgres:
         condition: service_healthy
+      ai-service:
+        condition: service_started
 
 networks:
   collabhub-network:

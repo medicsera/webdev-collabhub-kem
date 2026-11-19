@@ -1,8 +1,8 @@
-import {Router} from "express";
-import {applyForProject} from "./application.controllers.js";
+import { Router } from 'express'
+import { applyForProject } from './application.controllers.js'
 
-const router = Router();
+const router = Router()
 
-router.post('/',applyForProject);
+router.post('/', applyForProject)
 
-export default router;
+export default router

@@ -500,7 +500,7 @@ export const messages = pgTable(
             .notNull()
             .references(() => users.id, { onDelete: 'cascade' }),
         content: text('content').notNull(),
-        isRead: boolean('is_read').default(false).notNull(),
+        status: varchar('status', { length: 20 }).notNull(), // sent | delivered | read
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     },
     (t) => [
@@ -565,3 +565,17 @@ export type ApplicationMember = typeof applicationMembers.$inferSelect;
 export type NewApplicationMember = typeof applicationMembers.$inferInsert;
 export type StudentConnection = typeof studentConnections.$inferSelect;
 export type NewStudentConnection = typeof studentConnections.$inferInsert;
+export type Skill = typeof skills.$inferSelect;
+export type NewSkill = typeof skills.$inferInsert;
+export type Chat = typeof chats.$inferSelect;
+export type NewChat = typeof chats.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
+export type Notification = typeof notifications.$inferSelect;
+export type NewNotification = typeof notifications.$inferInsert;
+export type Resume = typeof resumes.$inferSelect;
+export type NewResume = typeof resumes.$inferInsert;
+export type PortfolioItem = typeof portfolioItems.$inferSelect;
+export type NewPortfolioItem = typeof portfolioItems.$inferInsert;
+export type SystemLog = typeof systemLogs.$inferSelect;
+export type NewSystemLog = typeof systemLogs.$inferInsert;
