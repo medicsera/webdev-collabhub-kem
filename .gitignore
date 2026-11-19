@@ -72,3 +72,4 @@ docs/
 # Agent skills cache
 .agents/
 skills-lock.json
+%SystemDrive%

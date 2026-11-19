@@ -61,7 +61,7 @@ export const organizationsRepo = {
     },
 
     async list(
-        filters: { verificationStatus?: string; search?: string },
+        filters: { verificationStatus?: string | undefined; search?: string | undefined },
         pagination: PaginationParams,
         executor: DbOrTx = db,
     ): Promise<PagedResult<typeof organizations.$inferSelect>> {

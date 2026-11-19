@@ -6,6 +6,8 @@ import { db } from './db/index.js';
 import { sql } from 'drizzle-orm';
 import applicationRoutes from './controllers/application.routes.js';
 import authRoutes from './controllers/auth.routes.js';
+import studentsRoutes from './controllers/students.routes.js';
+import organizationsRoutes from './controllers/organizations.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
@@ -18,8 +20,10 @@ app.use(express.json());
 
 // API v1
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/students', studentsRoutes);
+app.use('/api/v1/organizations', organizationsRoutes);
 app.use('/api/application', applicationRoutes);
-// Алиас на случай старых путей
+// Алиасы на случай старых путей
 app.use('/api/auth', authRoutes);
 
 /**

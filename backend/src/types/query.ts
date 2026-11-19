@@ -37,39 +37,39 @@ export function normalizePagination(query: PaginationQuery = {}): PaginationPara
 
 /** Фильтры каталога проектов (ФР-03) */
 export interface ProjectListFilters {
-    search?: string
-    type?: string
-    difficulty?: string
-    employmentType?: string
-    skillId?: string
-    categoryId?: string
-    organizationId?: string
-    status?: string
+    search?: string | undefined
+    type?: string | undefined
+    difficulty?: string | undefined
+    employmentType?: string | undefined
+    skillId?: string | undefined
+    categoryId?: string | undefined
+    organizationId?: string | undefined
+    status?: string | undefined
 }
 
 export interface StudentListFilters {
-    search?: string
-    specialization?: string
-    universityGroup?: string
+    search?: string | undefined
+    specialization?: string | undefined
+    universityGroup?: string | undefined
 }
 
 export interface ApplicationListFilters {
-    projectId?: string
-    studentId?: string
-    status?: string
+    projectId?: string | undefined
+    studentId?: string | undefined
+    status?: string | undefined
 }
 
 export interface ConnectionListFilters {
-    studentId?: string
-    status?: string
+    studentId?: string | undefined
+    status?: string | undefined
 }
 
 export interface NotificationListFilters {
-    userId?: string
-    unread?: boolean
+    userId?: string | undefined
+    unread?: boolean | undefined
 }
 
 export interface SystemLogFilters {
-    level?: string
-    source?: string
+    level?: string | undefined
+    source?: string | undefined
 }
