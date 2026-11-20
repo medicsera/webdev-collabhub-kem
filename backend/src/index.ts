@@ -6,6 +6,7 @@ import { db } from './db/index.js';
 import { sql } from 'drizzle-orm';
 import applicationRoutes from './controllers/application.routes.js';
 import authRoutes from './controllers/auth.routes.js';
+import publicRoutes from './controllers/public.routes.js';
 import studentsRoutes from './controllers/students.routes.js';
 import organizationsRoutes from './controllers/organizations.routes.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -17,6 +18,10 @@ const port = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Публичная API для текущего фронта (без JWT) — строго ДО auth-роутеров.
+// Маршруты с заголовком Authorization /:id='me' сами уходят в защищённые роуты.
+app.use(publicRoutes);
 
 // API v1
 app.use('/api/v1/auth', authRoutes);
