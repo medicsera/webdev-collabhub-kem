@@ -148,7 +148,7 @@ export const MyProjectsTab: React.FC<MyProjectsTabProps> = ({
   };
 
   return (
-    <section id="tab-my-projects" className="fade-in space-y-8">
+    <section id="tab-my-projects" className="space-y-8">
       {/* Шапка раздела */}
       <div className="double-rule-b pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
         <div>

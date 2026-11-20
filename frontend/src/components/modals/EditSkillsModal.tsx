@@ -39,11 +39,11 @@ export const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-6"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md modal-backdrop-animate flex justify-center items-center overflow-y-auto p-3 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-3xl sm:max-w-4xl w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] my-auto overflow-hidden shadow-2xl"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-3xl sm:max-w-4xl w-full modal-content-animate flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] my-auto overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка модального окна */}

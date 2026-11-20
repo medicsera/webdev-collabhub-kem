@@ -13,6 +13,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import type { Chat, ProjectApplication, Role } from '../types';
+import { useApp } from '../context/AppContext';
 
 interface ChatsPageProps {
   chats: Chat[];
@@ -57,6 +58,13 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
 
   const activeChat = selectedId ? (chats.find((c) => c.id === selectedId) || null) : null;
   const relatedApplication = applications.find((a) => a.chatId === activeChat?.id || `chat-${a.id}` === activeChat?.id);
+  const { markChatAsRead } = useApp();
+
+  useEffect(() => {
+    if (activeChat?.id) {
+      markChatAsRead(activeChat.id);
+    }
+  }, [activeChat?.id, activeChat?.messages?.length, markChatAsRead]);
 
   // Скроллим строго внутренний контейнер сообщений чата, не затрагивая страницу браузера
   useEffect(() => {
@@ -212,9 +220,13 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                                 <span className="font-semibold text-oxblood dark:text-oxblood-light shrink-0">Вы:</span>
                                 <span className="text-stone-600 dark:text-stone-300 truncate">{lastMsg.content}</span>
                                 <span className="ml-auto shrink-0 pl-1 flex items-center">
-                                  {lastMsg.isRead ? (
-                                    <span title="Прочитано">
+                                  {lastMsg.status === 'read' || lastMsg.isRead ? (
+                                    <span title="Прочитано собеседником">
                                       <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                    </span>
+                                  ) : lastMsg.status === 'delivered' ? (
+                                    <span title="Доставлено">
+                                      <CheckCheck className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                                     </span>
                                   ) : (
                                     <span title="Отправлено">
@@ -349,11 +361,22 @@ export const ChatsPage: React.FC<ChatsPageProps> = ({
                               })}
                             </span>
                             {isMy && (
-                              <span className="flex items-center" title={msg.isRead ? 'Прочитано' : 'Отправлено'}>
-                                {msg.isRead ? (
+                              <span
+                                className="flex items-center ml-0.5"
+                                title={
+                                  msg.status === 'read' || msg.isRead
+                                    ? 'Прочитано собеседником'
+                                    : msg.status === 'delivered'
+                                    ? 'Доставлено собеседнику'
+                                    : 'Отправлено на сервер'
+                                }
+                              >
+                                {msg.status === 'read' || msg.isRead ? (
                                   <CheckCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                ) : msg.status === 'delivered' ? (
+                                  <CheckCheck className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
                                 ) : (
-                                  <Check className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                                  <Check className="w-3.5 h-3.5 text-stone-400 dark:text-stone-500" />
                                 )}
                               </span>
                             )}

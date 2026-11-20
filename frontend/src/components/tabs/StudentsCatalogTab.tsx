@@ -204,7 +204,7 @@ export const StudentsCatalogTab: React.FC<StudentsCatalogTabProps> = ({
   }, [studentsWithMatch]);
 
   return (
-    <section id="tab-students-catalog" className="fade-in space-y-8">
+    <section id="tab-students-catalog" className="space-y-8">
       {/* Передовица: Реестр студентов и академических талантов */}
       <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-10 relative transition-colors duration-300">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">

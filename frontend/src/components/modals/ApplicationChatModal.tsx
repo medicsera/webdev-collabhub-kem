@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Send, MessageSquare, Check, CheckCheck, Crown, Users } from 'lucide-react';
 import type { Chat, ProjectApplication, Project, Role } from '../../types';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { useApp } from '../../context/AppContext';
 
 interface ApplicationChatModalProps {
   isOpen: boolean;
@@ -29,12 +30,14 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
 }) => {
   const [text, setText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { markChatAsRead } = useApp();
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && chat) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      markChatAsRead(chat.id);
     }
-  }, [isOpen, chat?.messages]);
+  }, [isOpen, chat?.id, chat?.messages?.length, markChatAsRead]);
 
   useBodyScrollLock(isOpen && Boolean(chat));
 
@@ -72,11 +75,11 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md modal-backdrop-animate flex justify-center items-center overflow-y-auto p-3 sm:p-5"
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-2xl w-full fade-in flex flex-col h-[660px] max-h-[calc(100vh-2.5rem)] min-h-0 my-auto overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-2xl w-full modal-content-animate flex flex-col h-[660px] max-h-[calc(100vh-2.5rem)] min-h-0 my-auto overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Шапка чата */}
@@ -184,11 +187,22 @@ export const ApplicationChatModal: React.FC<ApplicationChatModalProps> = ({
                         })}
                       </span>
                       {isMyMessage && (
-                        <span>
-                          {msg.isRead ? (
-                            <CheckCheck className="w-3 h-3 text-hunter dark:text-emerald-500" />
+                        <span
+                          className="inline-flex items-center ml-1"
+                          title={
+                            msg.status === 'read' || msg.isRead
+                              ? 'Прочитано собеседником'
+                              : msg.status === 'delivered'
+                              ? 'Доставлено собеседнику'
+                              : 'Отправлено на сервер'
+                          }
+                        >
+                          {msg.status === 'read' || msg.isRead ? (
+                            <CheckCheck className="w-3.5 h-3.5 text-hunter dark:text-emerald-400" />
+                          ) : msg.status === 'delivered' ? (
+                            <CheckCheck className="w-3.5 h-3.5 opacity-60" />
                           ) : (
-                            <Check className="w-3 h-3" />
+                            <Check className="w-3.5 h-3.5 opacity-60" />
                           )}
                         </span>
                       )}

@@ -60,6 +60,26 @@ class AnalyzeResponse(BaseModel):
     recommendations: List[str]
 
 
+class EvaluateRequest(BaseModel):
+    student_skills: List[str]
+    project_title: str
+    project_description: str
+    project_requirements: List[str]
+    student_bio: Optional[str] = Field(default=None, description="Био / опыт кандидата")
+    match_score: Optional[float] = Field(default=None, description="Оценка MiniLM 0-100")
+
+
+class EvaluateResponse(BaseModel):
+    verdict: str
+    verdict_title: str
+    pros: List[str]
+    cons: List[str]
+    summary: str
+    recommendations: List[str]
+    cover_letter_tip: Optional[str] = None
+    match_score: float
+
+
 class FullPipelineRequest(BaseModel):
     student_skills: List[str]
     project_title: str
@@ -204,6 +224,26 @@ async def analyze_gaps(request: AnalyzeRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка генерации анализа: {str(e)}",
+        )
+
+
+@app.post("/api/v1/evaluate", response_model=EvaluateResponse, tags=["LLM Analysis"])
+async def evaluate_application_fit(request: EvaluateRequest):
+    try:
+        result = await gigachat_client.evaluate_competencies(
+            student_skills=request.student_skills,
+            project_title=request.project_title,
+            project_description=request.project_description,
+            project_requirements=request.project_requirements,
+            student_bio=request.student_bio,
+            match_score=request.match_score,
+        )
+        return EvaluateResponse(**result)
+    except Exception as e:
+        logger.error(f"Ошибка при формировании оценки LLM: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка оценки соответствия: {str(e)}",
         )
 
 

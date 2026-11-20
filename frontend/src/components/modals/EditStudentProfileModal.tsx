@@ -90,7 +90,7 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
 
   const modalContent = (
     <div
-      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-4xl sm:max-w-5xl mx-auto' : 'max-w-4xl sm:max-w-5xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl`}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-4xl sm:max-w-5xl mx-auto' : 'max-w-4xl sm:max-w-5xl my-auto'} w-full modal-content-animate flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] overflow-hidden shadow-2xl`}
       onClick={(e) => e.stopPropagation()}
     >
         {/* Зафиксированная шапка модального окна */}
@@ -410,7 +410,7 @@ export const EditStudentProfileModal: React.FC<EditStudentProfileModalProps> = (
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-6"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md modal-backdrop-animate flex justify-center items-center overflow-y-auto p-3 sm:p-6"
       onClick={onClose}
     >
       {modalContent}

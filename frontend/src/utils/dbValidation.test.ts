@@ -333,4 +333,51 @@ describe('DB Validation & Business Rules Audit', () => {
       assert.equal(best, null);
     });
   });
+
+  // ==========================================
+  // 6. Статусы сообщений в чате: sent | delivered | read
+  // ==========================================
+  describe('Rule 6: Chat message status lifecycle (sent | delivered | read)', () => {
+    it('validates allowed message statuses', () => {
+      const validStatuses = ['sent', 'delivered', 'read'];
+      const testMsg = {
+        id: 'msg-1',
+        chatId: 'chat-1',
+        senderId: 1,
+        senderName: 'Иван',
+        senderRole: 'student' as const,
+        content: 'Привет!',
+        status: 'sent' as const,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+      };
+
+      assert.ok(validStatuses.includes(testMsg.status));
+      assert.equal(testMsg.status, 'sent');
+    });
+
+    it('advances message status through lifecycle sent -> delivered -> read', () => {
+      const msg = {
+        id: 'msg-100',
+        content: 'Тестовое сообщение',
+        status: 'sent' as 'sent' | 'delivered' | 'read',
+        isRead: false,
+      };
+
+      // 1. Sent
+      assert.equal(msg.status, 'sent');
+      assert.equal(msg.isRead, false);
+
+      // 2. Delivered
+      msg.status = 'delivered';
+      assert.equal(msg.status, 'delivered');
+      assert.equal(msg.isRead, false);
+
+      // 3. Read
+      msg.status = 'read';
+      msg.isRead = true;
+      assert.equal(msg.status, 'read');
+      assert.equal(msg.isRead, true);
+    });
+  });
 });

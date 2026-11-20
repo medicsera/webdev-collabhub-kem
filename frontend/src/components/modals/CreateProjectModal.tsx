@@ -64,7 +64,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   const modalContent = (
     <div
-      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-2xl mx-auto' : 'max-w-xl my-auto'} w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] overflow-hidden`}
+      className={`relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder ${isPage ? 'max-w-2xl mx-auto' : 'max-w-xl my-auto'} w-full modal-content-animate flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] overflow-hidden shadow-2xl`}
       onClick={(e) => e.stopPropagation()}
     >
         {/* Зафиксированная шапка модального окна */}
@@ -233,7 +233,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md modal-backdrop-animate flex justify-center items-center overflow-y-auto p-3 sm:p-5"
       onClick={onClose}
     >
       {modalContent}

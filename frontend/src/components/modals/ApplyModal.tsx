@@ -1,6 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Users, UserCheck, AlertTriangle, Crown, Check } from 'lucide-react';
+import {
+  X,
+  Users,
+  UserCheck,
+  AlertTriangle,
+  Crown,
+  Check,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  Lightbulb,
+  RotateCw,
+} from 'lucide-react';
 import type { Project, StudentProfile, ProjectApplication } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
@@ -8,6 +20,7 @@ import { formatYearDisplay } from '../../utils/dbValidation';
 import { canStudentApplyToProject, canAddMemberToProjectApplication } from '../../utils/dbValidation';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { useSemanticMatches } from '../../hooks/useSemanticMatches';
+import { evaluateCompetenciesWithLlmApi, type LlmEvaluationResult } from '../../api';
 
 export interface ApplyModalSubmitData {
   projectId: number;
@@ -38,6 +51,15 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
   const [coverLetter, setCoverLetter] = useState('');
   const [isTeam, setIsTeam] = useState(false);
   const [selectedFriendIds, setSelectedFriendIds] = useState<number[]>([]);
+  const [llmEvaluation, setLlmEvaluation] = useState<LlmEvaluationResult | null>(null);
+  const [isLoadingLlm, setIsLoadingLlm] = useState(false);
+  const [llmError, setLlmError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLlmEvaluation(null);
+    setIsLoadingLlm(false);
+    setLlmError(null);
+  }, [project?.id]);
 
   useBodyScrollLock(Boolean(project));
   // Векторный матч «текущий студент ↔ этот проект»
@@ -68,6 +90,42 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
     );
   };
 
+  const handleRunLlmEvaluation = async () => {
+    if (!project) return;
+    setIsLoadingLlm(true);
+    setLlmError(null);
+    try {
+      const result = await evaluateCompetenciesWithLlmApi({
+        studentSkills: currentStudent.skills,
+        projectTitle: project.title,
+        projectDescription: project.desc,
+        projectRequirements:
+          project.requiredSkills && project.requiredSkills.length > 0
+            ? project.requiredSkills
+            : project.tags,
+        studentBio: currentStudent.bio,
+        matchScore,
+      });
+      setLlmEvaluation(result);
+    } catch (err: unknown) {
+      const error = err as Error;
+      setLlmError(error.message || 'Не удалось получить оценку компетенций от модели');
+    } finally {
+      setIsLoadingLlm(false);
+    }
+  };
+
+  const handleApplyTipToCoverLetter = () => {
+    if (!llmEvaluation?.coverLetterTip) return;
+    setCoverLetter((prev) => {
+      const tip = llmEvaluation.coverLetterTip!;
+      if (!prev.trim()) {
+        return tip;
+      }
+      return `${prev}\n\n${tip}`;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (alreadyAppliedByMe) return;
@@ -90,11 +148,11 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-xs flex justify-center items-center overflow-y-auto p-3 sm:p-5"
+      className="fixed inset-0 z-50 bg-ink/75 backdrop-blur-md modal-backdrop-animate flex justify-center items-center overflow-y-auto p-3 sm:p-5"
       onClick={onClose}
     >
       <div
-        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-xl w-full fade-in flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden"
+        className="relative bg-paper-card dark:bg-paper-darkCard border-2 border-ink dark:border-paper-darkBorder max-w-xl w-full modal-content-animate flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] my-auto overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header — зафиксирован */}
@@ -132,6 +190,28 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                 aiPowered={aiPowered}
                 pending={semanticStatus === 'loading' && !aiPowered}
               />
+              {llmEvaluation && (
+                <span
+                  className={`text-[10px] font-mono px-2 py-0.5 border flex items-center gap-1 font-semibold ${
+                    llmEvaluation.verdict === 'RECOMMENDED'
+                      ? 'border-emerald-600 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300'
+                      : llmEvaluation.verdict === 'CONSIDER'
+                      ? 'border-amber-600 bg-amber-500/10 text-amber-800 dark:text-amber-300'
+                      : 'border-red-600 bg-red-500/10 text-red-800 dark:text-red-300'
+                  }`}
+                  title={llmEvaluation.verdictTitle}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>
+                    LLM:{' '}
+                    {llmEvaluation.verdict === 'RECOMMENDED'
+                      ? 'Стоит подавать'
+                      : llmEvaluation.verdict === 'CONSIDER'
+                      ? 'Есть нюансы'
+                      : 'Не рекомендуется'}
+                  </span>
+                </span>
+              )}
             </div>
             <h3
               id="modal-title"
@@ -182,6 +262,212 @@ export const ApplyModal: React.FC<ApplyModalProps> = ({
                   <SkillBadge key={typeof skill === 'string' ? skill : skill.name} skill={skill} />
                 ))}
               </div>
+            </div>
+
+            {/* ИИ-экспертиза компетенций (LLM GigaChat): Что хорошо, что плохо, стоит ли отправлять */}
+            <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-light/50 dark:bg-stone-900/60 p-4 space-y-3.5 transition-all">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-oxblood/10 dark:bg-oxblood-light/10 text-oxblood dark:text-oxblood-light flex items-center justify-center font-bold shrink-0">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-mono uppercase tracking-wider font-bold text-ink dark:text-ink-light flex items-center gap-2">
+                      <span>Сравнение компетенций через ИИ (LLM GigaChat)</span>
+                    </h4>
+                    <p className="text-[10px] text-ink-muted dark:text-stone-400">
+                      Качественная экспертиза: сильные стороны, зоны риска и вердикт модели о подаче заявки
+                    </p>
+                  </div>
+                </div>
+
+                {/* Кнопка запуска или повтора */}
+                {!llmEvaluation && !isLoadingLlm && (
+                  <button
+                    type="button"
+                    onClick={handleRunLlmEvaluation}
+                    className="btn-editorial px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider bg-oxblood text-white hover:bg-oxblood/90 flex items-center gap-1.5 transition cursor-pointer shadow-xs ml-auto"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Сравнить через ИИ</span>
+                  </button>
+                )}
+
+                {llmEvaluation && !isLoadingLlm && (
+                  <button
+                    type="button"
+                    onClick={handleRunLlmEvaluation}
+                    className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-ink-muted hover:text-ink dark:hover:text-white flex items-center gap-1 transition cursor-pointer ml-auto border border-paper-border dark:border-paper-darkBorder hover:border-ink"
+                    title="Запустить повторный анализ LLM"
+                  >
+                    <RotateCw className="w-3 h-3" />
+                    <span>Перепроверить</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Состояние загрузки */}
+              {isLoadingLlm && (
+                <div className="p-4 border border-dashed border-oxblood/40 bg-oxblood/5 flex items-center gap-3 text-xs font-mono animate-pulse text-ink dark:text-stone-300">
+                  <RotateCw className="w-4 h-4 text-oxblood animate-spin shrink-0" />
+                  <div>
+                    <p className="font-semibold text-oxblood dark:text-oxblood-light">
+                      LLM-модель сопоставляет ваш профиль компетенций с проектом...
+                    </p>
+                    <p className="text-[10px] text-ink-muted dark:text-stone-400 mt-0.5">
+                      Анализируем совпадение стека, уровень подготовки, зоны риска и формулируем вердикт
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Ошибка */}
+              {llmError && (
+                <div className="p-3 bg-red-500/10 border border-red-500 text-red-700 dark:text-red-400 text-xs font-mono flex items-center justify-between">
+                  <span>{llmError}</span>
+                  <button type="button" onClick={handleRunLlmEvaluation} className="underline font-bold ml-2 cursor-pointer">
+                    Повторить
+                  </button>
+                </div>
+              )}
+
+              {/* Начальное состояние: подсказка до клика */}
+              {!llmEvaluation && !isLoadingLlm && !llmError && (
+                <div className="p-3 bg-paper-card dark:bg-stone-900 border border-paper-border/70 dark:border-paper-darkBorder/70 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-[11px] text-ink-muted dark:text-stone-400 font-mono leading-relaxed">
+                    Векторный поиск (MiniLM-L12-v2) рассчитал балл соответствия: <strong>{matchScore}%</strong>.
+                    Запустите LLM-анализ, чтобы модель оценила <strong>что хорошо</strong>, <strong>что плохо</strong> и <strong>стоит ли отправлять заявку</strong> на этот проект.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRunLlmEvaluation}
+                    className="shrink-0 btn-editorial px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider border border-ink dark:border-paper-light text-ink dark:text-ink-light hover:bg-ink hover:text-white transition cursor-pointer self-start sm:self-auto"
+                  >
+                    Запустить анализ →
+                  </button>
+                </div>
+              )}
+
+              {/* Результат LLM анализа */}
+              {llmEvaluation && !isLoadingLlm && (
+                <div className="space-y-3.5 pt-1">
+                  {/* 1. Блок вердикта: Стоит ли отправлять заявку */}
+                  <div
+                    className={`p-3.5 border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 ${
+                      llmEvaluation.verdict === 'RECOMMENDED'
+                        ? 'bg-emerald-500/10 border-emerald-600 text-emerald-900 dark:text-emerald-300'
+                        : llmEvaluation.verdict === 'CONSIDER'
+                        ? 'bg-amber-500/10 border-amber-600 text-amber-900 dark:text-amber-300'
+                        : 'bg-red-500/10 border-red-600 text-red-900 dark:text-red-300'
+                    }`}
+                  >
+                    <div className="flex items-start sm:items-center gap-2.5">
+                      {llmEvaluation.verdict === 'RECOMMENDED' ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5 sm:mt-0" />
+                      ) : llmEvaluation.verdict === 'CONSIDER' ? (
+                        <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5 sm:mt-0" />
+                      )}
+                      <div>
+                        <div className="text-[10px] font-mono uppercase tracking-widest opacity-80">
+                          Вердикт ИИ: Стоит ли отправлять заявку
+                        </div>
+                        <div className="text-sm font-bold tracking-tight">
+                          {llmEvaluation.verdictTitle}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] font-mono px-2.5 py-1 bg-white/70 dark:bg-black/40 border border-current/20 shrink-0 self-start sm:self-auto flex items-center gap-1.5">
+                      <span>Индекс соответствия:</span>
+                      <strong className="font-bold">{llmEvaluation.matchScore}%</strong>
+                    </div>
+                  </div>
+
+                  {/* 2. Общее резюме от LLM */}
+                  <p className="text-xs text-ink-muted dark:text-stone-300 leading-relaxed font-normal bg-paper-card dark:bg-stone-900 p-3 border border-paper-border dark:border-paper-darkBorder">
+                    {llmEvaluation.summary}
+                  </p>
+
+                  {/* 3. Двухколоночный блок: ЧТО ХОРОШО vs ЧТО ПЛОХО */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {/* ЧТО ХОРОШО (Плюсы) */}
+                    <div className="p-3 bg-emerald-500/5 dark:bg-emerald-950/20 border border-emerald-600/30 space-y-2">
+                      <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Что хорошо (сильные стороны):</span>
+                      </div>
+                      <ul className="space-y-1.5 text-ink dark:text-stone-300 text-[11px]">
+                        {llmEvaluation.pros.map((pro, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                            <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                            <span>{pro}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* ЧТО ПЛОХО (Минусы / Риски) */}
+                    <div className="p-3 bg-oxblood/5 dark:bg-oxblood/10 border border-oxblood/30 space-y-2">
+                      <div className="text-[10px] font-mono uppercase tracking-wider font-bold text-oxblood dark:text-oxblood-light flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>Что плохо (пробелы и риски):</span>
+                      </div>
+                      <ul className="space-y-1.5 text-ink dark:text-stone-300 text-[11px]">
+                        {llmEvaluation.cons.map((con, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 leading-snug">
+                            <span className="text-oxblood font-bold shrink-0">✕</span>
+                            <span>{con}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Рекомендации от LLM */}
+                  {llmEvaluation.recommendations?.length > 0 && (
+                    <div className="p-3 bg-paper-card dark:bg-stone-900 border border-paper-border dark:border-paper-darkBorder space-y-1.5">
+                      <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
+                        Рекомендации LLM-модели перед интервью:
+                      </div>
+                      <ul className="space-y-1 text-xs text-ink dark:text-stone-300">
+                        {llmEvaluation.recommendations.map((rec, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5 text-[11px]">
+                            <span className="text-oxblood font-semibold">•</span>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* 4. Совет для сопроводительного письма */}
+                  {llmEvaluation.coverLetterTip && (
+                    <div className="p-3 bg-paper-card dark:bg-stone-900 border border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                      <div className="flex items-start gap-2">
+                        <Lightbulb className="w-4 h-4 text-brass shrink-0 mt-0.5" />
+                        <div>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400 block">
+                            Совет от LLM для мотивационного письма:
+                          </span>
+                          <span className="text-[11px] text-ink dark:text-stone-200">
+                            {llmEvaluation.coverLetterTip}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleApplyTipToCoverLetter}
+                        className="shrink-0 text-[10px] font-mono uppercase tracking-wider px-2.5 py-1.5 border border-oxblood text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white transition cursor-pointer font-semibold"
+                        title="Добавить эту рекомендацию в текст сопроводительного письма ниже"
+                      >
+                        + Вставить в письмо
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Параметры проекта по БД */}

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Plus, RotateCcw, ChevronDown, Check } from 'lucide-react';
+import { Search, Plus, RotateCcw, ChevronDown, Check, Sparkles } from 'lucide-react';
 import type { Project, Role, ProjectFormat, StudentProfile } from '../../types';
 import { SkillBadge } from '../SkillBadge';
 import { SemanticMatchBadge } from '../SemanticMatchBadge';
@@ -330,13 +330,24 @@ export const CatalogTab: React.FC<CatalogTabProps> = ({
                         <span className="opacity-75 text-[9px]">→</span>
                       </button>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => (onSelectProject ? onSelectProject(p) : undefined)}
-                        className="btn-editorial px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light hover:bg-ink hover:text-paper-light dark:hover:bg-paper-light dark:hover:text-ink transition cursor-pointer"
-                      >
-                        Подробнее →
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => (onSelectProject ? onSelectProject(p) : undefined)}
+                          className="btn-editorial px-2.5 py-1.5 text-[10px] font-mono uppercase tracking-wider border border-oxblood text-oxblood dark:text-oxblood-light hover:bg-oxblood hover:text-white transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                          title="Сравнить компетенции через LLM и оценить шансы"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          <span>ИИ-анализ</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => (onSelectProject ? onSelectProject(p) : undefined)}
+                          className="btn-editorial px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest border border-ink dark:border-ink-light text-ink dark:text-ink-light hover:bg-ink hover:text-paper-light dark:hover:bg-paper-light dark:hover:text-ink transition cursor-pointer"
+                        >
+                          Подробнее →
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

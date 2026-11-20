@@ -95,6 +95,10 @@ h1, h2, h3,
   z-index: 9999;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 html,
 body {
   transition: background-color 0.65s cubic-bezier(0.4, 0, 0.2, 1),
@@ -329,17 +333,15 @@ section,
    ANIMATIONS
    ═══════════════════════════════════════════════════════════════ */
 .fade-in {
-  animation: fadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: fadeIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -377,7 +379,7 @@ section,
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EDITORIAL PAGE TURN / TAB SWITCHING
+   EDITORIAL PAGE TURN / TAB SWITCHING / DIRECTIONAL SWIPES
    ═══════════════════════════════════════════════════════════════ */
 @keyframes editorialPageEnter {
   0% {
@@ -388,6 +390,155 @@ section,
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FULL HORIZONTAL CAROUSEL PAGE TRACK TRANSITIONS
+   Физическая сплошная прокрутка между страницами слева направо / справа налево
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes trackSlideLeft {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes trackSlideRight {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0%, 0, 0);
+  }
+}
+
+.track-slide-left {
+  transform: translate3d(0%, 0, 0);
+  animation: trackSlideLeft 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.track-slide-right {
+  transform: translate3d(-50%, 0, 0);
+  animation: trackSlideRight 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   EDITORIAL MODAL ANIMATIONS — Smooth Blur & Opacity Entrance
+   Плавное появление модальных окон от прозрачного и размытого
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes modalContentBlurIn {
+  0% {
+    opacity: 0;
+    filter: blur(12px);
+    -webkit-filter: blur(12px);
+    transform: scale(0.96) translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+    -webkit-filter: blur(0px);
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+.modal-backdrop-animate {
+  animation: modalBackdropFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, backdrop-filter;
+}
+
+.modal-content-animate {
+  animation: modalContentBlurIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, filter, transform;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FULL HORIZONTAL PAGE-TO-PAGE SLIDE TRANSITIONS
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes slideExitToLeft {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0.9;
+  }
+}
+
+@keyframes slideEnterFromRight {
+  0% {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideExitToRight {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0.9;
+  }
+}
+
+@keyframes slideEnterFromLeft {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.slide-exit-to-left {
+  animation: slideExitToLeft 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.slide-enter-from-right {
+  animation: slideEnterFromRight 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.slide-exit-to-right {
+  animation: slideExitToRight 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.slide-enter-from-left {
+  animation: slideEnterFromLeft 0.42s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .editorial-page-turn {

@@ -122,6 +122,13 @@ export const applicationMemberRoleEnum = pgEnum('application_member_role', [
     'MEMBER',
 ]);
 
+/** Статус сообщения в чате (УР-10, ФР-05): sent | delivered | read */
+export const messageStatusEnum = pgEnum('message_status', [
+    'sent',
+    'delivered',
+    'read',
+]);
+
 // === CORE: AUTH ===
 
 /** Пользователи: auth + RBAC (НФР-06/07, ФР-01) */
@@ -500,12 +507,14 @@ export const messages = pgTable(
             .notNull()
             .references(() => users.id, { onDelete: 'cascade' }),
         content: text('content').notNull(),
+        status: messageStatusEnum('status').default('sent').notNull(),
         isRead: boolean('is_read').default(false).notNull(),
         createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     },
     (t) => [
         index('messages_chat_idx').on(t.chatId, t.createdAt),
         index('messages_sender_idx').on(t.senderId),
+        index('messages_status_idx').on(t.status),
     ],
 );
 
@@ -565,3 +574,8 @@ export type ApplicationMember = typeof applicationMembers.$inferSelect;
 export type NewApplicationMember = typeof applicationMembers.$inferInsert;
 export type StudentConnection = typeof studentConnections.$inferSelect;
 export type NewStudentConnection = typeof studentConnections.$inferInsert;
+export type MessageStatus = 'sent' | 'delivered' | 'read';
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
+export type Chat = typeof chats.$inferSelect;
+export type NewChat = typeof chats.$inferInsert;

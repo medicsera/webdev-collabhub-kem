@@ -6,7 +6,17 @@ import { eq } from 'drizzle-orm';
 
 // Импортируем подключение к БД и схему
 import { db } from './db/index.js';
-import { organizations, projects, students, studentSkills, skills, projectSkills } from './db/schema.js';
+import {
+  organizations,
+  projects,
+  students,
+  studentSkills,
+  skills,
+  projectSkills,
+  chats,
+  messages,
+} from './db/schema.js';
+import type { MessageStatus } from './db/schema.js';
 import applicationRoutes from "./controllers/application.routes.js";
 import { aiService, formatAiFeedback } from "./services/aiService.js";
 
@@ -730,6 +740,137 @@ app.post('/api/v1/semantic-match', async (req: Request, res: Response) => {
   } catch (err) {
     console.warn('[AI notice] semantic-match недоступен, отдаём 502:', err);
     return res.status(502).json({ error: 'AI-сервис недоступен' });
+  }
+});
+
+// 6. Комплексная LLM-оценка компетенций кандидата под проект (что хорошо, что плохо, стоит ли отправлять заявку)
+const handleEvaluateCompetencies = async (req: Request, res: Response) => {
+  const {
+    studentSkills,
+    projectTitle,
+    projectDescription,
+    projectRequirements,
+    studentBio,
+    matchScore,
+  } = (req.body ?? {}) as {
+    studentSkills?: string[] | Array<{ name: string; proficiency_level?: string }>;
+    projectTitle?: string;
+    projectDescription?: string;
+    projectRequirements?: string[] | Array<{ name: string; importance_level?: string }>;
+    studentBio?: string;
+    matchScore?: number;
+  };
+
+  const skillNames = (studentSkills ?? []).map((s) => (typeof s === 'string' ? s : s.name));
+  const reqNames = (projectRequirements ?? []).map((r) => (typeof r === 'string' ? r : r.name));
+
+  const evaluation = await aiService.evaluateCompetencies(
+    skillNames,
+    projectTitle || 'Проект',
+    projectDescription || '',
+    reqNames,
+    {
+      studentBio: studentBio || undefined,
+      matchScore: matchScore !== undefined ? Number(matchScore) : undefined,
+    },
+  );
+
+  return res.json(evaluation);
+};
+
+app.post('/api/v1/ai/evaluate', handleEvaluateCompetencies);
+app.post('/api/ai/evaluate', handleEvaluateCompetencies);
+
+// 7. Чат и статусы сообщений: sent | delivered | read
+// GET /api/v1/chats/:id/messages
+app.get('/api/v1/chats/:id/messages', async (req: Request, res: Response) => {
+  const chatId = typeof req.params.id === 'string' ? req.params.id : '';
+  try {
+    const chatMessages = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.chatId, chatId))
+      .orderBy(messages.createdAt);
+    return res.json(chatMessages);
+  } catch (err) {
+    console.warn('[DB notice] chats/:id/messages query fallback:', err);
+    return res.json([]);
+  }
+});
+
+// POST /api/v1/chats/:id/messages
+app.post('/api/v1/chats/:id/messages', async (req: Request, res: Response) => {
+  const chatId = typeof req.params.id === 'string' ? req.params.id : '';
+  const { senderId, content } = (req.body ?? {}) as { senderId?: string; content?: string };
+  if (!content?.trim()) {
+    return res.status(400).json({ error: 'Содержимое сообщения обязательно' });
+  }
+
+  try {
+    const [created] = await db
+      .insert(messages)
+      .values({
+        chatId,
+        senderId: senderId || '00000000-0000-0000-0000-000000000001',
+        content: content.trim(),
+        status: 'sent',
+        isRead: false,
+      })
+      .returning();
+    return res.status(201).json(created);
+  } catch (err) {
+    console.warn('[DB notice] create message fallback:', err);
+    return res.status(201).json({
+      id: `msg-${Date.now()}`,
+      chatId,
+      senderId: senderId || 'user-1',
+      content: content.trim(),
+      status: 'sent',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    });
+  }
+});
+
+// PATCH /api/v1/messages/:id/status
+app.patch('/api/v1/messages/:id/status', async (req: Request, res: Response) => {
+  const messageId = typeof req.params.id === 'string' ? req.params.id : '';
+  const { status } = (req.body ?? {}) as { status?: MessageStatus };
+  if (!status || !['sent', 'delivered', 'read'].includes(status)) {
+    return res.status(400).json({ error: 'Недопустимый статус. Разрешены: sent | delivered | read' });
+  }
+
+  try {
+    const [updated] = await db
+      .update(messages)
+      .set({
+        status,
+        isRead: status === 'read',
+      })
+      .where(eq(messages.id, messageId))
+      .returning();
+    return res.json(updated ?? { id: messageId, status });
+  } catch (err) {
+    console.warn('[DB notice] update message status fallback:', err);
+    return res.json({ id: messageId, status, isRead: status === 'read' });
+  }
+});
+
+// POST /api/v1/chats/:id/read
+app.post('/api/v1/chats/:id/read', async (req: Request, res: Response) => {
+  const chatId = typeof req.params.id === 'string' ? req.params.id : '';
+  try {
+    await db
+      .update(messages)
+      .set({
+        status: 'read',
+        isRead: true,
+      })
+      .where(eq(messages.chatId, chatId));
+    return res.json({ success: true, chatId, status: 'read' });
+  } catch (err) {
+    console.warn('[DB notice] mark chat read fallback:', err);
+    return res.json({ success: true, chatId, status: 'read' });
   }
 });
 

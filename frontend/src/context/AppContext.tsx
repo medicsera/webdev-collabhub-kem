@@ -11,6 +11,8 @@ import type {
   StudentConnection,
   ProjectApplication,
   Chat,
+  ChatMessage,
+  MessageStatus,
   AppNotification,
   ApplicationMember,
 } from '../types';
@@ -68,6 +70,8 @@ interface AppContextType {
   approveCandidate: (candidateId: string) => void;
   contactCandidate: (candidateName: string) => void;
   sendMessage: (chatId: string, content: string) => void;
+  markChatAsRead: (chatId: string) => void;
+  updateMessageStatus: (chatId: string, messageId: string, status: MessageStatus) => void;
   sendFriendRequest: (targetStudentId: number) => void;
   acceptFriendRequest: (connectionId: string) => void;
   rejectFriendRequest: (connectionId: string) => void;
@@ -372,6 +376,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             content:
               data.coverLetter.trim() ||
               `Здравствуйте! ${data.isTeam ? 'Наша команда подала' : 'Я подал'} заявку на участие в проекте «${project.title}». Будем рады обсудить задачи!`,
+            status: 'sent',
             isRead: false,
             createdAt: new Date().toISOString(),
           },
@@ -555,13 +560,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       ? `${companyProfile.contactPerson} (${companyProfile.name})`
       : studentProfile.name;
 
-    const newMessage = {
-      id: `msg-${Date.now()}`,
+    const newMsgId = `msg-${Date.now()}`;
+    const newMessage: ChatMessage = {
+      id: newMsgId,
       chatId,
       senderId: isHr ? 'hr-user' : currentStudentId,
       senderName,
       senderRole: currentRole,
       content,
+      status: 'sent',
       isRead: false,
       createdAt: new Date().toISOString(),
     };
@@ -569,6 +576,62 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     queryClient.setQueryData<Chat[]>(['chats'], (prev = []) =>
       prev.map((chat) =>
         chat.id === chatId ? { ...chat, messages: [...chat.messages, newMessage] } : chat
+      )
+    );
+    queryClient.invalidateQueries({ queryKey: ['chats'] });
+
+    // Эмуляция сетевой доставки: 'sent' -> 'delivered'
+    setTimeout(() => {
+      queryClient.setQueryData<Chat[]>(['chats'], (prev = []) =>
+        prev.map((chat) =>
+          chat.id === chatId
+            ? {
+                ...chat,
+                messages: chat.messages.map((m) =>
+                  m.id === newMsgId && m.status === 'sent'
+                    ? { ...m, status: 'delivered' as const }
+                    : m
+                ),
+              }
+            : chat
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
+    }, 600);
+  };
+
+  const markChatAsRead = (chatId: string) => {
+    const isHr = currentRole === 'hr';
+    queryClient.setQueryData<Chat[]>(['chats'], (prev = []) =>
+      prev.map((chat) => {
+        if (chat.id !== chatId) return chat;
+        let hasChanges = false;
+        const updatedMessages = chat.messages.map((m) => {
+          // Если сообщение от собеседника и еще не прочитано — переводим в 'read'
+          const isIncoming = isHr ? m.senderRole !== 'hr' : m.senderRole !== 'student';
+          if (isIncoming && m.status !== 'read') {
+            hasChanges = true;
+            return { ...m, status: 'read' as const, isRead: true };
+          }
+          return m;
+        });
+        return hasChanges ? { ...chat, messages: updatedMessages } : chat;
+      })
+    );
+    queryClient.invalidateQueries({ queryKey: ['chats'] });
+  };
+
+  const updateMessageStatus = (chatId: string, messageId: string, status: MessageStatus) => {
+    queryClient.setQueryData<Chat[]>(['chats'], (prev = []) =>
+      prev.map((chat) =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              messages: chat.messages.map((m) =>
+                m.id === messageId ? { ...m, status, isRead: status === 'read' } : m
+              ),
+            }
+          : chat
       )
     );
     queryClient.invalidateQueries({ queryKey: ['chats'] });
@@ -702,6 +765,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     approveCandidate,
     contactCandidate,
     sendMessage,
+    markChatAsRead,
+    updateMessageStatus,
     sendFriendRequest,
     acceptFriendRequest,
     rejectFriendRequest,

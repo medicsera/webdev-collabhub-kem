@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -14,9 +14,7 @@ import {
   Briefcase,
   Edit,
   Trash2,
-  CheckCircle2,
-  FileEdit,
-  Lock,
+  Check,
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
@@ -51,6 +49,131 @@ interface HRDashboardTabProps {
   onDeleteProject?: (projectId: number) => void;
   onUpdateProjectStatus?: (projectId: number, newStatus: ProjectStatus) => void;
 }
+
+const PROJECT_STATUS_ITEMS: { status: ProjectStatus; label: string; dotClass: string }[] = [
+  { status: 'ACTIVE', label: 'Опубликован', dotClass: 'bg-emerald-500' },
+  { status: 'DRAFT', label: 'Черновик', dotClass: 'bg-amber-500' },
+  { status: 'CLOSED', label: 'Закрыт', dotClass: 'bg-stone-500' },
+  { status: 'ARCHIVED', label: 'В архиве', dotClass: 'bg-stone-400' },
+];
+
+interface ProjectStatusDropdownProps {
+  currentStatus: ProjectStatus;
+  projectId: number;
+  onUpdateStatus?: (projectId: number, newStatus: ProjectStatus) => void;
+}
+
+const ProjectStatusDropdown: React.FC<ProjectStatusDropdownProps> = ({
+  currentStatus,
+  projectId,
+  onUpdateStatus,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  const currentItem =
+    PROJECT_STATUS_ITEMS.find((s) => s.status === currentStatus) || PROJECT_STATUS_ITEMS[0];
+
+  const getBadgeStyle = (status: ProjectStatus) => {
+    switch (status) {
+      case 'ACTIVE':
+        return 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 hover:border-emerald-500/60 dark:hover:border-emerald-400/50';
+      case 'DRAFT':
+        return 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30 hover:border-amber-500/60 dark:hover:border-amber-400/50';
+      case 'CLOSED':
+        return 'bg-stone-500/10 text-stone-700 dark:text-stone-300 border-stone-500/30 hover:border-stone-500/60 dark:hover:border-stone-400/50';
+      case 'ARCHIVED':
+        return 'bg-stone-400/10 text-stone-600 dark:text-stone-400 border-stone-400/30 hover:border-stone-400/60';
+      default:
+        return 'bg-stone-500/10 text-stone-700 dark:text-stone-300 border-stone-500/30';
+    }
+  };
+
+  const isInteractive = Boolean(onUpdateStatus);
+
+  return (
+    <div className="relative inline-block text-left" ref={dropdownRef}>
+      <button
+        type="button"
+        disabled={!isInteractive}
+        onClick={() => isInteractive && setIsOpen(!isOpen)}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider border rounded-xs transition-all ${
+          isInteractive
+            ? 'cursor-pointer select-none hover:shadow-xs active:scale-[0.98]'
+            : 'cursor-default'
+        } ${getBadgeStyle(currentStatus)}`}
+        title={isInteractive ? 'Нажмите, чтобы сменить статус проекта' : undefined}
+      >
+        <span className={`w-2 h-2 rounded-full ${currentItem.dotClass} shrink-0`} />
+        <span className="font-semibold">{currentItem.label}</span>
+        {isInteractive && (
+          <ChevronDown
+            className={`w-3 h-3 transition-transform duration-200 opacity-70 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+          />
+        )}
+      </button>
+
+      {isOpen && isInteractive && (
+        <div className="absolute right-0 top-full mt-1.5 w-44 z-30 bg-paper-card dark:bg-paper-darkCard border border-stone-300 dark:border-stone-700 shadow-lg py-1 fade-in">
+          <div className="px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 border-b border-stone-200 dark:border-stone-800 font-medium">
+            Статус проекта:
+          </div>
+          {PROJECT_STATUS_ITEMS.map((item) => {
+            const isSelected = item.status === currentStatus;
+            return (
+              <button
+                key={item.status}
+                type="button"
+                onClick={() => {
+                  if (onUpdateStatus) {
+                    onUpdateStatus(projectId, item.status);
+                  }
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-3 py-1.5 text-xs font-mono flex items-center justify-between transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'bg-paper-muted/80 dark:bg-stone-800/80 font-semibold text-stone-900 dark:text-stone-100'
+                    : 'text-stone-700 dark:text-stone-300 hover:bg-paper-muted/50 dark:hover:bg-stone-800/50'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${item.dotClass} shrink-0`} />
+                  <span>{item.label}</span>
+                </span>
+                {isSelected && (
+                  <Check className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
   candidates,
@@ -289,51 +412,8 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
     window.scrollTo({ top: 200, behavior: 'smooth' });
   };
 
-  // Переключение статуса проекта
-  const handleStatusChange = (projectId: number, newStatus: ProjectStatus) => {
-    if (onUpdateProjectStatus) {
-      onUpdateProjectStatus(projectId, newStatus);
-    }
-  };
-
-  // Отрисовка бейджа статуса
-  const renderStatusBadge = (status?: ProjectStatus) => {
-    const s = status || 'ACTIVE';
-    switch (s) {
-      case 'ACTIVE':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-            <span>Опубликован (ACTIVE)</span>
-          </span>
-        );
-      case 'DRAFT':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30">
-            <FileEdit className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-            <span>Черновик (DRAFT)</span>
-          </span>
-        );
-      case 'CLOSED':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-stone-500/10 text-stone-700 dark:text-stone-300 border border-stone-500/30">
-            <Lock className="w-3 h-3 text-stone-600 dark:text-stone-400" />
-            <span>Набор закрыт (CLOSED)</span>
-          </span>
-        );
-      case 'ARCHIVED':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-stone-400/10 text-stone-500 border border-stone-400/20">
-            <span>В архиве</span>
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
-    <section id="tab-hr-dashboard" className="fade-in space-y-8">
+    <section id="tab-hr-dashboard" className="space-y-8">
       {/* ========================================================
           Шапка панели компании
           ======================================================== */}
@@ -362,51 +442,105 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           Сводка статистики
           ======================================================== */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
-          <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
+        {/* Всего проектов */}
+        <div className="border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between transition-colors shadow-xs">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium">
             Всего проектов
           </div>
-          <div className="editorial-serif text-3xl sm:text-4xl font-bold mt-1.5 text-ink dark:text-ink-light">
+          <div
+            className={`editorial-serif text-3xl sm:text-4xl font-bold mt-2 ${
+              myCompanyProjects.length === 0
+                ? 'text-stone-400 dark:text-stone-600'
+                : 'text-stone-900 dark:text-stone-100'
+            }`}
+          >
             {String(myCompanyProjects.length).padStart(2, '0')}
           </div>
-          <div className="text-xs font-mono text-hunter dark:text-emerald-400 mt-1.5">
-            ● В реестре компании
+          <div className="text-xs font-mono text-stone-600 dark:text-stone-400 mt-2 font-medium flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-stone-400 dark:bg-stone-500" />
+            <span>В реестре компании</span>
           </div>
         </div>
 
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
-          <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
-            Активных (ACTIVE)
+        {/* Активных */}
+        <div className="border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between transition-colors shadow-xs">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium">
+            Активных
           </div>
-          <div className="editorial-serif text-3xl sm:text-4xl font-bold mt-1.5 text-hunter dark:text-emerald-400">
+          <div
+            className={`editorial-serif text-3xl sm:text-4xl font-bold mt-2 ${
+              activeProjectsCount === 0
+                ? 'text-stone-400 dark:text-stone-600'
+                : 'text-stone-900 dark:text-stone-100'
+            }`}
+          >
             {String(activeProjectsCount).padStart(2, '0')}
           </div>
-          <div className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-1.5">
-            Открыты для заявок
+          <div className="text-xs font-mono text-stone-600 dark:text-stone-400 mt-2 font-medium flex items-center gap-1.5">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                activeProjectsCount > 0 ? 'bg-emerald-500' : 'bg-stone-400'
+              }`}
+            />
+            <span>Открыты для заявок</span>
           </div>
         </div>
 
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
-          <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
-            В черновиках (DRAFT)
+        {/* В черновиках */}
+        <div className="border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between transition-colors shadow-xs">
+          <div className="text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium">
+            В черновиках
           </div>
-          <div className="editorial-serif text-3xl sm:text-4xl font-bold mt-1.5 text-oxblood dark:text-oxblood-light">
+          <div
+            className={`editorial-serif text-3xl sm:text-4xl font-bold mt-2 ${
+              draftProjectsCount === 0
+                ? 'text-stone-400 dark:text-stone-600'
+                : 'text-stone-900 dark:text-stone-100'
+            }`}
+          >
             {String(draftProjectsCount).padStart(2, '0')}
           </div>
-          <div className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-1.5">
+          <div className="text-xs font-mono text-stone-600 dark:text-stone-400 mt-2 font-medium">
             {closedProjectsCount > 0 ? `+ ${closedProjectsCount} закрытых` : 'Скрыты из каталога'}
           </div>
         </div>
 
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-5">
-          <div className="text-[10px] font-mono uppercase tracking-widest text-ink-muted dark:text-stone-400">
-            Откликов студентов
+        {/* Откликов студентов (выделяется терракотовым акцентом при > 0) */}
+        <div
+          className={`border bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 flex flex-col justify-between transition-colors shadow-xs relative ${
+            candidates.length > 0
+              ? 'border-stone-300/80 dark:border-stone-700/80 border-t-2 border-t-oxblood dark:border-t-oxblood-light'
+              : 'border-stone-300/80 dark:border-stone-700/80'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 font-medium">
+              Откликов студентов
+            </span>
+            {candidates.length > 0 && (
+              <span
+                className="w-2 h-2 rounded-full bg-oxblood dark:bg-oxblood-light animate-pulse"
+                title="Есть отклики, требующие внимания"
+              />
+            )}
           </div>
-          <div className="editorial-serif text-3xl sm:text-4xl font-bold mt-1.5 text-oxblood dark:text-oxblood-light">
+          <div
+            className={`editorial-serif text-3xl sm:text-4xl font-bold mt-2 ${
+              candidates.length === 0
+                ? 'text-stone-400 dark:text-stone-600'
+                : 'text-oxblood dark:text-oxblood-light font-extrabold'
+            }`}
+          >
             {String(candidates.length).padStart(2, '0')}
           </div>
-          <div className="text-xs font-mono text-ink-muted dark:text-stone-400 mt-1.5">
-            Заявки на рассмотрении
+          <div
+            className={`text-xs font-mono mt-2 font-medium ${
+              candidates.length > 0
+                ? 'text-oxblood dark:text-oxblood-light'
+                : 'text-stone-600 dark:text-stone-400'
+            }`}
+          >
+            {candidates.length > 0 ? '● Требуют рассмотрения' : 'Заявок пока нет'}
           </div>
         </div>
       </div>
@@ -415,7 +549,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           Навигационные вкладки панели компании
           (Вкладка по умолчанию — «Мои проекты»)
           ======================================================== */}
-      <div className="flex border-b border-paper-border dark:border-paper-darkBorder gap-2 sm:gap-6 text-xs uppercase font-mono tracking-wider overflow-x-auto">
+      <div className="flex border-b border-stone-300/80 dark:border-stone-700/80 gap-2 sm:gap-6 text-xs uppercase font-mono tracking-wider overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveSubTab('projects')}
@@ -462,62 +596,58 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
       {activeSubTab === 'projects' && (
         <div className="space-y-6">
           {/* Панель фильтров и поиска проектов */}
-          <div className="p-4 sm:p-5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-4">
+          <div className="p-5 sm:p-6 border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard space-y-4 shadow-xs">
             <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
               {/* Поиск по проектам */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted dark:text-stone-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 pointer-events-none" />
                 <input
                   type="text"
                   value={projectSearchQuery}
                   onChange={(e) => setProjectSearchQuery(e.target.value)}
                   placeholder="Поиск по названию задачи, технологиям, отделу..."
-                  className="w-full pl-10 pr-4 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood dark:focus:border-oxblood-light text-ink dark:text-ink-light placeholder:text-ink-muted/60"
+                  className="h-11 w-full pl-10 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-stone-300/80 dark:border-stone-700/80 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-oxblood focus-visible:border-oxblood dark:focus-visible:ring-oxblood-light dark:focus-visible:border-oxblood-light transition-colors"
                 />
                 {projectSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setProjectSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-200 transition-colors cursor-pointer"
+                    title="Очистить поиск"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* Фильтр по формату */}
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400">
-                  Формат:
-                </span>
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={projectTypeFilter}
-                    onChange={(e) => setProjectTypeFilter(e.target.value)}
-                    className="appearance-none pl-3.5 pr-9 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
-                  >
-                    <option value="all">Все форматы</option>
-                    <option value="ВКР / Диплом">ВКР / Диплом</option>
-                    <option value="Стажировка">Стажировка</option>
-                    <option value="Курсовой проект">Курсовой проект</option>
-                  </select>
-                  <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-ink-muted dark:text-stone-400" />
-                </div>
+              {/* Единый контрол формата: Формат: Все форматы ▾ */}
+              <div className="relative inline-flex items-center shrink-0 h-11 border border-stone-300/80 dark:border-stone-700/80 bg-paper-light dark:bg-paper-dark transition-colors focus-within:ring-1 focus-within:ring-oxblood focus-within:border-oxblood dark:focus-within:ring-oxblood-light dark:focus-within:border-oxblood-light">
+                <select
+                  value={projectTypeFilter}
+                  onChange={(e) => setProjectTypeFilter(e.target.value)}
+                  className="h-full appearance-none pl-3.5 pr-9 text-xs font-mono bg-transparent text-stone-800 dark:text-stone-200 focus:outline-none cursor-pointer"
+                >
+                  <option value="all">Формат: Все форматы</option>
+                  <option value="ВКР / Диплом">Формат: ВКР / Диплом</option>
+                  <option value="Стажировка">Формат: Стажировка</option>
+                  <option value="Курсовой проект">Формат: Курсовой проект</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-stone-500 dark:text-stone-400" />
               </div>
             </div>
 
-            {/* Фильтры по статусу публикации (DRAFT / ACTIVE / CLOSED) */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-paper-border/60 dark:border-paper-darkBorder/60">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400 flex items-center gap-1">
+            {/* Фильтры по статусу публикации */}
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-300/80 dark:border-stone-700/80">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-1 font-medium">
                 <Filter className="w-3 h-3" /> Статус:
               </span>
               <button
                 type="button"
                 onClick={() => setProjectStatusFilter('all')}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                className={`px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border transition cursor-pointer font-medium ${
                   projectStatusFilter === 'all'
                     ? 'border-ink bg-ink text-paper-light dark:border-ink-light dark:bg-ink-light dark:text-paper-dark'
-                    : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                    : 'border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 hover:border-ink hover:text-ink dark:hover:text-stone-200'
                 }`}
               >
                 Все ({myCompanyProjects.length})
@@ -525,10 +655,10 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
               <button
                 type="button"
                 onClick={() => setProjectStatusFilter('ACTIVE')}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                className={`px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border transition cursor-pointer font-medium ${
                   projectStatusFilter === 'ACTIVE'
                     ? 'border-emerald-600 bg-emerald-600 text-white'
-                    : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                    : 'border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 hover:border-emerald-600 hover:text-emerald-700 dark:hover:text-emerald-400'
                 }`}
               >
                 ● Активные ({activeProjectsCount})
@@ -536,10 +666,10 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
               <button
                 type="button"
                 onClick={() => setProjectStatusFilter('DRAFT')}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                className={`px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border transition cursor-pointer font-medium ${
                   projectStatusFilter === 'DRAFT'
                     ? 'border-amber-600 bg-amber-600 text-white'
-                    : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                    : 'border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 hover:border-amber-600 hover:text-amber-700 dark:hover:text-amber-400'
                 }`}
               >
                 ✎ Черновики ({draftProjectsCount})
@@ -547,10 +677,10 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
               <button
                 type="button"
                 onClick={() => setProjectStatusFilter('CLOSED')}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                className={`px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border transition cursor-pointer font-medium ${
                   projectStatusFilter === 'CLOSED'
                     ? 'border-stone-600 bg-stone-600 text-white'
-                    : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                    : 'border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 hover:border-stone-600 hover:text-stone-800 dark:hover:text-stone-200'
                 }`}
               >
                 ✖ Закрытые ({closedProjectsCount})
@@ -564,7 +694,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                     setProjectStatusFilter('all');
                     setProjectTypeFilter('all');
                   }}
-                  className="ml-auto text-[10px] font-mono uppercase text-oxblood dark:text-oxblood-light hover:underline flex items-center gap-1 cursor-pointer"
+                  className="ml-auto text-[11px] font-mono uppercase text-oxblood dark:text-oxblood-light hover:underline flex items-center gap-1 cursor-pointer font-medium"
                 >
                   <X className="w-3 h-3" /> Сбросить фильтры
                 </button>
@@ -600,6 +730,11 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 const isExpanded = expandedProjectCandidatesId === p.id;
                 const status = p.projectStatus || 'ACTIVE';
 
+                const skillsList =
+                  p.requiredSkills && p.requiredSkills.length > 0
+                    ? p.requiredSkills.map((s) => (typeof s === 'string' ? s : s.name))
+                    : p.tags;
+
                 // Считаем топ кандидатов для этого конкретного проекта
                 // (приоритет — счёт из эмбеддингов ai-service, иначе локальная эвристика)
                 const topCandidatesForThisProject = allStudents
@@ -626,102 +761,85 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 return (
                   <article
                     key={p.id}
-                    className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 space-y-4 hover:border-ink/60 dark:hover:border-paper-darkBorder transition-colors"
+                    className="border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard p-6 sm:p-7 lg:p-8 space-y-5 hover:border-stone-400 dark:hover:border-stone-600 transition-colors shadow-xs"
                   >
-                    {/* Верхняя строка: Индекс, формат, статус и переключатель статуса */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-paper-border/60 dark:border-paper-darkBorder/60 pb-3">
+                    {/* Верхняя строка: Индекс, формат, статус и единый выпадающий бейдж статуса */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-300/80 dark:border-stone-700/80 pb-3.5">
                       <div className="flex flex-wrap items-center gap-2.5">
                         <span className="text-xs font-mono font-bold text-oxblood dark:text-oxblood-light">
                           {p.index}
                         </span>
-                        <span className="text-xs font-mono px-2 py-0.5 border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark text-ink dark:text-ink-light">
+                        <span className="text-xs font-mono px-2.5 py-0.5 border border-stone-300/80 dark:border-stone-700/80 bg-paper-light dark:bg-paper-dark text-stone-800 dark:text-stone-200">
                           {p.type}
                         </span>
-                        <span className="text-xs font-mono text-ink-muted dark:text-stone-400">
+                        <span className="text-xs font-mono text-stone-600 dark:text-stone-400 font-medium">
                           {p.department}
                         </span>
                       </div>
 
-                      {/* Статус проекта и элементы управления статусом (DRAFT / ACTIVE / CLOSED) */}
+                      {/* Единый интерактивный статус-бейдж со сменой статуса */}
                       <div className="flex items-center gap-2 self-start sm:self-auto">
-                        {renderStatusBadge(p.projectStatus)}
-
-                        {onUpdateProjectStatus && (
-                          <div className="flex items-center gap-1 border border-paper-border dark:border-paper-darkBorder bg-paper-light dark:bg-paper-dark px-1.5 py-0.5">
-                            <span className="text-[10px] font-mono text-ink-muted dark:text-stone-400">
-                              Сменить:
-                            </span>
-                            <select
-                              value={status}
-                              onChange={(e) =>
-                                handleStatusChange(p.id, e.target.value as ProjectStatus)
-                              }
-                              className="text-[10px] font-mono bg-transparent text-ink dark:text-ink-light focus:outline-none cursor-pointer"
-                              title="Изменить статус проекта"
-                            >
-                              <option value="ACTIVE">ACTIVE (Опубликован)</option>
-                              <option value="DRAFT">DRAFT (Черновик)</option>
-                              <option value="CLOSED">CLOSED (Набор закрыт)</option>
-                              <option value="ARCHIVED">ARCHIVED (В архиве)</option>
-                            </select>
-                          </div>
-                        )}
+                        <ProjectStatusDropdown
+                          currentStatus={status}
+                          projectId={p.id}
+                          onUpdateStatus={onUpdateProjectStatus}
+                        />
                       </div>
                     </div>
 
-                    {/* Название и описание */}
-                    <div className="space-y-2">
+                    {/* Название, описание и стек технологий */}
+                    <div className="space-y-3">
                       <h3 className="text-xl sm:text-2xl font-semibold text-ink dark:text-ink-light leading-snug">
                         {p.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-ink-muted dark:text-stone-300 leading-relaxed font-normal">
+                      <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal max-w-3xl">
                         {p.desc}
                       </p>
+
+                      {/* Аккуратные моноширинные чипы стека технологий */}
+                      {skillsList && skillsList.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          {skillsList.map((skillName) => (
+                            <span
+                              key={skillName}
+                              className="px-2.5 py-0.5 text-[11px] font-mono border border-stone-300/80 dark:border-stone-700/80 bg-paper-light dark:bg-paper-dark text-stone-700 dark:text-stone-300 rounded-xs"
+                            >
+                              {skillName}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Мета-информация: Команда, локация, навыки */}
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono text-ink-muted dark:text-stone-400 pt-1">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light" />
+                    {/* Мета-информация: Команда, локация, отклики */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono text-stone-600 dark:text-stone-400 pt-0.5 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-oxblood dark:text-oxblood-light shrink-0" />
                         <span>{p.teamSize}</span>
                       </span>
-                      <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-hunter dark:text-emerald-400" />
+                      <span className="text-stone-400 dark:text-stone-600">•</span>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-hunter dark:text-emerald-400 shrink-0" />
                         <span>{p.city || 'Кемерово'} {p.isRemote ? '(Удаленно)' : '(В офисе)'}</span>
                       </span>
                       {projectApplications.length > 0 && (
                         <>
-                          <span>•</span>
-                          <span className="text-oxblood dark:text-oxblood-light font-medium">
+                          <span className="text-stone-400 dark:text-stone-600">•</span>
+                          <span className="text-oxblood dark:text-oxblood-light font-semibold">
                             {projectApplications.length} откликов
                           </span>
                         </>
                       )}
                     </div>
 
-                    {/* Требуемые навыки */}
-                    <div className="flex flex-wrap gap-1.5 pt-1">
-                      {(p.requiredSkills && p.requiredSkills.length > 0
-                        ? p.requiredSkills
-                        : p.tags.map((t) => ({ name: t, level: 'INTERMEDIATE' as const }))
-                      ).map((sk) => (
-                        <SkillBadge
-                          key={typeof sk === 'string' ? sk : sk.name}
-                          skill={sk}
-                          size="sm"
-                        />
-                      ))}
-                    </div>
-
                     {/* Панель действий карточки проекта */}
-                    <div className="pt-3 border-t border-paper-border/60 dark:border-paper-darkBorder/60 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="pt-3.5 border-t border-stone-300/80 dark:border-stone-700/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
                       {/* Левая группа: ИИ-подбор и раскрытие кандидатов */}
                       <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           onClick={() => handleOpenMatchingForProject(p.id)}
-                          className="btn-editorial px-3.5 py-1.5 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer border border-ink dark:border-paper-light"
+                          className="btn-editorial px-3.5 py-2 bg-ink text-paper-light dark:bg-paper-light dark:text-ink text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer border border-ink dark:border-paper-light"
                           title="Открыть детальный подбор кандидатов с ИИ-ранжированием под этот проект"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-amber-300" />
@@ -733,7 +851,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                           onClick={() =>
                             setExpandedProjectCandidatesId((prev) => (prev === p.id ? null : p.id))
                           }
-                          className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
+                          className="px-3.5 py-2 border border-stone-300/80 dark:border-stone-700/80 hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
                         >
                           <span>Топ кандидатов</span>
                           {isExpanded ? (
@@ -744,12 +862,12 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         </button>
                       </div>
 
-                      {/* Правая группа: Редактирование, статус и удаление */}
+                      {/* Правая группа: Редактирование и удаление */}
                       <div className="flex items-center gap-2 self-start md:self-auto">
                         <button
                           type="button"
                           onClick={() => handleEditProjectNav(p)}
-                          className="px-3 py-1.5 border border-paper-border dark:border-paper-darkBorder hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
+                          className="px-3.5 py-2 border border-stone-300/80 dark:border-stone-700/80 hover:border-ink dark:hover:border-stone-400 text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light transition flex items-center gap-1.5 cursor-pointer bg-paper-card dark:bg-paper-darkCard"
                         >
                           <Edit className="w-3.5 h-3.5" />
                           <span>Редактировать</span>
@@ -763,7 +881,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                                 onDeleteProject(p.id);
                               }
                             }}
-                            className="px-2.5 py-1.5 border border-oxblood/30 hover:bg-oxblood/10 text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-2 border border-oxblood/40 hover:bg-oxblood/10 text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1 cursor-pointer"
                             title="Удалить проект"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -776,7 +894,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         Встроенный блок: Кандидаты для конкретного проекта (Шаг 3)
                         ======================================================== */}
                     {isExpanded && (
-                      <div className="mt-4 pt-4 border-t border-dashed border-paper-border dark:border-paper-darkBorder bg-paper-muted/30 dark:bg-paper-dark/60 p-4 space-y-3">
+                      <div className="mt-4 pt-4 border-t border-dashed border-stone-300/80 dark:border-stone-700/80 bg-paper-muted/30 dark:bg-paper-dark/60 p-4 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="text-[11px] font-mono uppercase tracking-wider text-oxblood dark:text-oxblood-light font-semibold flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-brass" />
@@ -785,13 +903,13 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                           <button
                             type="button"
                             onClick={() => handleOpenMatchingForProject(p.id)}
-                            className="text-[11px] font-mono text-ink-muted dark:text-stone-300 hover:text-oxblood dark:hover:text-oxblood-light underline cursor-pointer"
+                            className="text-[11px] font-mono text-stone-600 dark:text-stone-300 hover:text-oxblood dark:hover:text-oxblood-light underline cursor-pointer"
                           >
                             Все подходящие студенты →
                           </button>
                         </div>
 
-                        <div className="divide-y divide-paper-border/60 dark:divide-paper-darkBorder/60 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder">
+                        <div className="divide-y divide-stone-200/80 dark:divide-stone-800/80 bg-paper-card dark:bg-paper-darkCard border border-stone-300/80 dark:border-stone-700/80">
                           {topCandidatesForThisProject.map(({ student, match, aiPowered }) => {
                             const studentId = student.id || 1;
                             return (
@@ -872,7 +990,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
         <div className="space-y-6">
           {/* Селектор проекта для семантического матчинга */}
           {myCompanyProjects.length === 0 ? (
-            <div className="p-5 border-2 border-dashed border-brass/80 bg-brass/10 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-6 border-2 border-dashed border-brass/80 bg-brass/10 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-brass/20 text-brass flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5" />
@@ -881,7 +999,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                   <h4 className="font-semibold text-sm text-ink dark:text-ink-light">
                     Нет активных проектов для расчета семантического соответствия
                   </h4>
-                  <p className="text-xs text-ink-muted dark:text-stone-400 mt-0.5">
+                  <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
                     Создайте и опубликуйте проект, чтобы рассчитать совместимость кандидатов.
                   </p>
                 </div>
@@ -896,14 +1014,14 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
               </button>
             </div>
           ) : (
-            <div className="p-4 bg-paper-card dark:bg-paper-darkCard border border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+            <div className="p-5 sm:p-6 bg-paper-card dark:bg-paper-darkCard border border-stone-300/80 dark:border-stone-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2.5">
                 <Sparkles className="w-4 h-4 text-brass shrink-0" />
                 <div>
                   <span className="text-xs font-mono uppercase tracking-wider text-ink dark:text-ink-light font-semibold block">
                     Проект для расчета ИИ-совместимости:
                   </span>
-                  <span className="text-[10px] font-mono text-ink-muted dark:text-stone-400">
+                  <span className="text-[11px] font-mono text-stone-600 dark:text-stone-400 font-medium">
                     Ранжирование базы студентов под требования выбранной задачи
                   </span>
                 </div>
@@ -916,7 +1034,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                       e.target.value === 'all' ? 'all' : Number(e.target.value)
                     )
                   }
-                  className="appearance-none pl-3.5 pr-9 py-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder text-ink dark:text-ink-light focus:outline-none focus:border-oxblood cursor-pointer w-full sm:w-auto sm:min-w-[340px]"
+                  className="appearance-none h-11 pl-3.5 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-stone-300/80 dark:border-stone-700/80 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-1 focus-visible:ring-oxblood focus-visible:border-oxblood dark:focus-visible:ring-oxblood-light dark:focus-visible:border-oxblood-light cursor-pointer w-full sm:w-auto sm:min-w-[340px] transition-colors"
                 >
                   <option value="all">★ Все проекты (лучшее совпадение)</option>
                   {myCompanyProjects.map((p) => (
@@ -925,67 +1043,63 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink-muted dark:text-stone-400" />
+                <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-stone-500 dark:text-stone-400" />
               </div>
             </div>
           )}
 
           {/* Панель поиска и фильтрации студентов */}
-          <div className="p-5 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-4">
-            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+          <div className="p-5 sm:p-6 border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard space-y-4 shadow-xs">
+            <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
               {/* Поисковая строка */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted dark:text-stone-400" />
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 pointer-events-none" />
                 <input
                   type="text"
                   value={studentSearchQuery}
                   onChange={(e) => setStudentSearchQuery(e.target.value)}
                   placeholder="Поиск по ФИО, стеку, специальности или группе..."
-                  className="w-full pl-10 pr-4 py-2.5 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood dark:focus:border-oxblood-light text-ink dark:text-ink-light placeholder:text-ink-muted/60"
+                  className="h-11 w-full pl-10 pr-9 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-stone-300/80 dark:border-stone-700/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-oxblood focus-visible:border-oxblood dark:focus-visible:ring-oxblood-light dark:focus-visible:border-oxblood-light text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-colors"
                 />
                 {studentSearchQuery && (
                   <button
                     type="button"
                     onClick={() => setStudentSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink dark:hover:text-white"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 dark:text-stone-500 dark:hover:text-stone-200 transition-colors cursor-pointer"
+                    title="Очистить поиск"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* Фильтр по курсу */}
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400">
-                  Курс:
-                </span>
-                <div className="relative inline-flex items-center">
-                  <select
-                    value={selectedCourse}
-                    onChange={(e) => setSelectedCourse(e.target.value)}
-                    className="appearance-none pl-3.5 pr-9 py-2 text-xs font-mono bg-paper-light dark:bg-paper-dark border border-paper-border dark:border-paper-darkBorder focus:outline-none focus:border-oxblood text-ink dark:text-ink-light cursor-pointer"
-                  >
-                    <option value="all">Все курсы</option>
-                    <option value="IV Курс">IV Курс (ВКР)</option>
-                    <option value="III Курс">III Курс (Практика)</option>
-                  </select>
-                  <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-ink-muted dark:text-stone-400" />
-                </div>
+              {/* Фильтр по курсу — единый контрол высотой h-11 */}
+              <div className="relative inline-flex items-center shrink-0 h-11 border border-stone-300/80 dark:border-stone-700/80 bg-paper-light dark:bg-paper-dark transition-colors focus-within:ring-1 focus-within:ring-oxblood focus-within:border-oxblood dark:focus-within:ring-oxblood-light dark:focus-within:border-oxblood-light">
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                  className="h-full appearance-none pl-3.5 pr-9 text-xs font-mono bg-transparent text-stone-800 dark:text-stone-200 focus:outline-none cursor-pointer"
+                >
+                  <option value="all">Курс: Все курсы</option>
+                  <option value="IV Курс">Курс: IV Курс (ВКР)</option>
+                  <option value="III Курс">Курс: III Курс (Практика)</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 absolute right-3 pointer-events-none text-stone-500 dark:text-stone-400" />
               </div>
             </div>
 
             {/* Быстрые фильтры по ключевым технологиям */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-paper-border/60 dark:border-paper-darkBorder/60">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-ink-muted dark:text-stone-400 flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-300/80 dark:border-stone-700/80">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-stone-600 dark:text-stone-400 flex items-center gap-1 font-medium">
                 <Filter className="w-3 h-3" /> Стек:
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedSkill('all')}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                className={`px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border transition cursor-pointer font-medium ${
                   selectedSkill === 'all'
                     ? 'border-ink bg-ink text-paper-light dark:border-ink-light dark:bg-ink-light dark:text-paper-dark'
-                    : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                    : 'border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 hover:border-ink hover:text-ink dark:hover:text-stone-200'
                 }`}
               >
                 Все
@@ -995,10 +1109,10 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                   key={sk}
                   type="button"
                   onClick={() => setSelectedSkill(selectedSkill === sk ? 'all' : sk)}
-                  className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider border transition cursor-pointer ${
+                  className={`px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider border transition cursor-pointer font-medium ${
                     selectedSkill === sk
                       ? 'border-oxblood bg-oxblood text-white'
-                      : 'border-paper-border dark:border-paper-darkBorder text-ink-muted hover:border-ink hover:text-ink dark:hover:text-stone-200'
+                      : 'border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 hover:border-oxblood hover:text-oxblood dark:hover:text-oxblood-light'
                   }`}
                 >
                   {sk}
@@ -1009,7 +1123,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                 <button
                   type="button"
                   onClick={handleResetStudentFilters}
-                  className="ml-auto text-[10px] font-mono uppercase text-oxblood dark:text-oxblood-light hover:underline flex items-center gap-1 cursor-pointer"
+                  className="ml-auto text-[11px] font-mono uppercase text-oxblood dark:text-oxblood-light hover:underline flex items-center gap-1 cursor-pointer font-medium"
                 >
                   <X className="w-3 h-3" /> Сбросить фильтры
                 </button>
@@ -1019,25 +1133,25 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
 
           {/* Список студентов */}
           {filteredStudents.length === 0 ? (
-            <div className="p-12 text-center border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard space-y-3">
-              <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
+            <div className="p-12 text-center border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard space-y-3 shadow-xs">
+              <p className="editorial-serif italic text-2xl text-stone-700 dark:text-stone-300">
                 Студенты по заданным параметрам не найдены
               </p>
-              <p className="text-xs font-mono text-ink-muted dark:text-stone-400">
+              <p className="text-xs font-mono text-stone-600 dark:text-stone-400">
                 Попробуйте изменить поисковый запрос или сбросить фильтры
               </p>
               {hasActiveStudentFilters && (
                 <button
                   type="button"
                   onClick={handleResetStudentFilters}
-                  className="px-4 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-ink text-xs font-mono uppercase tracking-wider transition cursor-pointer"
+                  className="px-4 py-2 border border-stone-300/80 dark:border-stone-700/80 hover:border-ink text-xs font-mono uppercase tracking-wider transition cursor-pointer"
                 >
                   Сбросить фильтры
                 </button>
               )}
             </div>
           ) : (
-            <div className="divide-y divide-paper-border dark:divide-paper-darkBorder border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard">
+            <div className="divide-y divide-stone-200/80 dark:divide-stone-800/80 border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard shadow-xs">
               {filteredStudents.map((student, idx) => {
                 const studentId = student.id || idx + 1;
 
@@ -1238,31 +1352,31 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
           ВКЛАДКА 3: Заявки и отклики студентов
           ======================================================== */}
       {activeSubTab === 'applications' && (
-        <div className="border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard transition-colors duration-300">
-          <div className="p-6 border-b border-paper-border dark:border-paper-darkBorder flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="border border-stone-300/80 dark:border-stone-700/80 bg-paper-card dark:bg-paper-darkCard transition-colors duration-300 shadow-xs">
+          <div className="p-6 border-b border-stone-300/80 dark:border-stone-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-2xl font-normal text-ink dark:text-ink-light">
                 Список откликов на проекты компании
               </h3>
-              <p className="text-xs text-ink-muted dark:text-stone-400 font-mono mt-0.5">
+              <p className="text-xs text-stone-600 dark:text-stone-400 font-mono mt-0.5">
                 Студенты и команды, подавшие заявку на решение задач компании {companyName}
               </p>
             </div>
-            <span className="text-[11px] font-mono uppercase px-2.5 py-1 border border-paper-border dark:border-paper-darkBorder text-ink-muted dark:text-stone-400 self-start sm:self-auto">
+            <span className="text-[11px] font-mono uppercase px-2.5 py-1 border border-stone-300/80 dark:border-stone-700/80 text-stone-600 dark:text-stone-400 self-start sm:self-auto font-medium">
               Осенний семестр 2026/2027
             </span>
           </div>
 
           <div
             id="hr-candidates-list"
-            className="divide-y divide-paper-border dark:divide-paper-darkBorder"
+            className="divide-y divide-stone-200/80 dark:divide-stone-800/80"
           >
             {candidates.length === 0 ? (
               <div className="p-12 text-center space-y-2">
-                <p className="editorial-serif italic text-2xl text-ink-muted dark:text-stone-400">
+                <p className="editorial-serif italic text-2xl text-stone-600 dark:text-stone-400">
                   Пока нет новых откликов
                 </p>
-                <p className="text-xs font-mono text-ink-muted dark:text-stone-400">
+                <p className="text-xs font-mono text-stone-600 dark:text-stone-400">
                   Перейдите во вкладку «Подбор кандидатов (ИИ)» для поиска и приглашения студентов
                 </p>
               </div>
@@ -1369,7 +1483,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         )}
 
                         {c.coverLetter && (
-                          <p className="text-xs font-mono italic text-ink-muted dark:text-stone-400 bg-paper-light dark:bg-paper-dark p-2.5 border border-paper-border dark:border-paper-darkBorder line-clamp-2">
+                          <p className="text-xs font-mono italic text-stone-600 dark:text-stone-300 bg-paper-light dark:bg-paper-dark p-2.5 border border-stone-300/80 dark:border-stone-700/80 line-clamp-2">
                             «{c.coverLetter}»
                           </p>
                         )}
@@ -1395,7 +1509,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                             : `chat-${c.id}`;
                           handleOpenChatNav(resolvedChatId);
                         }}
-                        className="px-3.5 py-2 border border-paper-border dark:border-paper-darkBorder hover:border-oxblood dark:hover:border-oxblood-light text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
+                        className="px-3.5 py-2 border border-stone-300/80 dark:border-stone-700/80 hover:border-oxblood dark:hover:border-oxblood-light text-oxblood dark:text-oxblood-light text-xs font-mono uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer bg-paper-light dark:bg-paper-dark"
                         title="Открыть чат по отклику"
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
@@ -1408,8 +1522,8 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                         onClick={() => onApproveCandidate(c.id)}
                         className={`px-4 py-2 text-xs font-mono uppercase tracking-widest transition cursor-pointer ${
                           isAccepted
-                            ? 'bg-paper-muted text-ink-muted dark:bg-paper-dark dark:text-stone-500 cursor-not-allowed'
-                            : 'bg-oxblood hover:bg-oxblood-hover text-paper-light'
+                            ? 'bg-paper-muted text-stone-500 dark:bg-paper-dark dark:text-stone-500 cursor-not-allowed'
+                            : 'bg-oxblood hover:bg-oxblood-hover text-paper-light font-medium'
                         }`}
                       >
                         {isAccepted ? 'Приглашен' : 'Пригласить в проект'}
@@ -1418,7 +1532,7 @@ export const HRDashboardTab: React.FC<HRDashboardTabProps> = ({
                       <button
                         type="button"
                         onClick={() => onContactCandidate(c.name)}
-                        className="px-3.5 py-2 border border-paper-border dark:border-paper-darkBorder text-xs font-mono uppercase tracking-widest hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition cursor-pointer"
+                        className="px-3.5 py-2 border border-stone-300/80 dark:border-stone-700/80 text-xs font-mono uppercase tracking-widest hover:border-ink dark:hover:border-stone-400 text-ink dark:text-ink-light transition cursor-pointer"
                       >
                         Написать
                       </button>

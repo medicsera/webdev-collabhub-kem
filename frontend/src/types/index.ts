@@ -173,6 +173,8 @@ export interface ProjectApplication {
 }
 
 // 15. messages & 14. chats — Чат по отклику
+export type MessageStatus = 'sent' | 'delivered' | 'read';
+
 export interface ChatMessage {
   id: string;
   chatId: string;
@@ -180,6 +182,7 @@ export interface ChatMessage {
   senderName: string;
   senderRole: 'student' | 'hr';
   content: string;
+  status: MessageStatus;
   isRead: boolean;
   createdAt: string;
 }

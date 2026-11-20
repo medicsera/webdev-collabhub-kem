@@ -101,22 +101,22 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="editorial-serif text-2xl sm:text-3xl font-bold tracking-tight text-ink dark:text-ink-light group-hover:opacity-85 transition">
                 COLLAB<span className="italic font-normal">HUB</span>
               </span>
-              <span className="hidden xl:inline text-[9px] font-mono uppercase tracking-[0.2em] text-meta">
+              <span className="hidden xl:inline text-[11px] font-mono uppercase tracking-[0.15em] text-stone-600 dark:text-stone-400 font-medium">
                 №01 • 2026
               </span>
             </div>
 
-            <div className="hidden lg:flex items-center pl-3 border-l border-paper-border dark:border-paper-darkBorder">
-              <span className="text-[9px] font-mono uppercase tracking-[0.15em] px-2 py-0.5 border border-paper-border dark:border-paper-darkBorder text-oxblood dark:text-oxblood-light bg-paper-card dark:bg-paper-darkCard">
+            <div className="hidden lg:flex items-center pl-3 border-l border-stone-300 dark:border-stone-700">
+              <span className="text-[11px] font-mono uppercase tracking-[0.12em] font-medium px-2.5 py-0.5 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 bg-paper-card dark:bg-paper-darkCard">
                 {currentRole === 'student' ? 'Студент' : 'Партнер'}
               </span>
             </div>
           </div>
 
-          {/* Центр: Компактный рубрикатор (Навигационные вкладки) */}
+          {/* Центр: Компактный рубрикатор (Навигационные вкладки в авторской антикве Playfair Display) */}
           <nav
             id="main-nav"
-            className="flex items-center gap-1 sm:gap-3 md:gap-5 overflow-x-auto h-full scrollbar-none font-sans"
+            className="flex items-center gap-1 sm:gap-1.5 md:gap-2 overflow-x-auto h-full scrollbar-none"
           >
             {activeTabs.map((t) => {
               const isActive = isTabActive(t);
@@ -125,13 +125,23 @@ export const Header: React.FC<HeaderProps> = ({
                   key={t.id}
                   type="button"
                   onClick={() => handleTabClick(t)}
-                  className={`h-full px-2 sm:px-3.5 inline-flex items-center justify-center transition-colors whitespace-nowrap cursor-pointer select-none border-b-2 text-xs sm:text-[13px] md:text-sm font-medium ${
+                  className={`group relative h-full px-2.5 sm:px-3.5 md:px-4 inline-flex items-center justify-center transition-all whitespace-nowrap cursor-pointer select-none editorial-serif text-[13px] sm:text-[13.5px] md:text-[14px] tracking-[0.02em] ${
                     isActive
-                      ? 'border-oxblood dark:border-oxblood-light text-oxblood dark:text-oxblood-light font-semibold'
-                      : 'border-transparent text-stone-700 hover:text-ink dark:text-stone-200 dark:hover:text-white'
+                      ? 'text-oxblood dark:text-oxblood-light font-bold'
+                      : 'text-stone-700 hover:text-stone-950 dark:text-stone-300 dark:hover:text-stone-100 font-semibold hover:bg-stone-500/[0.04] dark:hover:bg-stone-400/[0.06]'
                   }`}
                 >
-                  {t.label}
+                  <span className="leading-none transition-transform duration-200 group-hover:-translate-y-[0.5px]">
+                    {t.label}
+                  </span>
+
+                  {/* Активная акцентная черта */}
+                  {isActive && (
+                    <span
+                      className="absolute bottom-0 left-2 right-2 h-[2px] bg-oxblood dark:bg-oxblood-light rounded-full shadow-[0_1px_3px_rgba(200,55,45,0.2)]"
+                      aria-hidden="true"
+                    />
+                  )}
                 </button>
               );
             })}
@@ -152,21 +162,21 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={(e) => toggleTheme(e)}
               title={isDark ? 'Переключить на светлую бумагу' : 'Переключить на темную печать'}
-              className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 border border-paper-border dark:border-paper-darkBorder bg-paper-card dark:bg-paper-darkCard text-ink dark:text-ink-light hover:border-ink dark:hover:border-stone-500 active:scale-95 transition-all flex items-center justify-center cursor-pointer select-none"
+              className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 border border-stone-300 dark:border-stone-700 bg-paper-card dark:bg-paper-darkCard text-stone-800 dark:text-stone-200 hover:border-stone-900 dark:hover:border-stone-400 active:scale-95 transition-all flex items-center justify-center cursor-pointer select-none group"
             >
-              <div className="relative w-3.5 h-3.5 overflow-hidden shrink-0 flex items-center justify-center">
+              <div className="relative w-4 h-4 overflow-hidden shrink-0 flex items-center justify-center">
                 <Sun
-                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-300 ease-out ${
+                  className={`w-4 h-4 text-stone-700 dark:text-stone-200 group-hover:text-stone-950 dark:group-hover:text-white absolute transition-all duration-300 ease-out ${
                     isDark
-                      ? 'translate-y-4 opacity-0 rotate-90 scale-50'
+                      ? 'translate-y-5 opacity-0 rotate-90 scale-50'
                       : 'translate-y-0 opacity-100 rotate-0 scale-100'
                   }`}
                 />
                 <Moon
-                  className={`w-3.5 h-3.5 text-brass absolute transition-all duration-300 ease-out ${
+                  className={`w-4 h-4 text-stone-700 dark:text-stone-200 group-hover:text-stone-950 dark:group-hover:text-white absolute transition-all duration-300 ease-out ${
                     isDark
                       ? 'translate-y-0 opacity-100 rotate-0 scale-100'
-                      : '-translate-y-4 opacity-0 -rotate-90 scale-50'
+                      : '-translate-y-5 opacity-0 -rotate-90 scale-50'
                   }`}
                 />
               </div>
@@ -201,7 +211,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
                 <div
                   id="user-sub"
-                  className="text-[9px] font-mono text-ink-muted dark:text-stone-300 leading-tight"
+                  className="text-[11px] font-mono text-stone-600 dark:text-stone-400 leading-tight"
                 >
                   {currentRole === 'student' ? 'ФИТ-231' : 'Софт Инжиниринг'}
                 </div>
