@@ -1,8 +1,10 @@
-import {Router} from "express";
-import {applyForProject} from "./application.controllers.js";
+import { Router } from 'express'
+import { applyForProject } from './application.controllers.js'
+import { authRequired, requireRole } from '../middleware/auth.js'
 
-const router = Router();
+const router = Router()
 
-router.post('/',applyForProject);
+// POST /api/application — только авторизованный студент
+router.post('/', authRequired, requireRole('STUDENT'), applyForProject)
 
-export default router;
+export default router
